@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block tubes_active %}class='active'{% endblock %}
+
+{% block title %}Tubes - NemaStocks{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Tube</th>
+                <th>Strain</th>
+                <th>Color</th>
+                <th>Dewar</th>
+                <th>Rack</th>
+                <th>Box</th>
+                <th>Active</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for tube in tubes %}
+                <tr>
+                    <td>{{ tube.id }}</td>
+                    <td><a href="{% url 'strain_details' wja=tube.strain.wja %}">{{ tube.strain.formatted_WJA }}</a></td>
+                    <td>{{ tube.cap_color }}</td>
+                    <td>{{ tube.box.dewar }}</td>
+                    <td>{{ tube.box.rack }}</td>
+                    <td>{{ tube.box.box }}</td>
+                    <td>{{ tube.thawed_state }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

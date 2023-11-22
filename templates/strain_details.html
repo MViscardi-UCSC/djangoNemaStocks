@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}{{ strain.formatted_WJA }} - NemaStocks{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Strain {{ strain.formatted_WJA }}</h1>
+        <p>{{ strain.description }}</p>
+        <p>{{ strain.repr }}</p>
+        <h2>Freezes</h2>
+            <ul>
+                {% for freeze in strain.freeze_set.all %}
+                    <li>{{ freeze.repr }}</li>
+                {% endfor %}
+            </ul>
+        <h2>Tubes</h2>
+            <ul>
+                {% for tube in strain.tube_set.all %}
+                    {%  if not tube.thawed %}
+                        <li>{{ tube.repr }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        <h2>Previous Tubes (Thawed)</h2>
+            <ul>
+                {% for tube in strain.tube_set.all %}
+                    {%  if tube.thawed %}
+                        <li>{{ tube.repr }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+    </div>
+{% endblock %}
+
+{% block footer %}
+    <a href="{% url 'edit_strain' wja=strain.wja %}">edit strain {{ strain.formatted_WJA }}</a>
+{% endblock %}
+```

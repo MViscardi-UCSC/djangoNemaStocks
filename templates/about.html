@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}About - NemaStocks{% endblock %}
+
+{% block about_active %}class='active'{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>About</h1>
+        <p>
+            This is an initial attempt at rebuilding the Nemastocks database!
+            I am using Flask, Flask-SQLAlchemy, and Flask-Bootstrap. It has
+            been a fun project so far, and I hope to continue to improve it
+            over time.
+
+            <br><br>
+            I feel a little guilty about jumping the gun on this while I have a
+            bunch of other crap that I should be doing... but I'm having fun!
+            Hopefully this will make for a nice jumping off point for when Parissa,
+            Josh, Chloe, and I get around to rebuilding the site.
+
+            <br><br>
+            I think the next big step is going to be importing the current database.
+            My main worry with this is that the current database is an absolute mess.
+            There are a large number of entries with widely varying levels of detail
+            and formatting. I'm not sure how to handle this, but I'm sure we'll figure
+            something out.
+
+            <br><br>
+            The other big todo will be implementing the CRUD (Create, Read, Update, Delete)
+            functionality. Right now we kinda just have the R (Read). And I guess a UGLY
+            version of the C (Create). But I'm not sure if that counts since the strains
+            are hard coded!
+        </p>
+    </div>
+{% endblock %}

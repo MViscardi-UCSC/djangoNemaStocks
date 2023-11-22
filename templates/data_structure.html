@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Data Diagram - NemaStocks{% endblock %}
+
+{% block data_structure_active %}class='active'{% endblock %}
+
+{% block content %}
+<style>
+        .box {
+            border: 1px solid #000;
+            margin: 10px;
+            padding: 10px;
+            width: 200px;
+        }
+</style>
+<body>
+    <div class="container">
+      <h3>Database Diagram</h3>
+      <hr>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="box">
+            <h4>Strain</h4>
+            <ul>
+              <li><strong>id:</strong> Integer</li>
+              <li><strong>wja:</strong> Integer</li>
+              <li><strong>description:</strong> String(255)</li>
+              <li><strong>date_created:</strong> DateTime</li>
+            </ul>
+            <hr>
+            <h5>Tubes</h5>
+            <ul>
+              <li>One Strain can have multiple Tubes</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="box">
+            <h4>Tube</h4>
+            <ul>
+              <li><strong>id:</strong> Integer</li>
+              <li><strong>cap_color:</strong> String(50)</li>
+              <li><strong>date_created:</strong> DateTime</li>
+              <li><strong>date_thawed:</strong> DateTime</li>
+              <li><strong>box_id:</strong> Integer (Foreign Key)</li>
+              <li><strong>strain_id:</strong> Integer (Foreign Key)</li>
+              <li><strong>thawed:</strong> Boolean</li>
+            </ul>
+            <hr>
+            <h5>Relationships</h5>
+            <ul>
+              <li>One Tube belongs to One Strain</li>
+              <li>One Tube belongs to One Box</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="box">
+            <h4>Box</h4>
+            <ul>
+              <li><strong>id:</strong> Integer</li>
+            </ul>
+            <hr>
+            <h5>Tubes</h5>
+            <ul>
+              <li>One Box can have multiple Tubes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+</body>
+{% endblock %}

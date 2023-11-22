@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<body style="display: flex; flex-direction: column; height: 100%">
+    <head style="flex-shrink: 1">
+            <title>
+                {% block title %}
+                    NemaStocks
+                {% endblock %}
+            </title>
+            <!-- Bootstrap CSS -->
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+                  integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+                  crossorigin="anonymous">
+    </head>
+    <nav class="navbar navbar-inverse" style="flex-shrink: 1">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Arribere Nemastocks</a>
+            </div>
+            <ul class="nav navbar-nav">
+                <li {% block home_active %}{% endblock %}><a href="/">Home</a></li>
+                <li {% block strains_active %}{% endblock %}><a href="/strain_list">Strains</a></li>
+                <li {% block about_active %}{% endblock %}><a href="/about">About</a></li>
+                <li {% block strain_search_active %}{% endblock %}><a href="/strain_search">Strain Search</a></li>
+                <li {% block new_strain_active %}{% endblock %}><a href="/strain/new">New Strain</a></li>
+                <li {% block data_structure_active %}{% endblock %}><a href="/data_structure">Data Structure</a></li>
+    {#          <li {% block contact_active %}{% endblock %}><a href="/contact">Contact</a></li>#}
+                <li {% block tubes_active %}{% endblock %}><a href="/tube_list">Tubes</a></li>
+            </ul>
+        </div>
+    </nav>
+    <content class="container" style="flex: 1 0 auto">
+{#        {% with messages = get_flashed_messages(with_categories=True) %}#}
+{#            {% if messages %}#}
+{#                <ul class="flashes list-unstyled">#}
+{#                    {% for (category, message) in messages %}#}
+{#                        {% if category == 'danger' %}#}
+{#                            <li class="alert alert-danger"><b>DANGER:</b> {{ message }}</li>#}
+{#                        {% elif category == 'warning' %}#}
+{#                            <li class="alert alert-warning"><b>WARNING:</b> {{ message }}</li>#}
+{#                        {% else %}#}
+{#                            <li class="alert alert-info"><b>INFO:</b> {{ message }}</li>#}
+{#                        {% endif %}#}
+{#                    {% endfor %}#}
+{#                </ul>#}
+{#            {% endif %}#}
+{#        {% endwith %}#}
+        {% block content %}{% endblock %}
+    </content>
+
+    <footer class="footer navbar-inverse modal-footer" style="flex-shrink: 0">
+        <div class="container-fluid">
+            <p class="text-muted">Arribere Lab</p>
+            <p class="text-muted">University of California, Santa Cruz</p>
+            <p class="text-muted"><a href="/special_links">(Special Links)</a></p>
+            {% block footer %}
+            {% endblock %}
+        </div>
+    </footer>
+</body>
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+</html>

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block strains_active %}class='active'{% endblock %}
+
+{% block title %}Strains - NemaStocks{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>WJA</th>
+                <th>Description</th>
+                <th>Number of Tubes</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for strain in strains %}
+                <tr>
+                    <td><a href="{%  url 'strain_details' wja=strain.wja|stringformat:"04d" %}">{{ strain.formatted_WJA }}</a></td>
+                    <td>{{ strain.description }}</td>
+                    <td>{{ strain.active_tubes_count }}/{{ strain.tube_set.count }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
