@@ -34,19 +34,21 @@ urlpatterns = [
     path('strain_details/<int:wja>/', nema_views.strain_details, name='strain_details'),
     # Tubes:
     path('tube_list/', nema_views.tube_list, name='tube_list'),
-    # path('new_tube/', views.new_tube, name='new_tube'),
-    # path('edit_tube/<int:tube_id>/', views.edit_tube, name='edit_tube'),
-    # path('tube_details/<int:tube_id>/', views.tube_details, name='tube_details'),
+    # path('new_tube/', nema_views.new_tube, name='new_tube'),
+    # path('edit_tube/<int:tube_id>/', nema_views.edit_tube, name='edit_tube'),
+    # path('tube_details/<int:tube_id>/', nema_views.tube_details, name='tube_details'),
     # Boxes:
-    # path('box_list/', views.box_list, name='box_list'),
-    # path('new_box/', views.new_box, name='new_box'),
-    # path('edit_box/<int:box_id>/', views.edit_box, name='edit_box'),
-    # path('box_details/<int:box_id>/', views.box_details, name='box_details'),
+    # path('box_list/', nema_views.box_list, name='box_list'),
+    # path('new_box/', nema_views.new_box, name='new_box'),
+    # path('edit_box/<int:box_id>/', nema_views.edit_box, name='edit_box'),
+    # path('box_details/<int:box_id>/', nema_views.box_details, name='box_details'),
     # Freeze Groups:
-    # path('freeze_group_list/', views.freeze_group_list, name='freeze_group_list'),
-    # path('new_freeze_group/', views.new_freeze_group, name='new_freeze_group'),
-    # path('edit_freeze_group/<int:freeze_group_id>/', views.edit_freeze_group, name='edit_freeze_group'),
-    # path('freeze_group_details/<int:freeze_group_id>/', views.freeze_group_details, name='freeze_group_details'),
+    # path('freeze_group_list/', nema_views.freeze_group_list, name='freeze_group_list'),
+    # path('new_freeze_group/', nema_views.new_freeze_group, name='new_freeze_group'),
+    # path('edit_freeze_group/<int:freeze_group_id>/', nema_views.edit_freeze_group, name='edit_freeze_group'),
+    # path('freeze_group_details/<int:freeze_group_id>/', nema_views.freeze_group_details, name='freeze_group_details'),
+    # Make Requests:
+    path('thaw_request/', nema_views.thaw_request_view, name='thaw_request'),
     # Other:
-    # path('load_data_from_json/', views.load_data_from_json, name='load_data_from_json'),
+    path('load_data_from_json/', nema_views.load_data_from_json, name='load_data_from_json'),
 ]

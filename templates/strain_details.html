@@ -9,23 +9,23 @@
         <p>{{ strain.repr }}</p>
         <h2>Freezes</h2>
             <ul>
-                {% for freeze in strain.freeze_set.all %}
+                {% for freeze in strain.freezegroup_set.all %}
                     <li>{{ freeze.repr }}</li>
                 {% endfor %}
             </ul>
         <h2>Tubes</h2>
             <ul>
-                {% for tube in strain.tube_set.all %}
+                {% for tube in strain.active_tubes %}
                     {%  if not tube.thawed %}
-                        <li>{{ tube.repr }}</li>
+                        <li>{{ tube.short_repr }} {{ tube.freeze_group.tester_initials|default:"" }} - {{ tube.freeze_group.tester_comments|default:"" }}</li>
                     {% endif %}
                 {% endfor %}
             </ul>
         <h2>Previous Tubes (Thawed)</h2>
             <ul>
-                {% for tube in strain.tube_set.all %}
+                {% for tube in strain.inactive_tubes %}
                     {%  if tube.thawed %}
-                        <li>{{ tube.repr }}</li>
+                        <li>{{ tube.short_repr }}</li>
                     {% endif %}
                 {% endfor %}
             </ul>
