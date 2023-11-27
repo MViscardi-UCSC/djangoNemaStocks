@@ -1,5 +1,5 @@
 from django import forms
-from .models import Strain
+from .models import Strain, Tube, Box, FreezeGroup, ThawRequest, FreezeRequest
 
 class StrainForm(forms.ModelForm):
     class Meta:
@@ -11,6 +11,7 @@ class StrainEditForm(forms.ModelForm):
         model = Strain
         fields = ['wja', 'description']
 
-class NewFreezeForm(forms.Form):
-    wja = forms.CharField(max_length=100, required=True)
-    description = forms.CharField(max_length=255, required=False)
+class ThawRequestForm(forms.ModelForm):
+    class Meta:
+        model = ThawRequest
+        exclude = ['tube', 'date_completed', 'completed', 'thawed_by']
