@@ -364,6 +364,7 @@ def main():
             fail_dict[strain] = e
             fail_count += 1
             custom_fail_msg_list.append(e.args[0].split(':')[0])
+            raise e
     ic(fail_dict)
     from collections import Counter
     ic(Counter(custom_fail_msg_list))
