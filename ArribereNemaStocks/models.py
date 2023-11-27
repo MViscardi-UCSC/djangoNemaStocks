@@ -1,11 +1,12 @@
 from django.db import models
+from django.contrib.auth.models import User, Group
 
 
 class Strain(models.Model):
     wja = models.IntegerField(unique=True)
-    phenotype = models.CharField(max_length=255, null=True, editable=True)
     description = models.CharField(max_length=255, null=True, editable=True)
     date_created = models.DateField(auto_now_add=True, editable=True)
+    phenotype = models.CharField(max_length=255, null=True, editable=True)
     
     def active_tubes(self):
         return self.tube_set.filter(thawed=False)
@@ -30,7 +31,6 @@ class Strain(models.Model):
     
     def __repr__(self):
         return f'Strain(WJA{self.wja:0>4}, ' \
-               f'ID-{self.id:0>6}, ' \
                f'Tubes-{self.active_tubes_count()}/{self.total_tubes_count()})'
     
     def repr(self):
@@ -46,7 +46,8 @@ class Tube(models.Model):
     date_thawed = models.DateField(null=True, editable=True)
     box = models.ForeignKey('Box', on_delete=models.CASCADE, null=True,
                             related_name='tube_set')
-    strain = models.ForeignKey('Strain', on_delete=models.CASCADE, choices=Strain.objects.all(),
+    strain = models.ForeignKey('Strain', on_delete=models.CASCADE,
+                               # choices=Strain.objects.all(),
                                related_name='tube_set')
     freeze_group = models.ForeignKey('FreezeGroup', on_delete=models.CASCADE, null=True,
                                      related_name='tube_set')
@@ -79,6 +80,21 @@ class Tube(models.Model):
     
     def __str__(self):
         return self.__repr__()
+    
+    def short_repr(self):
+        if self.box:
+            location_string = f'JA{self.box.dewar:0>2}-Rack{self.box.rack:0>2}-Box{self.box.box:0>4}'
+        else:
+            location_string = 'NotStored'
+        cap_color_string = f'Cap{self.cap_color:->7}'
+
+        if not self.thawed:
+            return f'Tube(WJA{self.strain.wja:0>4}; ' \
+                   f'{location_string}; {cap_color_string})'
+        else:
+            return f'ThawedTube(WJA{self.strain.wja:0>4}; ' \
+                   f'{location_string}; {cap_color_string})'
+
 
 class Box(models.Model):
     dewar = models.IntegerField()
@@ -86,13 +102,14 @@ class Box(models.Model):
     box = models.IntegerField()
 
     def __repr__(self):
-        return f'Box(ID-{self.id:0>6}, Tubes-{self.tube_set.count()})'
+        return f'Box(JA{self.dewar:0>2}-Rack{self.rack:0>2}-Box{self.box:0>4})'
 
     def repr(self):
         return self.__repr__()
     
     def __str__(self):
         return self.__repr__()
+
 
 class FreezeGroup(models.Model):
     date_created = models.DateField(auto_now_add=True, editable=True)
@@ -109,7 +126,67 @@ class FreezeGroup(models.Model):
 
     def __repr__(self):
         return f'FreezeGroup(ID-{self.id:0>6}, Strain-WJA{self.strain.wja}, ' \
-               f'Created-{self.date_created.strftime("%m/%d/%Y")})'
+               f'Frozen-{self.date_frozen.strftime("%m/%d/%Y") if self.date_frozen else "N/A"})'
+
+    def repr(self):
+        return self.__repr__()
+    
+    def __str__(self):
+        return self.__repr__()
+
+class ThawRequest(models.Model):
+    """
+    A thaw request is a request to thaw a strain. It is created by a user, and
+    then a tube from that strain is auto assigned. Once the tube is thawed, the
+    thaw request is marked as completed and the tube is marked as thawed.
+    """
+    date_created = models.DateField(auto_now_add=True, editable=True)
+    strain = models.ForeignKey('Strain', on_delete=models.CASCADE,
+                               related_name='thaw_requests')
+    tube = models.ForeignKey('Tube', on_delete=models.CASCADE,
+                             null=True, blank=True)
+    requester = models.ForeignKey(User, on_delete=models.CASCADE,
+                                  related_name='thaw_requests')
+    is_urgent = models.BooleanField(default=False)
+    request_comments = models.CharField(max_length=255, null=True)
+    date_completed = models.DateField(null=True, blank=True)
+    completed = models.BooleanField(default=False)
+    thawed_by = models.ForeignKey(User, on_delete=models.CASCADE,
+                                  related_name='thawed_tubes',
+                                  null=True, blank=True)
+
+    def __repr__(self):
+        return f'ThawRequest(ID-{self.id:0>6}, Strain-{self.strain.formatted_WJA()}, ' \
+               f'Tube-{self.tube.strain.wja if self.tube else "NotYetAssigned"}, ' \
+               f'Requester-{self.requester}, ' \
+               f'DateCreated-{self.date_created.strftime("%m/%d/%Y")}, ' \
+               f'DateCompleted-{self.date_completed.strftime("%m/%d/%Y") if self.date_completed else "N/A"})'
+
+    def repr(self):
+        return self.__repr__()
+    
+    def __str__(self):
+        return self.__repr__()
+
+class FreezeRequest(models.Model):
+    date_created = models.DateField(auto_now_add=True, editable=True)
+    strain = models.ForeignKey('Strain', on_delete=models.CASCADE,
+                               related_name='freeze_requests')
+    requester = models.ForeignKey(User, on_delete=models.CASCADE,
+                                  related_name='freeze_requests')
+    request_comments = models.CharField(max_length=255, null=True)
+    date_completed = models.DateField(null=True)
+    completed = models.BooleanField(default=False)
+    freeze_group = models.ForeignKey('FreezeGroup', on_delete=models.CASCADE, null=True,
+                                     related_name='freeze_requests')
+    tube = models.ForeignKey('Tube', on_delete=models.CASCADE, null=True,
+                             related_name='freeze_requests')
+
+    def __repr__(self):
+        return f'FreezeRequest(ID-{self.id:0>6}, Strain-WJA{self.strain.wja}, ' \
+               f'Requester-{self.requester}, ' \
+               f'DateCreated-{self.date_created.strftime("%m/%d/%Y")}, ' \
+               f'DateCompleted-{self.date_completed.strftime("%m/%d/%Y") if self.date_completed else "N/A"})'
 
     def repr(self):
         return self.__repr__()
