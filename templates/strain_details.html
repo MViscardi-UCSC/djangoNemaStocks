@@ -1,38 +1,48 @@
+<!-- strain_details.html -->
+
 {% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% load render_table from django_tables2 %}
 
 {% block title %}{{ strain.formatted_WJA }} - NemaStocks{% endblock %}
 
+<script>
+    {% if thaw_modal_open %}
+        $(document).ready(function() {
+            $('#requestThawModal').modal('show');
+        });
+    {% endif %}
+    {% if freeze_modal_open %}
+        $(document).ready(function() {
+            $('#requestFreezeModal').modal('show');
+        });
+    {% endif %}
+</script>
+
 {% block content %}
     <div class="container">
-        <h1>Strain {{ strain.formatted_WJA }}</h1>
+        <div class="d-flex justify-content-between">
+            <h1>Strain {{ strain.formatted_WJA }}</h1>
+            <div>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestFreezeModal">
+                    Request Freeze</button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestThawModal">
+                    Request Thaw</button>
+            </div>
+        </div>
         <p>{{ strain.description }}</p>
         <p>{{ strain.repr }}</p>
-        <h2>Freezes</h2>
-            <ul>
-                {% for freeze in strain.freezegroup_set.all %}
-                    <li>{{ freeze.repr }}</li>
-                {% endfor %}
-            </ul>
-        <h2>Tubes</h2>
-            <ul>
-                {% for tube in strain.active_tubes %}
-                    {%  if not tube.thawed %}
-                        <li>{{ tube.short_repr }} {{ tube.freeze_group.tester_initials|default:"" }} - {{ tube.freeze_group.tester_comments|default:"" }}</li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
-        <h2>Previous Tubes (Thawed)</h2>
-            <ul>
-                {% for tube in strain.inactive_tubes %}
-                    {%  if tube.thawed %}
-                        <li>{{ tube.short_repr }}</li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
+        <h2>Stored Tube Sets:</h2>
+        {% render_table table %}
     </div>
+
+
+{% include 'basic_modal.html' with modal_id='requestThawModal' modal_title='Request Thaw' modal_content=thaw_request_form modal_button_text='Submit Thaw' url_target="handle_thaw_request"%}
+{% include 'basic_modal.html' with modal_id='requestFreezeModal' modal_title='Request Freeze' modal_content=freeze_request_form modal_button_text='Submit Freeze' url_target="handle_freeze_request"%}
 {% endblock %}
 
 {% block footer %}
     <a href="{% url 'edit_strain' wja=strain.wja %}">edit strain {{ strain.formatted_WJA }}</a>
+    Freeze Open: {{ freeze_modal_open|yesno:"True,False" }}
+    Thaw Open: {{ thaw_modal_open|yesno:"True,False" }}
 {% endblock %}
-```
