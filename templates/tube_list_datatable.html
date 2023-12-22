@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load render_table from django_tables2 %}
+
+{% block tubes_active %}class='active'{% endblock %}
+
+{% block title %}Tubes (advanced) - NemaStocks{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <form method="get">
+            <input type="text" name="q" placeholder="Search...">
+            <button type="submit">Search</button>
+        </form>
+        {% render_table table %}
+    </div>
+{% endblock %}

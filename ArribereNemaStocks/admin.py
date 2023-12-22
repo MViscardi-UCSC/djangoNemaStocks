@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib import messages
 from django.utils.translation import ngettext
+from django.db.models import F, Value, CharField
+from django.db.models.functions import Concat
 
 from datetime import datetime
 
@@ -46,16 +48,27 @@ class TubeAdmin(admin.ModelAdmin):
     search_fields = ('date_created', 'date_thawed', 'strain__wja',
                      'thawed', 'thaw_requester')
     actions = [thaw_tubes, unthaw_tubes]
+    
+    autocomplete_fields = ['strain', 'box', 'freeze_group']
 
 
 @admin.register(Strain)
 class StrainAdmin(admin.ModelAdmin):
-    list_display = ('formatted_WJA', 'description', 'date_created', 'phenotype')
+    list_display = ('formatted_wja', 'description', 'date_created',
+                    'phenotype', 'active_tubes_count', 'inactive_tubes_count')
     # list_filter = ('date_created', 'wja')
     search_fields = ('wja', 'date_created')
+    ordering = ('wja',)
     
-    def formatted_WJA(self, obj):
-        return f'WJA{obj.wja:0>4}'
+    readonly_fields = ('wja', 'formatted_wja',)
+    
+    def active_tubes_count(self, obj):
+        return obj.active_tubes_count()
+    active_tubes_count.short_description = 'Active Tubes'
+    
+    def inactive_tubes_count(self, obj):
+        return obj.inactive_tubes_count()
+    inactive_tubes_count.short_description = 'Thawed Tubes'
 
 
 @admin.register(Box)

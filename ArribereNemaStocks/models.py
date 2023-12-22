@@ -1,5 +1,20 @@
 from django.db import models
 from django.contrib.auth.models import User, Group
+from django.contrib.postgres.search import SearchVectorField, SearchVector
+
+Q = models.Q
+
+class StrainManager(models.Manager):
+    def get_by_natural_key(self, wja):
+        return self.get(wja=wja)
+    
+    def search(self, query):
+        return self.filter(
+            Q(formatted_wja__icontains=query) |
+            Q(description__icontains=query) |
+            Q(phenotype__icontains=query)
+            # Add other fields as needed
+        )
 
 
 class Strain(models.Model):
@@ -7,6 +22,30 @@ class Strain(models.Model):
     description = models.CharField(max_length=255, null=True, editable=True)
     date_created = models.DateField(auto_now_add=True, editable=True)
     phenotype = models.CharField(max_length=255, null=True, editable=True)
+    formatted_wja = models.CharField(max_length=8, editable=False)
+    
+    objects = StrainManager()
+    
+    def get_absolute_url(self):
+        return f'/strain_details/{self.wja:0>4}'
+    
+    def save(self, *args, **kwargs):
+        """
+        This method overrides the default save method to populate the formatted_wja field.
+        No other changes were made to the default save method.
+        """
+        self.formatted_wja = f'WJA{self.wja:0>4}'
+        super().save(*args, **kwargs)
+    
+    @staticmethod
+    def populate_formatted_wja():
+        """
+        This method populates the formatted WJA field for all pre-existing strains
+        :return: 
+        """
+        for obj in Strain.objects.all():
+            obj.formatted_wja = f'WJA{obj.wja:0>4}'
+            obj.save()
     
     def active_tubes(self):
         return self.tube_set.filter(thawed=False)

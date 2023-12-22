@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% load render_table from django_tables2 %}
+
+{% block strains_active %}class='active'{% endblock %}
+
+{% block title %}Strains (advanced) - NemaStocks{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <form class="d-flex" method="get" action="{% url 'strain_list_datatable' %}">
+                <label>
+                    <input class="form-control" type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}"
+                    title="Search within WJA, Phenotype, Genotype, and Description for strains">
+                </label>
+                <button class="btn btn-primary" type="submit"
+                        title="Search within WJA, Phenotype, Genotype, and Description for strains">Search</button>
+            {% if request.GET.q %}
+                <span class="ms-2">{{ results_count }} results found.</span>
+            {% endif %}
+        </form>
+        <p>
+                Displaying {{ table.page.start_index }}
+                -{{ table.page.end_index }} 
+                of {{ table.page.paginator.count }}
+        </p>
+        {% render_table table %}
+    </div>
+{% endblock %}
