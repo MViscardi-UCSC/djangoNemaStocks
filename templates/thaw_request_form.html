@@ -1,0 +1,35 @@
+<!-- thaw_request_form.html -->
+
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{% block title %}
+    Thaw Request Form - NemaStocks
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="d-flex justify-content-between">
+            <h1>Thaw Request</h1>
+        </div>
+        <form method="post" action="{% url 'thaw_request_form' %}" id="form">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <a href="{% url 'thaw_request_form' %}" class="btn btn-secondary">Clear Form</a>
+        </form>
+    </div>
+    <script>
+        document.getElementById('form').addEventListener('submit', function() {
+            var disabledElements = this.querySelectorAll(':disabled');
+            disabledElements.forEach(function(element) {
+                element.removeAttribute('disabled');
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

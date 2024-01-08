@@ -6,28 +6,13 @@
 
 {% block title %}{{ strain.formatted_WJA }} - NemaStocks{% endblock %}
 
-<script>
-    {% if thaw_modal_open %}
-        $(document).ready(function() {
-            $('#requestThawModal').modal('show');
-        });
-    {% endif %}
-    {% if freeze_modal_open %}
-        $(document).ready(function() {
-            $('#requestFreezeModal').modal('show');
-        });
-    {% endif %}
-</script>
-
 {% block content %}
     <div class="container">
         <div class="d-flex justify-content-between">
             <h1>Strain {{ strain.formatted_WJA }}</h1>
             <div>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestFreezeModal">
-                    Request Freeze</button>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestThawModal">
-                    Request Thaw</button>
+                <a href="{% url 'freeze_request_form' %}?formatted_wja={{ strain.formatted_wja }}&number_of_tubes=4" class="btn btn-primary">Request Freeze</a>
+                <a href="{% url 'thaw_request_form' %}?formatted_wja={{ strain.formatted_wja }}" class="btn btn-primary">Request Thaw</a>
             </div>
         </div>
         <p>{{ strain.description }}</p>
@@ -35,14 +20,8 @@
         <h2>Stored Tube Sets:</h2>
         {% render_table table %}
     </div>
-
-
-{% include 'basic_modal.html' with modal_id='requestThawModal' modal_title='Request Thaw' modal_content=thaw_request_form modal_button_text='Submit Thaw' url_target="handle_thaw_request"%}
-{% include 'basic_modal.html' with modal_id='requestFreezeModal' modal_title='Request Freeze' modal_content=freeze_request_form modal_button_text='Submit Freeze' url_target="handle_freeze_request"%}
 {% endblock %}
 
 {% block footer %}
     <a href="{% url 'edit_strain' wja=strain.wja %}">edit strain {{ strain.formatted_WJA }}</a>
-    Freeze Open: {{ freeze_modal_open|yesno:"True,False" }}
-    Thaw Open: {{ thaw_modal_open|yesno:"True,False" }}
 {% endblock %}

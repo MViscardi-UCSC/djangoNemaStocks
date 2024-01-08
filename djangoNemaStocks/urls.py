@@ -50,7 +50,10 @@ urlpatterns = [
     # path('edit_freeze_group/<int:freeze_group_id>/', nema_views.edit_freeze_group, name='edit_freeze_group'),
     # path('freeze_group_details/<int:freeze_group_id>/', nema_views.freeze_group_details, name='freeze_group_details'),
     # Make Requests:
-    path('thaw_request/', nema_views.thaw_request_view, name='thaw_request'),
+    path('freeze_request_form/', nema_views.freeze_request_form, name='freeze_request_form'),
+    path('thaw_request_form/', nema_views.thaw_request_form, name='thaw_request_form'),
+    # Requests Lists:
+    
     # Other:
     path('load_data_from_json/', nema_views.load_data_from_json, name='load_data_from_json'),
 ]

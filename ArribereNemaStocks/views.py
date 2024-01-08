@@ -72,17 +72,45 @@ def strain_details(request, wja, *args, **kwargs):
     return render(request, 'strain_details.html', {'strain': strain})
 
 # Request Thaws and Freezes:
-def thaw_request_view(request, *args, **kwargs):
-    form = ThawRequestForm(request.POST or None)
-    
+def freeze_request_form(request, *args, **kwargs):
+    formatted_wja = request.GET.get('formatted_wja', None)
+    number_of_tubes = request.GET.get('number_of_tubes', 1)
+    strain_locked = bool(formatted_wja)
+    form = FreezeRequestForm(request.POST or None,
+                             initial={'strain': formatted_wja,
+                                      'number_of_tubes': number_of_tubes},
+                             strain_locked=strain_locked)
     if form.is_valid():
-        thaw_request = form.save(commit=False)
-        target_strain = get_object_or_404(Strain, wja=thaw_request.strain.wja)
-        # Add code to get the target_tube from the target_strain!
         form.save()
-        messages.success(request, 'Thaw request submitted successfully!')
-        return redirect('strain_details', wja=target_strain.wja)
-    return render(request, 'thaw_request.html', {'form': form})
+        messages.success(request, 'New freeze request created successfully!')
+        return redirect('outstanding_freeze_requests')
+    else:
+        print(form.errors)
+    
+    return render(request, 'freeze_request_form.html', {'form': form})
+
+
+def thaw_request_form(request, *args, **kwargs):
+    formatted_wja = request.GET.get('formatted_wja', None)
+    strain_locked = bool(formatted_wja)
+    form = ThawRequestForm(request.POST or None,
+                           initial={'strain': formatted_wja},
+                           strain_locked=strain_locked)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'New thaw request created successfully!')
+        return redirect('outstanding_thaw_requests')
+    return render(request, 'thaw_request_form.html', {'form': form})
+
+
+# Outstanding Requests Lists:
+def outstanding_freeze_requests(request):
+    freeze_requests = FreezeRequest.objects.filter(completed=False)
+    return render(request, 'outstanding_freeze_requests.html', {'freeze_requests': freeze_requests})
+
+def outstanding_thaw_requests(request):
+    thaw_requests = ThawRequest.objects.filter(completed=False)
+    return render(request, 'outstanding_thaw_requests.html', {'thaw_requests': thaw_requests})
 
 # Other items:
 def load_data_from_json(request, *args, **kwargs):

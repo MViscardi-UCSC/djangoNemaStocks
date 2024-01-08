@@ -184,13 +184,13 @@ class ThawRequest(models.Model):
                                related_name='thaw_requests')
     tube = models.ForeignKey('Tube', on_delete=models.CASCADE,
                              null=True, blank=True)
-    requester = models.ForeignKey(User, on_delete=models.CASCADE,
+    requester = models.ForeignKey(UserProfile, on_delete=models.CASCADE,
                                   related_name='thaw_requests')
     is_urgent = models.BooleanField(default=False)
-    request_comments = models.CharField(max_length=255, null=True)
+    request_comments = models.CharField(max_length=255, null=True, blank=True)
     date_completed = models.DateField(null=True, blank=True)
     completed = models.BooleanField(default=False)
-    thawed_by = models.ForeignKey(User, on_delete=models.CASCADE,
+    thawed_by = models.ForeignKey(UserProfile, on_delete=models.CASCADE,
                                   related_name='thawed_tubes',
                                   null=True, blank=True)
 
@@ -211,15 +211,14 @@ class FreezeRequest(models.Model):
     date_created = models.DateField(auto_now_add=True, editable=True)
     strain = models.ForeignKey('Strain', on_delete=models.CASCADE,
                                related_name='freeze_requests')
-    requester = models.ForeignKey(User, on_delete=models.CASCADE,
+    requester = models.ForeignKey(UserProfile, on_delete=models.CASCADE,
                                   related_name='freeze_requests')
-    request_comments = models.CharField(max_length=255, null=True)
+    request_comments = models.CharField(max_length=255, null=True, blank=True)
     date_completed = models.DateField(null=True)
     completed = models.BooleanField(default=False)
-    freeze_group = models.ForeignKey('FreezeGroup', on_delete=models.CASCADE, null=True,
-                                     related_name='freeze_requests')
-    tube = models.ForeignKey('Tube', on_delete=models.CASCADE, null=True,
-                             related_name='freeze_requests')
+    number_of_tubes = models.IntegerField(default=1)
+    cap_color = models.CharField(max_length=50, null=True, blank=True)
+    freeze_group = models.OneToOneField('FreezeGroup', on_delete=models.CASCADE, null=True)
 
     def __repr__(self):
         return f'FreezeRequest(ID-{self.id:0>6}, Strain-WJA{self.strain.wja}, ' \
