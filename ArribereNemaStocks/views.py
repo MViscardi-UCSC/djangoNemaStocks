@@ -1,42 +1,39 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect, reverse
 from django.contrib import messages
 from django.http import HttpResponse
 from django_tables2 import RequestConfig
 
-from .models import Strain, Tube, Box, FreezeGroup
-from .forms import StrainForm, StrainEditForm, ThawRequestForm
-from .tables import StrainTable, TubeTable
+from .models import Strain, Tube, Box, FreezeGroup, FreezeRequest, ThawRequest
+from .forms import StrainForm, StrainEditForm, ThawRequestForm, FreezeRequestForm
+from .tables import StrainTable, TubeTable, FreezeGroupTable
 
+from profiles.models import UserProfile
 
 from .json_DB_parser import main as json_db_parser_main
+
 
 # General Navigation:
 def index(request, *args, **kwargs):
     strains = Strain.objects.all()
     return render(request, 'index.html')
 
+
 def about(request, *args, **kwargs):
     return render(request, 'about.html')
 
 
-def tube_list(request, *args, **kwargs):
-    tubes = Tube.objects.all()
-    return render(request, 'tube_list.html', {'tubes': tubes})
-
-def tube_list_datatable(request, *args, **kwargs):
-    tubes = Tube.objects.all()
-    search_term = request.GET.get('q')
-    if search_term:
-        strains = tubes.filter(formatted_wja__icontains=search_term)
-    table = TubeTable(tubes)
-    RequestConfig(request, paginate={"per_page": 15}).configure(table)
-    return render(request, 'tube_list_datatable.html', {'table': table})
-
-
 # Strain Navigation:
-def strain_list(request, *args, **kwargs):
+def strain_search(request, *args, **kwargs):
     strains = Strain.objects.all()
-    return render(request, 'strain_list.html', {'strains': strains})
+    search_term = request.GET.get('q')
+
+    if search_term:
+        strains = Strain.objects.search(search_term)
+
+    table = StrainTable(strains)
+    RequestConfig(request, paginate={"per_page": 15}).configure(table)
+
+    return render(request, 'strain_search.html', {'table': table, 'results_count': strains.count()})
 
 def strain_list_datatable(request, *args, **kwargs):
     strains = Strain.objects.all()
@@ -50,6 +47,7 @@ def strain_list_datatable(request, *args, **kwargs):
 
     return render(request, 'strain_list_datatable.html', {'table': table, 'results_count': strains.count()})
 
+
 def new_strain(request, *args, **kwargs):
     form = StrainForm(request.POST or None)
     if form.is_valid():
@@ -57,6 +55,7 @@ def new_strain(request, *args, **kwargs):
         messages.success(request, 'New strain created successfully!')
         return redirect('strain_details', wja=form.instance.wja)
     return render(request, 'new_strain.html', {'form': form})
+
 
 def edit_strain(request, wja, *args, **kwargs):
     strain = get_object_or_404(Strain, wja=wja)
@@ -67,9 +66,16 @@ def edit_strain(request, wja, *args, **kwargs):
         return redirect('strain_details', wja=form.instance.wja)
     return render(request, 'edit_strain.html', {'form': form, 'strain': strain})
 
+
 def strain_details(request, wja, *args, **kwargs):
     strain = get_object_or_404(Strain, wja=wja)
-    return render(request, 'strain_details.html', {'strain': strain})
+    active_freeze_groups = [freeze_group for freeze_group in strain.freezegroup_set.all()
+                            if freeze_group.active_tubes_count() > 0]
+    table = FreezeGroupTable(active_freeze_groups)
+    RequestConfig(request, paginate={"per_page": 10}).configure(table)
+
+    return render(request, 'strain_details.html', {'strain': strain, 'table': table})
+
 
 # Request Thaws and Freezes:
 def freeze_request_form(request, *args, **kwargs):

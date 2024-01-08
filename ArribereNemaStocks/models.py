@@ -1,8 +1,8 @@
 from django.db import models
-from django.contrib.auth.models import User, Group
-from django.contrib.postgres.search import SearchVectorField, SearchVector
+from django.db.models import Q
 
-Q = models.Q
+from profiles.models import UserProfile
+
 
 class StrainManager(models.Manager):
     def get_by_natural_key(self, wja):
@@ -155,6 +155,7 @@ class FreezeGroup(models.Model):
     date_frozen = models.DateField(null=True)
     strain = models.ForeignKey('Strain', on_delete=models.CASCADE)
     freezer_initials = models.CharField(max_length=15, default='N/A')
+    # cap_color = models.CharField(max_length=50, default='N/A')
     started_test = models.BooleanField(default=False)
     completed_test = models.BooleanField(default=False)
     passed_test = models.BooleanField(default=False)
@@ -172,6 +173,24 @@ class FreezeGroup(models.Model):
     
     def __str__(self):
         return self.__repr__()
+
+    def active_tubes(self):
+        return self.tube_set.filter(thawed=False)
+
+    def active_tubes_count(self):
+        return self.active_tubes().count()
+
+    def inactive_tubes(self):
+        return self.tube_set.filter(thawed=True)
+
+    def inactive_tubes_count(self):
+        return self.inactive_tubes().count()
+
+    def total_tubes(self):
+        return self.tube_set.all()
+
+    def total_tubes_count(self):
+        return self.total_tubes().count()
 
 class ThawRequest(models.Model):
     """

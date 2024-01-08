@@ -28,14 +28,15 @@ urlpatterns = [
     path('', nema_views.index, name='index'),
     path('about/', nema_views.about, name='about'),
     # Strains:
-    path('strain_list/', nema_views.strain_list, name='strain_list'),
+    path('strain_search/', nema_views.strain_search, name='strain_search'),
+    # path('strain_list/', nema_views.strain_list, name='strain_list'),
     path('strain_list_datatable/', nema_views.strain_list_datatable, name='strain_list_datatable'),
     # path('new_strain/', views.new_strain, name='new_strain'),
     path('edit_strain/<int:wja>/', nema_views.edit_strain, name='edit_strain'),
     path('strain_details/<int:wja>/', nema_views.strain_details, name='strain_details'),
     # Tubes:
-    path('tube_list/', nema_views.tube_list, name='tube_list'),
-    path('tube_list_datatable/', nema_views.tube_list_datatable, name='tube_list_datatable'),
+    # path('tube_list/', nema_views.tube_list, name='tube_list'),
+    # path('tube_list_datatable/', nema_views.tube_list_datatable, name='tube_list_datatable'),
     # path('new_tube/', nema_views.new_tube, name='new_tube'),
     # path('edit_tube/<int:tube_id>/', nema_views.edit_tube, name='edit_tube'),
     # path('tube_details/<int:tube_id>/', nema_views.tube_details, name='tube_details'),

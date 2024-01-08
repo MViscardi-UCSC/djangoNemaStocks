@@ -5,20 +5,24 @@
 {% block title %}Strain Search{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <h1>Strain Search</h1>
-        <form action="{{ url_for('strain_search') }}" method="POST">
-            <div class="input-group mb-3">
-                <input type="text" class="form-control" name="search" placeholder="Enter WJA">
-                <div class="input-group-append">
-                    <button class="btn btn-primary" type="submit">Search</button>
-                </div>
+    <div class="container mt-4">
+    <h1>NemaStocks Strain Search</h1>
+        <p>
+            Use this to search within WJA, Phenotype, Genotype, and Description for strains.
+        </p>
+        <form class="d-flex" method="get" action="{% url 'strain_list_datatable' %}">
+            <div class="input-group mt-3">
+                <input class="form-control" type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}"
+                title="Search within WJA, Phenotype, Genotype, and Description for strains"
+                id="searchBoxInput">
+                <label class="form-check-label" for="searchBoxInput"></label>
+                <button class="btn btn-primary" type="submit"
+                        title="Search within WJA, Phenotype, Genotype, and Description for strains">Search</button>
+                <a href="{% url 'strain_list_datatable' %}" class="btn btn-secondary" title="View all strains">View All</a>
             </div>
         </form>
-        {% if error %}
-            <div class="alert alert-danger" role="alert">
-                {{ error }}
-            </div>
-        {% endif %}
+        <small>
+            In the future we can add functionality to search within specific fields if we'd like... Ask Marcus
+        </small>
     </div>
 {% endblock %}
