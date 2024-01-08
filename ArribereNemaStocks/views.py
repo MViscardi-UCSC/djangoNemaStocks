@@ -5,7 +5,7 @@ from django_tables2 import RequestConfig
 
 from .models import Strain, Tube, Box, FreezeGroup, FreezeRequest, ThawRequest
 from .forms import StrainForm, StrainEditForm, ThawRequestForm, FreezeRequestForm
-from .tables import StrainTable, TubeTable, FreezeGroupTable
+from .tables import StrainTable, TubeTable, FreezeGroupTable, FreezeRequestTable, ThawRequestTable
 
 from profiles.models import UserProfile
 
@@ -112,11 +112,29 @@ def thaw_request_form(request, *args, **kwargs):
 # Outstanding Requests Lists:
 def outstanding_freeze_requests(request):
     freeze_requests = FreezeRequest.objects.filter(completed=False)
-    return render(request, 'outstanding_freeze_requests.html', {'freeze_requests': freeze_requests})
+    search_term = request.GET.get('q')
+
+    if search_term:
+        freeze_requests = freeze_requests.search(search_term)
+
+    table = FreezeRequestTable(freeze_requests)
+    RequestConfig(request, paginate={"per_page": 15}).configure(table)
+    
+    return render(request, 'outstanding_freeze_requests.html', {'table': table,
+                                                                'results_count': freeze_requests.count()})
 
 def outstanding_thaw_requests(request):
     thaw_requests = ThawRequest.objects.filter(completed=False)
-    return render(request, 'outstanding_thaw_requests.html', {'thaw_requests': thaw_requests})
+    search_term = request.GET.get('q')
+
+    if search_term:
+        thaw_requests = thaw_requests.search(search_term)
+
+    table = FreezeRequestTable(thaw_requests)
+    RequestConfig(request, paginate={"per_page": 15}).configure(table)
+
+    return render(request, 'outstanding_thaw_requests.html', {'table': table,
+                                                                'results_count': thaw_requests.count()})
 
 # Other items:
 def load_data_from_json(request, *args, **kwargs):

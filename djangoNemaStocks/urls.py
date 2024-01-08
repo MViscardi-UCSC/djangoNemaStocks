@@ -54,7 +54,8 @@ urlpatterns = [
     path('freeze_request_form/', nema_views.freeze_request_form, name='freeze_request_form'),
     path('thaw_request_form/', nema_views.thaw_request_form, name='thaw_request_form'),
     # Requests Lists:
-    
+    path('outstanding_freeze_requests/', nema_views.outstanding_freeze_requests, name='outstanding_freeze_requests'),
+    path('outstanding_thaw_requests/', nema_views.outstanding_thaw_requests, name='outstanding_thaw_requests'),
     # Other:
     path('load_data_from_json/', nema_views.load_data_from_json, name='load_data_from_json'),
 ]

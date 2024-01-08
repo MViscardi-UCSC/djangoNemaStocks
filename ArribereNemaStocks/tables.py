@@ -44,3 +44,31 @@ class FreezeGroupTable(tables.Table):
         # template_name = 'django_tables2/bootstrap4.html'
         fields = ('selected', 'date_created', 'tester_initials',
                   'tester_comments', 'active_tubes_count')
+
+
+class FreezeRequestTable(tables.Table):
+    selected = tables.CheckBoxColumn(accessor='pk', orderable=False)
+    date_created = tables.Column()
+    requester = tables.Column()
+    strain = tables.Column()
+    number_of_tubes = tables.Column()
+    cap_color = tables.Column()
+    completed = tables.Column()
+    
+    class Meta:
+        model = FreezeRequest
+        # template_name = 'django_tables2/bootstrap4.html'
+        fields = ('selected', 'date_created', 'requester', 'strain',
+                  'number_of_tubes', 'cap_color', 'completed')
+
+class ThawRequestTable(tables.Table):
+    selected = tables.CheckBoxColumn(accessor='pk', orderable=False)
+    date_created = tables.Column()
+    strain = tables.Column()
+    requester = tables.Column()
+    completed = tables.Column()
+    
+    class Meta:
+        model = ThawRequest
+        # template_name = 'django_tables2/bootstrap4.html'
+        fields = ('selected', 'date_created', 'requester', 'strain', 'completed')
