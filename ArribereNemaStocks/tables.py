@@ -34,13 +34,13 @@ class TubeTable(tables.Table):
 
 class FreezeGroupTable(tables.Table):
     selected = tables.CheckBoxColumn(accessor='pk', orderable=False)
-    formatted_wja = tables.Column(linkify=True, verbose_name='WJA')
     date_created = tables.Column()
-    date_thawed = tables.Column()
-    thawed = tables.Column()
-    thaw_requester = tables.Column()
+    tester_initials = tables.Column()
+    tester_comments = tables.Column()
+    active_tubes_count = tables.Column(verbose_name='Active Tubes')
     
     class Meta:
         model = FreezeGroup
         # template_name = 'django_tables2/bootstrap4.html'
-        fields = ('selected', 'formatted_wja', 'date_created', 'date_thawed', 'thawed', 'thaw_requester')
+        fields = ('selected', 'date_created', 'tester_initials',
+                  'tester_comments', 'active_tubes_count')
