@@ -15,4 +15,11 @@ class UserProfile(models.Model):
     ]
     role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='o')
     initials = models.CharField(max_length=4, null=False, blank=False, unique=True)
+    email = models.EmailField(max_length=255, null=True, blank=True)
+    active_status = models.BooleanField(default=False)
     
+    def __repr__(self):
+        return f'{self.user.username.title()} ({self.initials})'
+    
+    def __str__(self):
+        return self.__repr__()
