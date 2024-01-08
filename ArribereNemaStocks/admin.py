@@ -44,7 +44,7 @@ class TubeAdmin(admin.ModelAdmin):
 
     list_display = ('id', 'strain', 'cap_color', 'date_created', 'date_thawed',
                     'box', 'freeze_group', 'thawed', 'thaw_requester')
-    list_filter = ('date_created', 'date_thawed', 'thawed', 'thaw_requester')
+    list_filter = ('date_created', 'date_thawed', 'thawed', 'thaw_requester', 'cap_color')
     search_fields = ('date_created', 'date_thawed', 'strain__wja',
                      'thawed', 'thaw_requester')
     actions = [thaw_tubes, unthaw_tubes]
