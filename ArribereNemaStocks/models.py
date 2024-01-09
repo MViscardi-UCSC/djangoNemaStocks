@@ -192,6 +192,19 @@ class FreezeGroup(models.Model):
     def total_tubes_count(self):
         return self.total_tubes().count()
 
+
+class ThawRequestManager(models.Manager):
+    def get_by_natural_key(self, wja):
+        return self.get(wja=wja)
+
+    def search(self, query):
+        return self.filter(
+            Q(requester__icontains=query) |
+            Q(strain__formatted_wja__icontains=query) |
+            Q(request_comments__icontains=query)
+            # Add other fields as needed
+        )
+
 class ThawRequest(models.Model):
     """
     A thaw request is a request to thaw a strain. It is created by a user, and
@@ -212,6 +225,8 @@ class ThawRequest(models.Model):
     thawed_by = models.ForeignKey(UserProfile, on_delete=models.CASCADE,
                                   related_name='thawed_tubes',
                                   null=True, blank=True)
+    
+    objects = ThawRequestManager()
 
     def __repr__(self):
         return f'ThawRequest(ID-{self.id:0>6}, Strain-{self.strain.formatted_WJA()}, ' \
@@ -226,6 +241,19 @@ class ThawRequest(models.Model):
     def __str__(self):
         return self.__repr__()
 
+
+class FreezeRequestManager(models.Manager):
+    def get_by_natural_key(self, wja):
+        return self.get(wja=wja)
+
+    def search(self, query):
+        return self.filter(
+            Q(requester__icontains=query) |
+            Q(strain__formatted_wja__icontains=query) |
+            Q(request_comments__icontains=query)
+            # Add other fields as needed
+        )
+
 class FreezeRequest(models.Model):
     date_created = models.DateField(auto_now_add=True, editable=True)
     strain = models.ForeignKey('Strain', on_delete=models.CASCADE,
@@ -238,6 +266,8 @@ class FreezeRequest(models.Model):
     number_of_tubes = models.IntegerField(default=1)
     cap_color = models.CharField(max_length=50, null=True, blank=True)
     freeze_group = models.OneToOneField('FreezeGroup', on_delete=models.CASCADE, null=True)
+    
+    objects = FreezeRequestManager()
 
     def __repr__(self):
         return f'FreezeRequest(ID-{self.id:0>6}, Strain-WJA{self.strain.wja}, ' \
