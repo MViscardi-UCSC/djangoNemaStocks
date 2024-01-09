@@ -2,6 +2,7 @@
 {% load django_bootstrap5 %}
 {% bootstrap_css %}
 {% bootstrap_javascript %}
+{% load bootstrap_icons %}
 
 <html style="height: 100%" lang="en">
 <head style="flex-shrink: 1">
@@ -20,9 +21,13 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             {% if user.is_authenticated %}
-                <a class="navbar-brand" href="#" style="margin-left: 15px">{{ request.user.userprofile.initials }}</a>
+                <a class="navbar-brand" href="/user_page" style="margin-left: 15px">
+                    {% bs_icon 'person-circle' %} {{ request.user.userprofile.initials }}
+                </a>
             {% else %}
-                <a class="navbar-brand" href="#" style="margin-left: 15px">Guest</a>
+                <a class="navbar-brand" href="/login" style="margin-left: 15px">
+                    {% bs_icon 'person-circle' %} Guest
+                </a>
             {% endif %}
         </div>
         <a class="navbar-brand" href="#">Arribere Nemastocks</a>
@@ -52,13 +57,6 @@
                         <a class="nav-link" href="/login">Login Page</a>
                     </li>
                 {% endif %}
-                
-{#                <li class="nav-item {% block data_structure_active %}{% endblock %}">#}
-{#                    <a class="nav-link" href="/data_structure">Data Structure</a>#}
-{#                </li>#}
-{#                <li class="nav-item {% block tubes_active %}{% endblock %}">#}
-{#                    <a class="nav-link" href="/tube_list_datatable">Tubes</a>#}
-{#                </li>#}
             </ul>
         </div>
     </div>
@@ -77,10 +75,10 @@
     </div>
 </content>
 <footer class="footer navbar-dark bg-dark" style="flex-shrink: 0">
-    <div class="container-fluid">
+    <div class="container-fluid" style="margin-top: 15px">
         <p class="text-muted">Arribere Lab</p>
         <p class="text-muted">University of California, Santa Cruz</p>
-        <p class="text-muted"><a href="/special_links">(Special Links)</a></p>
+        <p class="text-muted"><a href="/admin">(Admin Site)</a></p>
         {% block footer %}
         {% endblock %}
     </div>
