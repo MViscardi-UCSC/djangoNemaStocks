@@ -46,11 +46,25 @@ class FreezeGroupTable(tables.Table):
                   'tester_comments', 'active_tubes_count')
 
 
+class MiniFreezeGroupTable(tables.Table):
+    date_created = tables.Column()
+    tester_initials = tables.Column()
+    tester_comments = tables.Column()
+    active_tubes_count = tables.Column(verbose_name='Active Tubes')
+
+    class Meta:
+        model = FreezeGroup
+        # template_name = 'django_tables2/bootstrap4.html'
+        fields = ('date_created', 'tester_initials',
+                  'tester_comments', 'active_tubes_count')
+
+
 class FreezeRequestTable(tables.Table):
     selected = tables.CheckBoxColumn(accessor='pk', orderable=False)
     date_created = tables.Column()
     requester = tables.Column()
-    strain = tables.Column()
+    strain = tables.Column(linkify=lambda record: record.strain.get_absolute_url(),
+                           accessor='strain.formatted_wja', verbose_name='WJA')
     number_of_tubes = tables.Column()
     cap_color = tables.Column()
     completed = tables.Column()
@@ -64,11 +78,25 @@ class FreezeRequestTable(tables.Table):
 class ThawRequestTable(tables.Table):
     selected = tables.CheckBoxColumn(accessor='pk', orderable=False)
     date_created = tables.Column()
-    strain = tables.Column()
+    strain = tables.Column(linkify=lambda record: record.strain.get_absolute_url(),
+                           accessor='strain.formatted_wja', verbose_name='WJA')
     requester = tables.Column()
+    requester_comments = tables.Column()
     completed = tables.Column()
     
     class Meta:
         model = ThawRequest
         # template_name = 'django_tables2/bootstrap4.html'
-        fields = ('selected', 'date_created', 'requester', 'strain', 'completed')
+        fields = ('selected', 'date_created', 'strain', 'requester', 'requester_comments', 'completed')
+
+
+class MiniThawRequestTable(tables.Table):
+    date_created = tables.Column()
+    requester = tables.Column()
+    requester_comments = tables.Column()
+    completed = tables.Column()
+
+    class Meta:
+        model = ThawRequest
+        # template_name = 'django_tables2/bootstrap4.html'
+        fields = ('date_created', 'requester', 'requester_comments', 'completed')
