@@ -13,26 +13,32 @@ class LoginForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput)
 
 class UserProfileForm(forms.ModelForm):
+    email = forms.EmailField()
+    
     class Meta:
         model = UserProfile
-        fields = ['role', 'initials', 'active_status']
-        widgets = {
-            'role': forms.Select(attrs={'class': 'form-control'}),
-            'initials': forms.TextInput(attrs={'class': 'form-control'}),
-            'active_status': forms.CheckboxInput(attrs={'class': 'form-control'}),
-        }
-        labels = {
-            'role': 'Role',
-            'initials': 'Initials',
-            'active_status': 'Active Status',
-        }
-        help_texts = {
-            'role': 'Pleas select your role from the dropdown menu.',
-            'initials': 'Enter your initials. These will be used to identify you in the database.',
-            'active_status': 'Check this box if you are an active member of the lab.',
-        }
-        error_messages = {
-            'initials': {
-                'max_length': "Please enter a maximum of 4 characters.",
-            },
-        }
+        fields = ['role', 'initials', 'active_status',
+                  'strain_numbers_start', 'strain_numbers_end', 'email']
+    ROLE_CHOICES = [
+        ('i', 'Professor/Primary Investigator'),
+        ('p', 'Postdoctoral Fellow'),
+        ('c', 'Collaborator'),
+        ('g', 'Graduate Student'),
+        ('t', 'Technician'),
+        ('u', 'Undergraduate'),
+        ('o', 'Other/Undefined'),
+    ]
+    
+    role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect)
+    
+    def __init__(self, *args, **kwargs):
+        super(UserProfileForm, self).__init__(*args, **kwargs)
+    
+    def save(self, commit=True):
+        user_profile = super(UserProfileForm, self).save(commit=False)
+        user_profile.user.email = self.cleaned_data['email']
+        if commit:
+            user_profile.user.save()
+            user_profile.save()
+        return user_profile
+

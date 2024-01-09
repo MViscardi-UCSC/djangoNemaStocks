@@ -17,8 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, register_converter
 from ArribereNemaStocks import views as nema_views
-from ArribereNemaStocks.converters import WJAConverter
 from profiles import views as profile_views
+
+from ArribereNemaStocks.converters import WJAConverter
 
 
 register_converter(WJAConverter, 'wja')
@@ -29,6 +30,7 @@ urlpatterns = [
     # User Authentication:
     path('login/', profile_views.login_page, name='login_page'),
     path('user_page/', profile_views.user_page, name='user_page'),
+    path('user_page/edit/', profile_views.edit_user_profile, name='edit_user_profile'),
     # Navigation:
     path('', nema_views.index, name='index'),
     path('about/', nema_views.about, name='about'),

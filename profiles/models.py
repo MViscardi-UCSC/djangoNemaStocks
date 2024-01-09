@@ -17,6 +17,8 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='o')
     initials = models.CharField(max_length=4, null=False, blank=False, unique=True)
     active_status = models.BooleanField(default=False)
+    strain_numbers_start = models.IntegerField(default=-1)
+    strain_numbers_end = models.IntegerField(default=-1)
     
     def __repr__(self):
         return f'{self.user.username.title()} ({self.initials})'

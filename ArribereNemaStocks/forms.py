@@ -26,7 +26,7 @@ class ThawRequestForm(forms.ModelForm):
         to_field_name='formatted_wja',
         widget=forms.TextInput(),
         label='Strain',
-        help_text='Please enter the strain in this format: WJA0002',
+        help_text='Please enter the strain in this format: WJA0999',
     )
 
 class FreezeRequestForm(forms.ModelForm):

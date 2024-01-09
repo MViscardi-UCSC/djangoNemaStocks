@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'profiles.apps.ProfilesConfig',
     'django_tables2',
     'django_bootstrap5',
+    'django_bootstrap_icons',
 ]
 
 MIDDLEWARE = [
@@ -134,3 +135,6 @@ DJANGO_TABLES2_TABLE_ATTRS = {
         'class': 'table-light',
     },
 }
+
+# Added by Marcus based on: https://docs.djangoproject.com/en/3.1/topics/auth/default/#the-login-required-decorator
+LOGIN_URL = '/login/'
