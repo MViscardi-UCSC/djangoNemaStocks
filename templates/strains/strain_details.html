@@ -1,6 +1,6 @@
 <!-- strain_details.html -->
 
-{% extends "base.html" %}
+{% extends "pieces/base.html" %}
 {% load django_bootstrap5 %}
 {% load render_table from django_tables2 %}
 
@@ -15,10 +15,27 @@
                 <a href="{% url 'thaw_request_form' %}?formatted_wja={{ strain.formatted_wja }}" class="btn btn-primary">Request Thaw</a>
             </div>
         </div>
-        <p>{{ strain.description }}</p>
-        <p>{{ strain.repr }}</p>
-        <h2>Stored Tube Sets:</h2>
-        {% render_table table %}
+        <div>
+            <p>{{ strain.description }}</p>
+            <p>{{ strain.repr }}</p>
+        </div>
+        <hr/>
+        <div>
+            <h2>Stored Tube Sets:</h2>
+            {% if tubes_table_count %}
+                {% render_table tubes_table %}
+            {% else %}
+                <p>There are no tubes stored for this strain. This is concerning!!</p>
+            {% endif %}
+        </div>
+        {% if thaws_table_count %}
+            <hr/>
+            <div>
+                <h2>Recent Thaws:</h2>
+                <p>These are the {{ thaws_table_count }} most recent thaw requests!</p>
+                {% render_table thaws_table %}
+            </div>
+        {% endif %}
     </div>
 {% endblock %}
 

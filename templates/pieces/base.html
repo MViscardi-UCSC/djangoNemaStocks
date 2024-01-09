@@ -14,10 +14,17 @@
 <body style="display: flex; flex-direction: column; height: 100%">
 <nav class="navbar navbar-dark bg-dark" style="flex-shrink: 1;">
     <div class="container-fluid">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#myNavbar"
-                aria-controls="myNavbar" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#myNavbar"
+                    aria-controls="myNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            {% if user.is_authenticated %}
+                <a class="navbar-brand" href="#" style="margin-left: 15px">{{ request.user.userprofile.initials }}</a>
+            {% else %}
+                <a class="navbar-brand" href="#" style="margin-left: 15px">Guest</a>
+            {% endif %}
+        </div>
         <a class="navbar-brand" href="#">Arribere Nemastocks</a>
         <div class="collapse navbar-collapse" id="myNavbar">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -36,6 +43,16 @@
                 <li class="nav-item {% block new_strain_active %}{% endblock %}">
                     <a class="nav-link" href="/strain/new">New Strain</a>
                 </li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/user_page">User Page</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Login Page</a>
+                    </li>
+                {% endif %}
+                
 {#                <li class="nav-item {% block data_structure_active %}{% endblock %}">#}
 {#                    <a class="nav-link" href="/data_structure">Data Structure</a>#}
 {#                </li>#}
@@ -55,7 +72,9 @@
             </div>
         {% endfor %}
     {% endif %}
+    <div style="margin-top: 40px; margin-bottom: 40px">
     {% block content %}{% endblock %}
+    </div>
 </content>
 <footer class="footer navbar-dark bg-dark" style="flex-shrink: 0">
     <div class="container-fluid">

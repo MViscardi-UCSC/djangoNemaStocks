@@ -1,24 +1,24 @@
-<!-- freeze_request_form.html -->
+<!-- thaw_request_form.html -->
 
-{% extends "base.html" %}
+{% extends "pieces/base.html" %}
 {% load django_bootstrap5 %}
 {% bootstrap_css %}
 {% bootstrap_javascript %}
 
 {% block title %}
-    Freeze Request Form - NemaStocks
+    Thaw Request Form - NemaStocks
 {% endblock %}
 
 {% block content %}
     <div class="container">
         <div class="d-flex justify-content-between">
-            <h1>Freeze Request Form</h1>
+            <h1>Thaw Request</h1>
         </div>
-        <form method="post" action="{% url 'freeze_request_form' %}" id="form">
+        <form method="post" action="{% url 'thaw_request_form' %}" id="form">
             {% csrf_token %}
             {% bootstrap_form form %}
             <button type="submit" class="btn btn-primary">Submit</button>
-            <a href="{% url 'freeze_request_form' %}" class="btn btn-secondary">Clear Form</a>
+            <a href="{% url 'thaw_request_form' %}" class="btn btn-secondary">Clear Form</a>
         </form>
     </div>
     <script>
