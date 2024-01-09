@@ -18,12 +18,17 @@ from django.contrib import admin
 from django.urls import path, register_converter
 from ArribereNemaStocks import views as nema_views
 from ArribereNemaStocks.converters import WJAConverter
+from profiles import views as profile_views
+
 
 register_converter(WJAConverter, 'wja')
 
 urlpatterns = [
     # Admin:
     path('admin/', admin.site.urls),
+    # User Authentication:
+    path('login/', profile_views.login_page, name='login_page'),
+    path('user_page/', profile_views.user_page, name='user_page'),
     # Navigation:
     path('', nema_views.index, name='index'),
     path('about/', nema_views.about, name='about'),

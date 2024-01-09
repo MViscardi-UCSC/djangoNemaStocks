@@ -1,0 +1,30 @@
+<!-- user.html -->
+
+{% extends "pieces/base.html" %}
+{% load django_bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{% block title %}
+    User Page - NemaStocks
+{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between">
+        <h1>User {{ request.user|title }}/{{ user_profile }}</h1>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="logout" value="True">
+            <button type="submit" name="logout" class="btn btn-secondary">Logout</button>
+        </form>
+    </div>
+    <li>Email: {{ request.user.email }}</li>
+    <li>Current Role: {{ user_profile.role }}</li>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

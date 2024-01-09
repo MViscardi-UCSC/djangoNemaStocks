@@ -3,7 +3,8 @@ from django.contrib.auth.models import User, Group
 
 # Create your models here.
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE,
+                                related_name='userprofile')
     ROLE_CHOICES = [
         ('i', 'Professor/Primary Investigator'),
         ('p', 'Postdoctoral Fellow'),
@@ -15,7 +16,6 @@ class UserProfile(models.Model):
     ]
     role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='o')
     initials = models.CharField(max_length=4, null=False, blank=False, unique=True)
-    email = models.EmailField(max_length=255, null=True, blank=True)
     active_status = models.BooleanField(default=False)
     
     def __repr__(self):
