@@ -22,8 +22,32 @@
         </div>
         
     </div>
-    <li>Email: {{ request.user.email }}</li>
-    <li>Current Role: {{ user_profile.get_role_display }}</li>
+    <hr>
+    <div>
+        <p><b>Email:</b> {{ request.user.email|default:"<i>Not provided</i>" }}</p>
+        <p><b>Current Role:</b> {{ user_profile.get_role_display }}</p>
+        <p><b>Is Active Lab Member:</b> {{ user_profile.active_status }}</p>
+        <p><b>Is Active User:</b> {{ request.user.is_active }}</p>
+        <p><b>Is Superuser/Admin:</b> {{ request.user.is_superuser }}</p>
+        <p><b>User Groups:</b></p>
+        <ul>
+        {% if not user_groups %}
+            <li><i>No groups</i></li>
+        {% endif %}
+            {% for group in user_groups %}
+                <li>{{ group }}</li>
+            {% endfor %}
+        </ul>
+        <p><b>Current Permissions:</b></p>
+        <ul>
+        {% if not user_permissions %}
+            <li><i>No permissions</i></li>
+        {% endif %}
+            {% for permission in user_permissions %}
+                <li>{{ permission }}</li>
+            {% endfor %}
+        </ul>
+    </div>
 {% endblock %}
 
 {% block footer %}

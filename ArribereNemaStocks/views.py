@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect, reverse
 from django.contrib import messages
 from django.http import HttpResponse
@@ -89,6 +90,12 @@ def strain_details(request, wja, *args, **kwargs):
 
 # Request Thaws and Freezes:
 def freeze_request_form(request, *args, **kwargs):
+    if not request.user.has_perm('ArribereNemaStocks.add_freezerequest'):
+        if request.user.is_authenticated:
+            messages.warning(request, 'You do not have permission to create freeze requests! Please contact an admin.')
+        else:
+            messages.warning(request, 'You do not have permission to create freeze requests! Please log in.')
+        return redirect('strain_details', wja=request.GET.get('formatted_wja', None).lstrip('WJA'))
     formatted_wja = request.GET.get('formatted_wja', None)
     number_of_tubes = request.GET.get('number_of_tubes', 1)
     strain_locked = bool(formatted_wja)
@@ -108,6 +115,12 @@ def freeze_request_form(request, *args, **kwargs):
 
 
 def thaw_request_form(request, *args, **kwargs):
+    if not request.user.has_perm('ArribereNemaStocks.add_thawrequest'):
+        if request.user.is_authenticated:
+            messages.warning(request, 'You do not have permission to create thaw requests! Please contact an admin.')
+        else:
+            messages.warning(request, 'You do not have permission to create thaw requests! Please log in.')
+        return redirect('strain_details', wja=request.GET.get('formatted_wja', None).lstrip('WJA'))
     formatted_wja = request.GET.get('formatted_wja', None)
     strain_locked = bool(formatted_wja)
     form = ThawRequestForm(request.POST or None,

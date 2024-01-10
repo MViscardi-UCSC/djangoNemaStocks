@@ -29,20 +29,18 @@ def login_page(request):
 @login_required
 def user_page(request):
     user_profile = request.user.userprofile
+    user_permissions = sorted(request.user.get_all_permissions())
+    user_groups = sorted(request.user.groups.all())
     if request.method == 'POST':
         if 'logout' in request.POST:
             logout(request)
-            messages.success(request, 'You have been logged out')
+            messages.success(request, 'You have been logged out.')
             return redirect('login_page')
         
-        form = forms.UserProfileForm(request.POST, instance=user_profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'User profile updated successfully!')
-            return redirect('user_page')
-        
-    return render(request, 'authentication/user.html', 
-                  context={'user_profile': user_profile})
+    return render(request, 'authentication/user.html',
+                  context={'user_profile': user_profile,
+                           'user_permissions': user_permissions,
+                           'user_groups': user_groups})
 
 
 @login_required
