@@ -59,7 +59,9 @@ urlpatterns = [
     # path('freeze_group_details/<int:freeze_group_id>/', nema_views.freeze_group_details, name='freeze_group_details'),
     # Make Requests:
     path('freeze_request_form/', nema_views.freeze_request_form, name='freeze_request_form'),
+    path('freeze_request_form/confirmation/', nema_views.freeze_request_confirmation, name='freeze_request_confirmation'),
     path('thaw_request_form/', nema_views.thaw_request_form, name='thaw_request_form'),
+    path('thaw_request_form/confirmation/', nema_views.thaw_request_confirmation, name='thaw_request_confirmation'),
     # Requests Lists:
     path('outstanding_freeze_requests/', nema_views.outstanding_freeze_requests, name='outstanding_freeze_requests'),
     path('outstanding_thaw_requests/', nema_views.outstanding_thaw_requests, name='outstanding_thaw_requests'),

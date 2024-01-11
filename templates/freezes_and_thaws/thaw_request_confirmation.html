@@ -1,0 +1,46 @@
+<!-- freezes_and_thaws/thaw_request_confirmation.html -->
+
+{% extends "pieces/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    Thaw Request Confirmation - NemaStocks
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="d-flex justify-content-between">
+            <h1>Thaw Request Confirmation</h1>
+        </div>
+
+        <p>Please review the details of your thaw request before confirming:</p>
+
+        <dl class="row">
+            <dt class="col-sm-3">Strain:</dt>
+            <dd class="col-sm-9">{{ thaw_request_data.strain }}</dd>
+
+            <dt class="col-sm-3">Requester:</dt>
+            <dd class="col-sm-9">{{ thaw_request_data.requester }}</dd>
+            
+            <dt class="col-sm-3">Is Urgent:</dt>
+            <dd class="col-sm-9">{{ thaw_request_data.is_urgent }}</dd>
+            
+            <dt class="col-sm-3">Request Comments:</dt>
+            <dd class="col-sm-9">{{ thaw_request_data.request_comments|default:"<i>No comment.</i>" }}</dd>
+        </dl>
+        
+        <form method="post" action="{% url 'thaw_request_confirmation' %}">
+            {% csrf_token %}
+            <input type="hidden" name="strain__formatted_wja" value="{{ thaw_request_data.strain }}">
+            <input type="hidden" name="requester" value="{{ thaw_request_data.requester }}">
+            <input type="hidden" name="is_urgent" value="{{ thaw_request_data.is_urgent }}">
+            <input type="hidden" name="request_comments" value="{{ thaw_request_data.request_comments }}">
+            <button type="submit" name="confirm" class="btn btn-primary">
+                Confirm
+            </button>
+            <a href="{% url 'thaw_request_form' %}?formatted_wja={{ thaw_request_data.strain.formatted_wja }}" class="btn btn-secondary">
+                Go Back
+            </a>
+        </form>
+    </div>
+{% endblock %}

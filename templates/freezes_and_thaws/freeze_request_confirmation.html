@@ -1,0 +1,50 @@
+<!-- freezes_and_thaws/freeze_request_confirmation.html -->
+
+{% extends "pieces/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    Freeze Request Confirmation - NemaStocks
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="d-flex justify-content-between">
+            <h1>Freeze Request Confirmation</h1>
+        </div>
+
+        <p>Please review the details of your freeze request before confirming:</p>
+
+        <dl class="row">
+            <dt class="col-sm-3">Strain:</dt>
+            <dd class="col-sm-9">{{ freeze_request_data.strain }}</dd>
+
+            <dt class="col-sm-3">Requester:</dt>
+            <dd class="col-sm-9">{{ freeze_request_data.requester }}</dd>
+            
+            <dt class="col-sm-3">Number of Tubes:</dt>
+            <dd class="col-sm-9">{{ freeze_request_data.number_of_tubes }}</dd>
+            
+            <dt class="col-sm-3">Cap Color:</dt>
+            <dd class="col-sm-9">{{ freeze_request_data.cap_color }}</dd>
+            
+            <dt class="col-sm-3">Request Comments:</dt>
+            <dd class="col-sm-9">{{ freeze_request_data.request_comments|default:"<i>No comment.</i>" }}</dd>
+        </dl>
+        
+        <form method="post" action="{% url 'freeze_request_confirmation' %}" id="form">
+            {% csrf_token %}
+            <input type="hidden" name="strain__formatted_wja" value="{{ freeze_request_data.strain }}">
+            <input type="hidden" name="requester" value="{{ freeze_request_data.requester }}">
+            <input type="hidden" name="number_of_tubes" value="{{ freeze_request_data.number_of_tubes }}">
+            <input type="hidden" name="cap_color" value="{{ freeze_request_data.cap_color }}">
+            <input type="hidden" name="request_comments" value="{{ freeze_request_data.request_comments }}">
+            <button type="submit" name="confirm" class="btn btn-primary">
+                Confirm
+            </button>
+            <a href="{% url 'freeze_request_form' %}?formatted_wja={{ freeze_request_data.strain.formatted_wja }}" class="btn btn-secondary">
+                Go Back
+            </a>
+        </form>
+    </div>
+{% endblock %}
