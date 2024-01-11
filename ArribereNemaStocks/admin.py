@@ -6,12 +6,14 @@ from django.db.models.functions import Concat
 
 from datetime import datetime
 
+from simple_history.admin import SimpleHistoryAdmin
+
 # Register your models here.
 from .models import Strain, Tube, Box, FreezeGroup, ThawRequest, FreezeRequest
 
 
 @admin.register(Tube)
-class TubeAdmin(admin.ModelAdmin):
+class TubeAdmin(SimpleHistoryAdmin):
     @admin.action(description="Mark selected tubes as thawed")
     def thaw_tubes(self, request, queryset):
         queryset.update(thawed=True)
@@ -48,12 +50,12 @@ class TubeAdmin(admin.ModelAdmin):
     search_fields = ('date_created', 'date_thawed', 'strain__wja',
                      'thawed', 'thaw_requester')
     actions = [thaw_tubes, unthaw_tubes]
-    
+
     autocomplete_fields = ['strain', 'box', 'freeze_group']
 
 
 @admin.register(Strain)
-class StrainAdmin(admin.ModelAdmin):
+class StrainAdmin(SimpleHistoryAdmin):
     list_display = ('formatted_wja', 'description', 'date_created',
                     'phenotype', 'active_tubes_count', 'inactive_tubes_count')
     # list_filter = ('date_created', 'wja')
@@ -72,14 +74,14 @@ class StrainAdmin(admin.ModelAdmin):
 
 
 @admin.register(Box)
-class BoxAdmin(admin.ModelAdmin):
+class BoxAdmin(SimpleHistoryAdmin):
     list_display = ('id', 'dewar', 'rack', 'box')
     list_filter = ('dewar', 'rack', 'box')
     search_fields = ('dewar', 'rack', 'box')
 
 
 @admin.register(FreezeGroup)
-class FreezeGroupAdmin(admin.ModelAdmin):
+class FreezeGroupAdmin(SimpleHistoryAdmin):
     @admin.action(description="Mark selected freezes with 'Test Started'")
     def mark_test_started(self, request, queryset):
         queryset.update(started_test=True)
@@ -127,7 +129,7 @@ class FreezeGroupAdmin(admin.ModelAdmin):
 
 
 @admin.register(ThawRequest)
-class ThawRequestAdmin(admin.ModelAdmin):
+class ThawRequestAdmin(SimpleHistoryAdmin):
     @admin.action(description="Mark selected thaw requests as completed")
     def mark_completed(self, request, queryset):
         queryset.update(completed=True)

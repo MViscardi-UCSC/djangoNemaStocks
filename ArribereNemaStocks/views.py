@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect, reverse
 from django.contrib import messages
@@ -5,14 +7,12 @@ from django.http import HttpResponse
 from django_tables2 import RequestConfig
 
 from .models import Strain, Tube, Box, FreezeGroup, FreezeRequest, ThawRequest
-from .forms import StrainForm, StrainEditForm, ThawRequestForm, FreezeRequestForm
+from . import forms as nema_forms
 from . import tables as nema_tables
 
 from profiles.models import UserProfile
 
 from .json_DB_parser import main as json_db_parser_main
-
-
 # General Navigation:
 def index(request, *args, **kwargs):
     strains = Strain.objects.all()
@@ -51,7 +51,7 @@ def strain_list_datatable(request, *args, **kwargs):
 
 
 def new_strain(request, *args, **kwargs):
-    form = StrainForm(request.POST or None)
+    form = nema_forms.StrainForm(request.POST or None)
     if form.is_valid():
         form.save()
         messages.success(request, 'New strain created successfully!')
@@ -61,7 +61,7 @@ def new_strain(request, *args, **kwargs):
 
 def edit_strain(request, wja, *args, **kwargs):
     strain = get_object_or_404(Strain, wja=wja)
-    form = StrainEditForm(request.POST or None, instance=strain)
+    form = nema_forms.StrainEditForm(request.POST or None, instance=strain)
     if form.is_valid():
         form.save()
         messages.info(request, 'Strain updated.')
@@ -99,11 +99,11 @@ def freeze_request_form(request, *args, **kwargs):
     formatted_wja = request.GET.get('formatted_wja', None)
     number_of_tubes = request.GET.get('number_of_tubes', 1)
     strain_locked = bool(formatted_wja)
-    form = FreezeRequestForm(request.POST or None,
-                             initial={'strain': formatted_wja,
+    form = nema_forms.FreezeRequestForm(request.POST or None,
+                                        initial={'strain': formatted_wja,
                                       'number_of_tubes': number_of_tubes,
                                       'requester': request.user.userprofile},
-                             strain_locked=strain_locked)
+                                        strain_locked=strain_locked)
     if form.is_valid():
         form.save()
         messages.success(request, 'New freeze request created successfully!')
@@ -123,10 +123,10 @@ def thaw_request_form(request, *args, **kwargs):
         return redirect('strain_details', wja=request.GET.get('formatted_wja', None).lstrip('WJA'))
     formatted_wja = request.GET.get('formatted_wja', None)
     strain_locked = bool(formatted_wja)
-    form = ThawRequestForm(request.POST or None,
-                           initial={'strain': formatted_wja,
+    form = nema_forms.ThawRequestForm(request.POST or None,
+                                      initial={'strain': formatted_wja,
                                     'requester': request.user.userprofile},
-                           strain_locked=strain_locked)
+                                      strain_locked=strain_locked)
     if form.is_valid():
         form.save()
         messages.success(request, 'New thaw request created successfully!')

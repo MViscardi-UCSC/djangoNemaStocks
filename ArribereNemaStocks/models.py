@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q
+from simple_history.models import HistoricalRecords
 
 from profiles.models import UserProfile
 
@@ -19,10 +20,12 @@ class StrainManager(models.Manager):
 
 class Strain(models.Model):
     wja = models.IntegerField(unique=True)
-    description = models.CharField(max_length=255, null=True, editable=True)
+    description = models.CharField(max_length=255, null=True, blank=True, editable=True)
     date_created = models.DateField(auto_now_add=True, editable=True)
-    phenotype = models.CharField(max_length=255, null=True, editable=True)
+    phenotype = models.CharField(max_length=255, null=True, blank=True, editable=True)
     formatted_wja = models.CharField(max_length=8, editable=False)
+    # additional_comments = models.CharField(max_length=255, null=True, blank=True, editable=True)
+    history = HistoricalRecords()
     
     objects = StrainManager()
     
@@ -92,6 +95,7 @@ class Tube(models.Model):
                                      related_name='tube_set')
     thawed = models.BooleanField(default=False)
     thaw_requester = models.CharField(max_length=50, null=True)
+    history = HistoricalRecords()
     
     def thawed_state(self):
         return 'Thawed' if self.thawed else 'Frozen'
@@ -139,6 +143,7 @@ class Box(models.Model):
     dewar = models.IntegerField()
     rack = models.IntegerField()
     box = models.IntegerField()
+    history = HistoricalRecords()
 
     def __repr__(self):
         return f'Box(JA{self.dewar:0>2}-Rack{self.rack:0>2}-Box{self.box:0>4})'
@@ -163,6 +168,7 @@ class FreezeGroup(models.Model):
     tester_comments = models.CharField(max_length=255, null=True)
     test_check_date = models.DateField(null=True)
     stored = models.BooleanField(default=False)
+    history = HistoricalRecords()
 
     def __repr__(self):
         return f'FreezeGroup(ID-{self.id:0>6}, Strain-WJA{self.strain.wja}, ' \
@@ -225,6 +231,7 @@ class ThawRequest(models.Model):
     thawed_by = models.ForeignKey(UserProfile, on_delete=models.CASCADE,
                                   related_name='thawed_tubes',
                                   null=True, blank=True)
+    history = HistoricalRecords()
     
     objects = ThawRequestManager()
 
@@ -266,6 +273,7 @@ class FreezeRequest(models.Model):
     number_of_tubes = models.IntegerField(default=1)
     cap_color = models.CharField(max_length=50, null=True, blank=True)
     freeze_group = models.OneToOneField('FreezeGroup', on_delete=models.CASCADE, null=True)
+    history = HistoricalRecords()
     
     objects = FreezeRequestManager()
 

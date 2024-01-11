@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, register_converter
+from django.urls import path, register_converter, include
 from ArribereNemaStocks import views as nema_views
 from profiles import views as profile_views
 
@@ -25,12 +25,16 @@ from ArribereNemaStocks.converters import WJAConverter
 register_converter(WJAConverter, 'wja')
 
 urlpatterns = [
+    # Testing:
+    path('send_test_mail/', nema_views.send_test_mail, name='send_test_mail'),
     # Admin:
     path('admin/', admin.site.urls),
     # User Authentication:
     path('login/', profile_views.login_page, name='login_page'),
     path('user_page/', profile_views.user_page, name='user_page'),
     path('user_page/edit/', profile_views.edit_user_profile, name='edit_user_profile'),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('accounts/profile/', profile_views.user_page, name='user_page'),
     # Navigation:
     path('', nema_views.index, name='index'),
     path('about/', nema_views.about, name='about'),
