@@ -11,7 +11,7 @@
         <div class="d-flex justify-content-between">
             <h1>Strain {{ strain.formatted_WJA }}</h1>
             <div>
-                <a href="{% url 'freeze_request_form' %}?formatted_wja={{ strain.formatted_wja }}&number_of_tubes=4" class="btn btn-primary">Request Freeze</a>
+                <a href="{% url 'freeze_request_form' %}?formatted_wja={{ strain.formatted_wja }}&number_of_tubes=5" class="btn btn-primary">Request Freeze</a>
                 <a href="{% url 'thaw_request_form' %}?formatted_wja={{ strain.formatted_wja }}" class="btn btn-primary">Request Thaw</a>
             </div>
         </div>

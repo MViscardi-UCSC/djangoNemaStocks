@@ -81,13 +81,13 @@ class ThawRequestTable(tables.Table):
     strain = tables.Column(linkify=lambda record: record.strain.get_absolute_url(),
                            accessor='strain.formatted_wja', verbose_name='WJA')
     requester = tables.Column()
-    requester_comments = tables.Column()
+    request_comments = tables.Column()
     completed = tables.Column()
     
     class Meta:
         model = ThawRequest
         # template_name = 'django_tables2/bootstrap4.html'
-        fields = ('selected', 'date_created', 'strain', 'requester', 'requester_comments', 'completed')
+        fields = ('selected', 'date_created', 'strain', 'requester', 'request_comments', 'completed')
 
 
 class MiniThawRequestTable(tables.Table):
