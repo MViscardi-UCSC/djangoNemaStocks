@@ -30,7 +30,7 @@ def login_page(request):
 def user_page(request):
     user_profile = request.user.userprofile
     user_permissions = sorted(request.user.get_all_permissions())
-    user_groups = sorted(request.user.groups.all())
+    user_groups = request.user.groups.all()
     if request.method == 'POST':
         if 'logout' in request.POST:
             logout(request)

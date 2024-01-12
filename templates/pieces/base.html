@@ -48,6 +48,12 @@
                 <li class="nav-item {% block new_strain_active %}{% endblock %}">
                     <a class="nav-link" href="/strain/new">New Strain</a>
                 </li>
+                <li class="nav-item {% block request_freeze_active %}{% endblock %}">
+                    <a class="nav-link" href="/freeze_request_form">Request Freeze</a>
+                </li>
+                <li class="nav-item {% block request_thaw_active %}{% endblock %}">
+                    <a class="nav-link" href="/thaw_request_form">Request Thaw</a>
+                </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="/user_page">User Page</a>

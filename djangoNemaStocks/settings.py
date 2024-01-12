@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django_tables2',
     'django_bootstrap5',
     'django_bootstrap_icons',
+    'simple_history',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'djangoNemaStocks.urls'
@@ -111,7 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Los_Angeles'  # Changed by Marcus
 
 USE_I18N = True
 
@@ -138,3 +140,10 @@ DJANGO_TABLES2_TABLE_ATTRS = {
 
 # Added by Marcus based on: https://docs.djangoproject.com/en/3.1/topics/auth/default/#the-login-required-decorator
 LOGIN_URL = '/login/'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'arriberenemastocks@gmail.com'
+EMAIL_HOST_PASSWORD = 'tbiu ksiv bpya xdrs'  # This is a specific app password?

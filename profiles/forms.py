@@ -19,15 +19,7 @@ class UserProfileForm(forms.ModelForm):
         model = UserProfile
         fields = ['role', 'initials', 'active_status',
                   'strain_numbers_start', 'strain_numbers_end', 'email']
-    ROLE_CHOICES = [
-        ('i', 'Professor/Primary Investigator'),
-        ('p', 'Postdoctoral Fellow'),
-        ('c', 'Collaborator'),
-        ('g', 'Graduate Student'),
-        ('t', 'Technician'),
-        ('u', 'Undergraduate'),
-        ('o', 'Other/Undefined'),
-    ]
+    ROLE_CHOICES = UserProfile.ROLE_CHOICES
     
     role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect)
     

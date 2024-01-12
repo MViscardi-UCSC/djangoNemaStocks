@@ -1,10 +1,16 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
+from simple_history import register as register_history
+from django.contrib.auth.models import User, Group
 
 # Register your models here.
 from .models import UserProfile
 
+register_history(User)
+register_history(Group)
+
 @admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
+class UserProfileAdmin(SimpleHistoryAdmin):
     list_display = ('user', 'role', 'initials')
     list_filter = ('role', 'initials')
     search_fields = ('user__username', 'role', 'initials')
