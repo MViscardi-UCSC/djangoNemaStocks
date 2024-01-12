@@ -1,6 +1,6 @@
 from django import forms
-from .models import Strain, Tube, Box, FreezeGroup, ThawRequest, FreezeRequest
-from .hardcoded import CAP_COLOR_OPTIONS
+from .models import Strain, ThawRequest, FreezeRequest
+from hardcoded import CAP_COLOR_OPTIONS
 
 class StrainForm(forms.ModelForm):
     class Meta:

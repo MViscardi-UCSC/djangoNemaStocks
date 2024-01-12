@@ -1,19 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User, Group, AbstractUser
+from hardcoded import ROLE_CHOICES
 
 # Create your models here.
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name='userprofile')
-    ROLE_CHOICES = [
-        ('i', 'Professor/Primary Investigator'),
-        ('p', 'Postdoctoral Fellow'),
-        ('c', 'Collaborator'),
-        ('g', 'Graduate Student'),
-        ('t', 'Technician'),
-        ('u', 'Undergraduate'),
-        ('o', 'Other/Undefined'),
-    ]
     role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='o')
     initials = models.CharField(max_length=4, null=False, blank=False, unique=True)
     active_status = models.BooleanField(default=False)
