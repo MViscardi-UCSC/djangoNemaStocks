@@ -15,3 +15,14 @@ CAP_COLOR_OPTIONS = (
     ('red', 'Red'),
     ('yellow', 'Yellow'),
 )
+
+# Roles options for use in the UserProfile model:
+ROLE_CHOICES = [
+    ('i', 'Professor/Primary Investigator'),
+    ('p', 'Postdoctoral Fellow'),
+    ('c', 'Collaborator'),
+    ('g', 'Graduate Student'),
+    ('t', 'Technician'),
+    ('u', 'Undergraduate'),
+    ('o', 'Other/Undefined'),
+]
