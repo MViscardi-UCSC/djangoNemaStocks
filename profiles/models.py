@@ -9,6 +9,10 @@ from typing import List, Tuple, Union
 import ArribereNemaStocks.models as nema_models
 
 # Create your models here.
+class OpenRegistration(models.Model):
+    is_open = models.BooleanField(default=True)
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name='userprofile')

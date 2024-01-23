@@ -4,7 +4,9 @@ from simple_history import register as register_history
 from django.contrib.auth.models import User, Group
 
 # Register your models here.
-from .models import UserProfile, StrainRange
+from .models import UserProfile, StrainRange, OpenRegistration
+
+admin.site.register(OpenRegistration)
 
 register_history(User)
 register_history(Group)

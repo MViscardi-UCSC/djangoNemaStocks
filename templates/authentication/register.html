@@ -1,0 +1,61 @@
+<!-- register.html -->
+
+{% extends "pieces/base.html" %}
+{% load django_bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{% block title %}
+    Login - NemaStocks
+{% endblock %}
+
+{% block content %}
+    <form method="post">
+    {% csrf_token %}
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>Register Account on NemaStocks</h1>
+                    <p>For ease of identification, please just use your first name (lower case) as your username.</p>
+                </div>
+            </div>
+            <hr />
+            <div class="row">
+                <div class="col-md-6">
+                    {% bootstrap_field form.username %}
+                    {% bootstrap_field form.first_name %}
+                    {% bootstrap_field form.last_name %}
+                </div>
+                <div class="col-md-6">
+                    {% bootstrap_field form.password1 %}
+                    {% bootstrap_field form.password2 %}
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="col-md-6">
+                    {% bootstrap_field form.role %}
+                </div>
+                <div class="col-md-6">
+                    {% bootstrap_field form.email %}
+                    {% bootstrap_field form.initials%}
+                    {% bootstrap_field form.active_status %}
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="col-md-12">
+                    <p>
+                        Please make a request to Admin if you would like to change you're
+                        assigned strain numbers or other details not shown here.
+                    </p>
+                </div>
+            </div>
+            <input type="submit" value="Submit" class="btn btn-primary">
+            <a href="{% url 'user_page' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

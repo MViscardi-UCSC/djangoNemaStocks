@@ -7,6 +7,22 @@ from . import models
 from . import forms
 # Create your views here.
 
+def register(request):
+    status = models.OpenRegistration.objects.first()
+    if not status or not status.is_open:
+        return render(request, 'authentication/registration_closed.html')
+    
+    if request.method == 'POST':
+        form = forms.RegistrationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login_page')  # replace with your login url
+    else:
+        form = forms.RegistrationForm()
+    return render(request, 'authentication/register.html',
+                  {'form': form})
+
+
 def login_page(request):
     form = forms.LoginForm()
     if request.method == 'POST':
