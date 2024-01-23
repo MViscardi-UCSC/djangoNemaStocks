@@ -212,11 +212,11 @@ def parse_strain_2(target_strain: str):
             raise NotImplementedError(f"FREEZE COMMENT GAP ERROR: "
                                       f"The closest delta time is greater than "
                                       f"{too_long_delta_time_days} days for strain {target_strain}!")
-        if closest_freeze.tester_initials or closest_freeze.tester_comments:
+        if closest_freeze.tester or closest_freeze.tester_comments:
             raise KeyError(f"OVERWRITING FREEZE COMMENT ERROR: "
                            f"We already have a freeze comment for freeze {closest_freeze} "
                            f"\nStrain {target_strain} likely has something fishy going on!")
-        closest_freeze.tester_initials = tester_initials
+        closest_freeze.tester = tester_initials
         closest_freeze.tester_comments = tester_comments
         closest_freeze.save()
 
@@ -371,7 +371,7 @@ def main():
     ic(success_count, fail_count)
 
 if __name__ == '__main__':
-    main()
-    
+    # main()
+    ic('test')
     # STRAIN 0000 has something weird going on with parsing the tube number
     # STRAIN 6014 has an issue due to multiple freeze comments with the same date

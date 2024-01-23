@@ -48,11 +48,11 @@
                 <li class="nav-item {% block new_strain_active %}{% endblock %}">
                     <a class="nav-link" href="/strain/new">New Strain</a>
                 </li>
-                <li class="nav-item {% block request_freeze_active %}{% endblock %}">
-                    <a class="nav-link" href="/freeze_request_form">Request Freeze</a>
+                <li class="nav-item {% block outstanding_freeze_requests %}{% endblock %}">
+                    <a class="nav-link" href="/outstanding_freeze_requests/">Outstanding Freezes</a>
                 </li>
-                <li class="nav-item {% block request_thaw_active %}{% endblock %}">
-                    <a class="nav-link" href="/thaw_request_form">Request Thaw</a>
+                <li class="nav-item {% block outstanding_thaw_requests %}{% endblock %}">
+                    <a class="nav-link" href="/outstanding_thaw_requests/">Outstanding Thaws</a>
                 </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
@@ -70,7 +70,7 @@
 <content class="container" style="flex: 1 0 auto">
     {% if messages %}
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mt-1" role="alert">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>

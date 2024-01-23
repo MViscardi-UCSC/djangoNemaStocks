@@ -62,7 +62,11 @@ class StrainAdmin(SimpleHistoryAdmin):
     search_fields = ('wja', 'date_created')
     ordering = ('wja',)
     
-    readonly_fields = ('wja', 'formatted_wja',)
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super(StrainAdmin, self).get_readonly_fields(request, obj)
+        if not request.user.is_superuser:
+            readonly_fields += ('wja', 'formatted_wja',)
+        return readonly_fields
     
     def active_tubes_count(self, obj):
         return obj.active_tubes_count()
@@ -114,14 +118,14 @@ class FreezeGroupAdmin(SimpleHistoryAdmin):
     def unmark_stored(self, request, queryset):
         queryset.update(stored=False)
 
-    list_display = ('id', 'strain', 'freezer_initials',
+    list_display = ('id', 'strain', 'freezer',
                     'started_test', 'completed_test', 'passed_test', 'stored',
-                    'tester_initials', 'tester_comments')
-    list_filter = ('freezer_initials',
+                    'tester', 'tester_comments')
+    list_filter = ('freezer',
                    'started_test', 'completed_test', 'passed_test',
-                   'stored', 'tester_initials')
+                   'stored', 'tester')
     search_fields = ('strain__wja',
-                     'tester_comments', 'tester_initials')
+                     'tester_comments', 'tester')
     actions = [mark_test_started, unmark_test_started,
                mark_test_completed, unmark_test_completed,
                mark_test_passed, unmark_test_passed,

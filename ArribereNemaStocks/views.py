@@ -202,15 +202,33 @@ def thaw_request_confirmation(request, form=None, *args, **kwargs):
 
 # Outstanding Requests Lists:
 def outstanding_freeze_requests(request):
-    freeze_requests = nema_models.FreezeRequest.objects.filter(completed=False)
-    search_term = request.GET.get('q')
-
-    if search_term:
-        freeze_requests = freeze_requests.search(search_term)
+    freeze_requests = nema_models.FreezeRequest.objects.filter(advanced=False)
+    # Marcus removed search functionality from this page.
+    #   It was not super functional and shouldn't REALLY be necessary
+    # search_term = request.GET.get('q')
+    # if search_term:
+    #     freeze_requests = freeze_requests.search(search_term)
 
     table = nema_tables.FreezeRequestTable(freeze_requests)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
-
+    
+    if request.method == 'POST':
+        selected_requests_pks = [pk for pk in request.POST.getlist('selected') if pk]
+        if not selected_requests_pks and 'all' not in request.POST:
+            messages.warning(request, 'No freeze requests selected!')
+            return redirect('outstanding_freeze_requests')
+        if "all" in request.POST:
+            selected_requests = freeze_requests
+        else:
+            selected_requests = nema_models.FreezeRequest.objects.filter(pk__in=selected_requests_pks)
+        if not selected_requests:
+            messages.warning(request, 'No freeze requests to process!')
+            return redirect('outstanding_freeze_requests')
+        selected_reqeust_ids_str = '&'.join([f"{request.id:>05d}" for request in selected_requests])
+        # Redirect to the new page with selected FreezeRequests
+        print(selected_reqeust_ids_str)
+        return redirect('freeze_request_management', freeze_request_ids=selected_reqeust_ids_str)
+    
     return render(request, 'freezes_and_thaws/outstanding_freeze_requests.html',
                   {'table': table,
                    'results_count': freeze_requests.count()})
@@ -229,6 +247,17 @@ def outstanding_thaw_requests(request):
     return render(request, 'freezes_and_thaws/outstanding_thaw_requests.html', {'table': table,
                                                                                 'results_count': thaw_requests.count()})
 
+
+def freeze_request_management(request, freeze_request_ids, *args, **kwargs):
+    freeze_requests = nema_models.FreezeRequest.objects.filter(pk__in=freeze_request_ids.split('&'))
+    freeze_request_forms = [nema_forms.FreezeRequestManagementForm()
+                            for freeze_request in freeze_requests]
+    freeze_group_forms = [nema_forms.FreezeGroupForm()
+                          for freeze_request in freeze_requests]
+    freeze_request_and_group_forms = zip(freeze_requests, freeze_group_forms)
+    return render(request, 'freezes_and_thaws/freeze_request_management.html',
+                  {'freeze_request_objs_and_forms': freeze_request_and_group_forms,
+                   'freeze_request_ids': freeze_request_ids})
 
 # Other items:
 def load_data_from_json(request, *args, **kwargs):

@@ -42,7 +42,7 @@ class FreezeGroupTable(tables.Table):
     class Meta:
         model = FreezeGroup
         # template_name = 'django_tables2/bootstrap4.html'
-        fields = ('selected', 'date_created', 'tester_initials',
+        fields = ('selected', 'date_created', 'tester',
                   'tester_comments', 'active_tubes_count')
 
 
@@ -55,7 +55,7 @@ class MiniFreezeGroupTable(tables.Table):
     class Meta:
         model = FreezeGroup
         # template_name = 'django_tables2/bootstrap4.html'
-        fields = ('date_created', 'tester_initials',
+        fields = ('date_created', 'tester',
                   'tester_comments', 'active_tubes_count')
 
 

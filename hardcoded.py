@@ -9,11 +9,17 @@ Editing them here should be the only place you need to change them.
 
 # Cap colors as options for the FreezeRequestForm:
 CAP_COLOR_OPTIONS = (
-    ('blue', 'Blue'),
-    ('green', 'Green'),
-    ('purple', 'Purple'),
+    ('', '---------'),
+    ('pink', 'Pink'),
     ('red', 'Red'),
+    ('orange', 'Orange'),
     ('yellow', 'Yellow'),
+    ('green', 'Green'),
+    ('blue', 'Blue'),
+    ('purple', 'Purple'),
+    ('white', 'White'),
+    ('brown', 'Brown'),
+    ('gray', 'Gray'),
 )
 
 # Roles options for use in the UserProfile model:

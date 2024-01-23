@@ -14,23 +14,24 @@ class LoginForm(forms.Form):
 
 class UserProfileForm(forms.ModelForm):
     email = forms.EmailField()
+    ROLE_CHOICES = UserProfile.ROLE_CHOICES
+    role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect)
     
     class Meta:
         model = UserProfile
-        fields = ['role', 'initials', 'active_status',
-                  'strain_numbers_start', 'strain_numbers_end', 'email']
-    ROLE_CHOICES = UserProfile.ROLE_CHOICES
-    
-    role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect)
+        fields = ['role', 'initials', 'active_status', 'email']
+
     
     def __init__(self, *args, **kwargs):
         super(UserProfileForm, self).__init__(*args, **kwargs)
-    
+        self.fields['active_status'].help_text = 'This will control whether or not you receive emails.'
+        
     def save(self, commit=True):
         user_profile = super(UserProfileForm, self).save(commit=False)
         user_profile.user.email = self.cleaned_data['email']
         if commit:
             user_profile.user.save()
             user_profile.save()
+        
         return user_profile
 

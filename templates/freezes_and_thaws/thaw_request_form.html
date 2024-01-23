@@ -16,11 +16,24 @@
         </div>
         <form method="post" action="{% url 'thaw_request_form' %}" id="form">
             {% csrf_token %}
-            {% for field in form %}
-                <div class="form-group">
-                    {% bootstrap_field field %}
+            <div class="row">
+                <div class="col-md-6">
+                    {% bootstrap_field form.strain %}
                 </div>
-            {% endfor %}
+                <div class="col-md-6">
+                    {% bootstrap_field form.requester %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    {% bootstrap_field form.is_urgent %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    {% bootstrap_field form.request_comments %}
+                </div>
+            </div>
             <button type="submit" class="btn btn-primary">Submit</button>
             <a href="{% url 'thaw_request_form' %}" class="btn btn-secondary">Clear Form</a>
         </form>

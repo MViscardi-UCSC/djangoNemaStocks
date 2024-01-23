@@ -1,0 +1,60 @@
+<!-- freeze_request_management.html -->
+
+{% extends "pieces/base.html" %}
+{% load django_bootstrap5 %}
+{% load render_table from django_tables2 %}
+
+{% block title %}Freeze Requests - NemaStocks{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <form method="post" action="{% url 'freeze_request_management' freeze_request_ids=freeze_request_ids %}">
+            {% csrf_token %}
+            {% for freeze_request, freeze_request_form in freeze_request_objs_and_forms %}
+                <div class="card mt-4">
+                    <div class="row g-0">
+                        <div class="card-header">
+                            <b>Freeze Request {{ forloop.counter }}:</b> {{ freeze_request.strain.formatted_wja }}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card-body">
+                                <div class="row mt-2">
+                                    <dt class="col-sm-6">Requester:</dt>
+                                    <dd class="col-sm-6">{{ freeze_request.requester }}</dd>
+                                </div>
+                                <div class="row mt-2">
+                                    <dt class="col-sm-6">Number of Tubes:</dt>
+                                    <dd class="col-sm-6">{{ freeze_request.number_of_tubes }}</dd>
+                                </div>
+                                <div class="col mt-2">
+                                    <dt class="col-sm-6 align-self-center">Request Comments:</dt>
+                                    <dd class="col-sm-6 align-self-center">{{ freeze_request.request_comments }}</dd>
+                                </div>
+                            </div>
+                        </div>
+{#                        <div class="vr col-md-1">#}
+{#                        </div>#}
+                        <div class="col-md-6  align-self-stretch border-start border-left d-flex justify-content-center align-items-center">
+                            <div class="m-2">
+                                {% bootstrap_form freeze_request_form %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        Submitted: {{ freeze_request.date_created }} ({{ freeze_request.date_created|timesince }} ago)
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="row mt-4">
+                <div class="col-md-6"> <!-- Adjust the column size based on your layout preference -->
+                    <button class="btn btn-primary btn-block" type="submit" name="selected">
+                        Advance selected
+                    </button>
+                    <button class="btn btn-secondary btn-block" type="submit" name="all">
+                        Advance all
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
