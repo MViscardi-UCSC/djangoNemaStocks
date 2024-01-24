@@ -42,7 +42,7 @@
             <button type="submit" name="confirm" class="btn btn-primary">
                 Confirm
             </button>
-            <a href="{% url 'freeze_request_form' %}?formatted_wja={{ freeze_request_data.strain }}" class="btn btn-secondary">
+            <a href="{% url 'freeze_request_form' %}?formatted_wja={{ freeze_request_data.strain.formatted_wja }}" class="btn btn-secondary">
                 Go Back
             </a>
         </form>

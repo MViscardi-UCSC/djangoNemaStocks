@@ -55,8 +55,8 @@ class ThawRequestForm(forms.ModelForm):
 class FreezeRequestForm(forms.ModelForm):
     class Meta:
         model = nema_models.FreezeRequest
-        fields = ['strain', 'requester', 'number_of_tubes', 'cap_color', 'request_comments', ]
-
+        fields = ['strain', 'requester', 'number_of_tubes', 'cap_color', 'request_comments',]
+        
     def __init__(self, *args, **kwargs):
         strain_locked = kwargs.pop('strain_locked', False)
         super().__init__(*args, **kwargs)

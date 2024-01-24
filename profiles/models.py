@@ -1,12 +1,14 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User, Group
-from simple_history.models import HistoricalRecords
 from django.contrib.auth.models import User, Group, AbstractUser
-from hardcoded import ROLE_CHOICES
-from typing import List, Tuple, Union
 
+from simple_history.models import HistoricalRecords
+
+from hardcoded import ROLE_CHOICES
 import ArribereNemaStocks.models as nema_models
+
+from typing import List, Tuple, Union
 
 # Create your models here.
 class OpenRegistration(models.Model):
