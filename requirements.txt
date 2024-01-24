@@ -1,0 +1,7 @@
+Django~=4.2.7
+python-dateutil~=2.8.2
+icecream~=2.1.3
+django-admin
+django-bootstrap5
+django-bootstrap-icons
+django-tables2

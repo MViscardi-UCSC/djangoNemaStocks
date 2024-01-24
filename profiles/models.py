@@ -10,7 +10,13 @@ import ArribereNemaStocks.models as nema_models
 
 # Create your models here.
 class OpenRegistration(models.Model):
-    is_open = models.BooleanField(default=True)
+    is_open = models.BooleanField(default=False)
+    
+    def __repr__(self):
+        return f'Open Registration: {self.is_open}'
+    
+    def __str__(self):
+        return self.__repr__()
 
 
 class UserProfile(models.Model):
@@ -29,12 +35,15 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.__repr__()
     
-    def get_strains(self) -> Tuple[nema_models.Strain, ...]:
+    def get_all_strains(self) -> Tuple[nema_models.Strain, ...]:
         # First we can get all the strain numbers:
-        all_strain_numbers = []
+        all_strain_numbers_lists = []
         for strain_range in self.strain_ranges.all():
-            all_strain_numbers += list(range(strain_range.strain_numbers_start, strain_range.strain_numbers_end + 1))
+            all_strain_numbers_lists.append(list(range(strain_range.strain_numbers_start,
+                                                 strain_range.strain_numbers_end + 1)))
         # Then we can use those strain numbers to return all the associated strains:
+        all_strain_numbers = [strain_number for strain_number_list in all_strain_numbers_lists
+                              for strain_number in strain_number_list]
         return nema_models.Strain.objects.filter(wja__in=all_strain_numbers)
 
 
@@ -62,7 +71,21 @@ class StrainRange(models.Model):
         super().save(*args, **kwargs)
 
     def __repr__(self):
-        return f'Strain Range for {self.user_profile} ({self.strain_numbers_start}-{self.strain_numbers_end})'
+        return f'({self.user_profile.initials} WJAs: {self.strain_numbers_start}-{self.strain_numbers_end})'
 
     def __str__(self):
         return self.__repr__()
+    
+    def get_strains(self) -> Tuple[nema_models.Strain, ...]:
+        # First we can get all the strain numbers:
+        all_strain_numbers = list(range(self.strain_numbers_start, self.strain_numbers_end + 1))
+        # Then we can use those strain numbers to return all the associated strains:
+        return nema_models.Strain.objects.filter(wja__in=all_strain_numbers)
+    
+    def get_usage_string(self) -> str:
+        strains = self.get_strains()
+        num_strains = len(strains)
+        potential_num_strains = self.strain_numbers_end - self.strain_numbers_start+1
+        return_str = (f"{num_strains} of {potential_num_strains} "
+                      f"assigned WJA{'s' if potential_num_strains > 1 else ''} used")
+        return return_str

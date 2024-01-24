@@ -47,8 +47,9 @@ def user_page(request):
     user_profile = request.user.userprofile
     user_permissions = sorted(request.user.get_all_permissions())
     
-    user_strains = user_profile.get_strains()
     user_groups = request.user.groups.all()
+    all_user_strains = user_profile.get_all_strains()
+    
     if request.method == 'POST':
         if 'logout' in request.POST:
             logout(request)
@@ -58,6 +59,7 @@ def user_page(request):
     return render(request, 'authentication/user.html',
                   context={'user_profile': user_profile,
                            'user_permissions': user_permissions,
+                           'all_user_strains': all_user_strains,
                            'user_groups': user_groups})
 
 

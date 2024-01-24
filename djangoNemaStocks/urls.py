@@ -31,6 +31,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # User Authentication:
     path('login/', profile_views.login_page, name='login_page'),
+    path('login/', profile_views.login_page, name='login'),
     path('register/', profile_views.register, name='register'),
     path('user_page/', profile_views.user_page, name='user_page'),
     path('user_page/edit/', profile_views.edit_user_profile, name='edit_user_profile'),
