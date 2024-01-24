@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.models import User, Group, AbstractUser
 
 from simple_history.models import HistoricalRecords
-
+from django.contrib.auth.models import User, Group, AbstractUser
 from hardcoded import ROLE_CHOICES
 import ArribereNemaStocks.models as nema_models
 
