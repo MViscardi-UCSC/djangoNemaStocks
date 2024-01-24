@@ -49,7 +49,7 @@ USER_INITIALS_DICT = {
     'JAA': ("Joshua", "Arribere", ((1, 999),)),
     'JA': ("Joshua", "Arribere", ((1, 999),)),
     'JK': ("John", "Kim", ((5105, 5150),
-                           (5019, 5019),)),  # John also has strain 5019....
+                           (5019, 5019),)),
     'JS': ("unknown_JS", "unknown_JS", ((-1, -1),)),
     'KY': ("Kevin", "Yang", ((5000, 5001),)),
     'MG': ("Marissa", "Glover", ((3000, 3027),)),

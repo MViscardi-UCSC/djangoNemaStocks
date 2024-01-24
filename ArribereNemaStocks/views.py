@@ -23,6 +23,9 @@ def about(request, *args, **kwargs):
     return render(request, 'basic_navigation/about.html')
 
 
+def send_test_mail(request, *args, **kwargs):
+    pass
+
 # Strain Navigation:
 def strain_search(request, *args, **kwargs):
     strains = nema_models.Strain.objects.all()

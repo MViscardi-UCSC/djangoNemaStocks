@@ -18,7 +18,6 @@ class LoginForm(forms.Form):
 
 class UserProfileForm(forms.ModelForm):
     email = forms.EmailField()
-<<<<<<< HEAD
     ROLE_CHOICES = UserProfile.ROLE_CHOICES
     role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect)
     
@@ -26,7 +25,6 @@ class UserProfileForm(forms.ModelForm):
         model = UserProfile
         fields = ['role', 'initials', 'active_status', 'email']
 
-=======
     first_name = forms.CharField(max_length=30)
     last_name = forms.CharField(max_length=30)
     
@@ -44,7 +42,6 @@ class UserProfileForm(forms.ModelForm):
     ]
     
     role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect)
->>>>>>> Another Flush, also adding better user side things
     
     def __init__(self, *args, **kwargs):
         super(UserProfileForm, self).__init__(*args, **kwargs)

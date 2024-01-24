@@ -22,6 +22,7 @@ class OpenRegistration(models.Model):
 
 
 class UserProfile(models.Model):
+    ROLE_CHOICES = ROLE_CHOICES
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name='userprofile')
     role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='o')
