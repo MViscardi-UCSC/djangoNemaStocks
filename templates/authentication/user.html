@@ -39,15 +39,6 @@
                 <li>{{ group }}</li>
             {% endfor %}
         </ul>
-        <p><b>Current Permissions:</b></p>
-        <ul>
-        {% if not user_permissions %}
-            <li><i>No permissions</i></li>
-        {% endif %}
-            {% for permission in user_permissions %}
-                <li>{{ permission }}</li>
-            {% endfor %}
-        </ul>
         <p><b>Current Strain Assignments:</b></p>
         <ul>
         {% if not user_profile.strain_ranges.all %}
@@ -55,10 +46,17 @@
         {% endif %}
             {% for strain_range in user_profile.strain_ranges.all %}
                 <li>
-                    {{ strain_range.strain_numbers_start }} - 
-                    {{ strain_range.strain_numbers_end }}
-                    ({{ strain_range.get_usage_string }})
+                    {{ strain_range.get_short_summary|safe }}
                 </li>
+            {% endfor %}
+        </ul>
+        <p><b>Current Permissions:</b></p>
+        <ul>
+        {% if not user_permissions %}
+            <li><i>No permissions</i></li>
+        {% endif %}
+            {% for permission in user_permissions %}
+                <li>{{ permission }}</li>
             {% endfor %}
         </ul>
     </div>

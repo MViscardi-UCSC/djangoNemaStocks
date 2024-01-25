@@ -26,7 +26,7 @@ django.setup()
 
 import ArribereNemaStocks.models as nema_models
 import profiles.models as profile_models
-from hardcoded import CAP_COLOR_OPTIONS, USER_INITIALS_DICT 
+from hardcoded import CAP_COLOR_OPTIONS, USER_INITIALS_DICT
 
 
 def parse_date(date_str, return_format="%Y-%m-%d", return_datetime_object=False):
@@ -48,9 +48,7 @@ ic("Imports Successful.")
 
 # Load the old database to memory:
 def load_old_db():
-    database_json_path = '/home/marcus/PycharmProjects/' \
-                         'arribereWormDatabase/' \
-                         '231114_OFFICIAL_WORMSTOCKS_databaseDownload.json'
+    database_json_path = '../240123_OFFICIAL_WORMSTOCKS_export.json'
     database_json_Path = Path(database_json_path)
     ic(database_json_Path)
     with open(database_json_path, 'r') as f:
@@ -59,11 +57,12 @@ def load_old_db():
 
 
 class SimpleStrain:
-    def __init__(self, wja: int, description: str, phenotype: str, date_created: date):
+    def __init__(self, wja: int, description: str, phenotype: str, date_created: date, additional_comments: str):
         self.wja = wja
         self.description = description
         self.phenotype = phenotype
         self.date_created = date_created
+        self.additional_comments = additional_comments
 
     def to_dict(self):
         return {'wja': self.wja,
@@ -71,6 +70,7 @@ class SimpleStrain:
                 'phenotype': self.phenotype,
                 'date_created': self.date_created,
                 'formatted_wja': f"WJA{self.wja:04d}",
+                'additional_comments': self.additional_comments,
                 }
 
 
@@ -219,6 +219,9 @@ class OldStrainEntry:
 
         # For strain and freezes
         self.comments_list = self.split_column_dict['COMMENTS']
+        
+        if len(self.date_frozen_list) != 0 or len(self.tube_no_list) != 0:
+            self.simplify_cap_colors()
 
     def __repr__(self):
         return self.original_dict.__repr__()
@@ -248,36 +251,49 @@ class OldStrainEntry:
                             description=self.description,
                             phenotype=self.phenotype,
                             date_created=self.creation_date,
+                            additional_comments=self.get_non_freeze_comments(),
                             )
 
     def simplify_cap_colors(self):
-        if len(self.cap_color_list) == len(self.date_frozen_list):
-            return
-        elif len(self.cap_color_list) == len(self.date_frozen_list) + 1:
+        if len(self.date_frozen_list) == 0 and len(self.tube_no_list) != 0:
+            # This is an edge case for a few strains that DO NOT HAVE DATES
+            # Examples include:
+            known_examples = ['1201', '3065', '3066', '3067', '3068', '3069', '3070', '1197', ]
+            known_examples = [f"WJA {example}" for example in known_examples]
+            try:
+                created_date = get_creation_date(self)
+                self.date_frozen_list = [created_date for _ in self.tube_no_list]
+                if self.wja not in known_examples:
+                    print(f"Found a strain without a freeze date: {self.wja}")
+            except ValueError:
+                ic(self)
+                self.pprint_lists()
+                raise ValueError
+        
+        try:
+            first_cap_color = self.cap_color_list[0]
+            color, creation_date = first_cap_color.split(' ')
+            parse_date(creation_date, return_datetime_object=True)
             self.cap_color_list.pop(0)
+        except ValueError:
+            # So here we got an error trying to parse the date out of the cap color, so there is no date!
+            if not len(self.cap_color_list) == len(set(self.date_frozen_list)):
+                raise ValueError(f"cap_color_list and date_frozen_list have different lengths for {self.wja}")
+        
+        if len(self.cap_color_list) == len(set(self.date_frozen_list)):
             return
+        elif len(self.cap_color_list) == len(set(self.date_frozen_list)) + 1:
+            self.cap_color_list.pop(0)
+            if len(self.cap_color_list) == len(set(self.date_frozen_list)):
+                return
+            else:
+                raise ValueError(f"cap_color_list and date_frozen_list have different lengths for {self.wja}")
         else:
             raise ValueError(f"cap_color_list and date_frozen_list have different lengths for {self.wja}")
-
-    def return_tubes(self) -> Tuple[List[SimpleTube] | None, str]:
-        self.simplify_cap_colors()
-        if len(self.date_frozen_list) == 0:
-            # print(f"No freeze dates for {self.wja}")
-            return None, f"No freeze dates for {self.wja}"
-        elif len(self.date_frozen_list) == 1:
-            assert len(self.tube_no_list) == 1
-            number_of_tubes = int(self.tube_no_list[0])
-            tube_list = []
-            for tube_to_be in range(number_of_tubes):
-                tube_list.append(SimpleTube(cap_color=self.cap_color_list[0],
-                                            date_created=self.creation_date,
-                                            date_thawed=None,
-                                            box=None,
-                                            strain=self.to_simple_strain(),
-                                            thawed=False,
-                                            freeze_group=None,
-                                            thaw_requester=None,
-                                            ))
+        
+        # Now that we high the right number of matching cap colors and freeze dates based on sets,
+        # lets expand the colors to match freezes:
+        
 
     def return_freezes(self) -> Tuple[List[SimpleFreeze] | None, str]:
         pass
@@ -299,6 +315,102 @@ class OldStrainEntry:
                 self.pprint_lists()
                 continue
         return user_initials_set
+
+    def get_non_freeze_comments(self):
+        non_freeze_comments = []
+        for comment in self.comments_list:
+            try:
+                date_thaw = comment.split(' ')[0]
+                parse_date(date_thaw, return_datetime_object=True)
+            except ValueError:
+                non_freeze_comments.append(comment)
+        non_freeze_comments = ' | '.join(non_freeze_comments)
+        return non_freeze_comments
+
+    def get_freeze_comments(self):
+        freeze_comments = []
+        for comment in self.comments_list:
+            try:
+                date_thaw = comment.split(' ')[0]
+                parse_date(date_thaw, return_datetime_object=True)
+                freeze_comments.append(comment)
+            except ValueError:
+                continue
+        return freeze_comments
+
+    def get_freeze_comments_and_thawers(self):
+        freeze_comments = []
+        thawers = []
+        for comment in self.comments_list:
+            try:
+                date_thaw = comment.split(' ')[0]
+                parse_date(date_thaw, return_datetime_object=True)
+                thawer = comment.split(' ')[1]
+                freeze_comments.append(comment)
+                thawers.append(thawer)
+            except ValueError:
+                continue
+        return freeze_comments, thawers
+
+    def to_simple_freeze_list(self) -> List[SimpleFreeze, ...] | None:
+        # TODO: Build this first, then from here build out the simpleTube parser!!!
+        # date_created: date,
+        # date_stored: date,
+        # strain: nema_models.Strain,
+        # freezer: profile_models.UserProfile,
+        # started_test: bool,
+        # completed_test: bool,
+        # passed_test: bool,
+        # tester: profile_models.UserProfile,
+        # tester_comments: str,
+        # test_check_date: date,
+        # stored: bool,
+        # We need to create a parser to get the Freeze dates, and connect them to nearby comments
+        if len(self.date_frozen_list) == 0:
+            # print(f"No freeze dates for {self.wja}")
+            return None
+        if any([len(self.date_frozen_list) != len(self.tube_no_list),
+                len(self.date_frozen_list) != len(self.tank_no_list),
+                len(self.date_frozen_list) != len(self.rack_no_list),
+                len(self.date_frozen_list) != len(self.rack_box_no_list),
+                ]):
+            self.pprint_lists()
+            raise ValueError(f"date_frozen_list and tube_no_list have different lengths for {self.wja}")
+        if len(self.date_frozen_list) != len(self.cap_color_list):
+            raise ValueError(f"date_frozen_list and cap_color_list have different lengths for {self.wja}")
+        freeze_nest_dict = {}
+        for i, freeze_date in enumerate(self.date_frozen_list):
+            try:
+                parsed_freeze_date = parse_date(freeze_date, return_datetime_object=True)
+                if parsed_freeze_date not in freeze_nest_dict:
+                    freeze_nest_dict[parsed_freeze_date] = {'general': {},
+                                                            0: {},
+                                                            }
+                    # General Freeze fields
+                    freeze_nest_dict[parsed_freeze_date]['general']['date_created'] = parsed_freeze_date
+                    freeze_nest_dict[parsed_freeze_date]['general']['date_stored'] = parsed_freeze_date
+                    freeze_nest_dict[parsed_freeze_date]['general']['strain'] = self.to_simple_strain()
+                    # TODO: Add comment parsing of some sort here!!
+                    
+                    # Fields for tubes here
+                    freeze_nest_dict[parsed_freeze_date][0]['tube_no'] = self.tube_no_list[i]
+                    freeze_nest_dict[parsed_freeze_date][0]['tank_no'] = self.tank_no_list[i]
+                    freeze_nest_dict[parsed_freeze_date][0]['rack_no'] = self.rack_no_list[i]
+                    freeze_nest_dict[parsed_freeze_date][0]['rack_box_no'] = self.rack_box_no_list[i]
+                    freeze_nest_dict[parsed_freeze_date][0]['cap_color'] = self.cap_color_list[i]
+                else:
+                    dict_index = len(freeze_nest_dict[parsed_freeze_date])
+                    freeze_nest_dict[parsed_freeze_date][dict_index] = {}
+                    freeze_nest_dict[parsed_freeze_date][dict_index]['tube_no'] = self.tube_no_list[i]
+                    freeze_nest_dict[parsed_freeze_date][dict_index]['tank_no'] = self.tank_no_list[i]
+                    freeze_nest_dict[parsed_freeze_date][dict_index]['rack_no'] = self.rack_no_list[i]
+                    freeze_nest_dict[parsed_freeze_date][dict_index]['rack_box_no'] = self.rack_box_no_list[i]
+                    freeze_nest_dict[parsed_freeze_date][dict_index]['cap_color'] = self.cap_color_list[i]
+            except ValueError:
+                ic(freeze_date, self)
+                self.pprint_lists()
+                continue
+        ic(freeze_nest_dict)
 
 
 class SimpleUserProfile:
@@ -334,12 +446,12 @@ class SimpleUserProfile:
                                                            )
         except django.db.utils.IntegrityError:
             user = profile_models.User.objects.get(username=self.first_name.lower())
-        
+
         if user.username in ['marcus', 'joshua']:
             user.is_superuser = True
             user.is_staff = True
             user.save()
-        
+
         try:
             user_profile = profile_models.UserProfile.objects.create(user=user,
                                                                      role=self.role,
@@ -357,8 +469,8 @@ class SimpleUserProfile:
             )
             if strain_range:
                 continue
-            elif strain_numbers_set[0] == -1 and strain_numbers_set[1] == -1:\
-                continue
+            elif strain_numbers_set[0] == -1 and strain_numbers_set[1] == -1: \
+                    continue
             else:
                 strain_range = profile_models.StrainRange.objects.create(
                     user_profile=user_profile,
@@ -391,6 +503,20 @@ def make_boxes():
     ic("Old boxes deleted.")
     nema_models.Box.objects.bulk_create(boxes_to_create)
     ic("New boxes created.", len(boxes_to_create))
+
+
+@transaction.atomic
+def make_strains(strains_dict, delete_old=True):
+    if delete_old:
+        nema_models.Strain.objects.all().delete()
+    for wja, simple_strain in strains_dict.items():
+        strain_dict = simple_strain.to_dict()
+        try:
+            db_strain = nema_models.Strain.objects.create(**strain_dict)
+        except django.db.utils.IntegrityError:
+            db_strain = nema_models.Strain.objects.get(wja=wja)
+        # ic(db_strain)
+    ic(nema_models.Strain.objects.all().count())
 
 
 def build_simple_user_list(input_dict, ) -> List[SimpleUserProfile]:
@@ -496,21 +622,29 @@ if __name__ == '__main__':
     # print(old_strain_entries[24].original_dict)
     for i, entry in enumerate(old_strain_entries):
         entry.creation_date = get_creation_date(entry)
-        new_strains[entry.wja] = (entry.to_simple_strain())
+        new_strain = entry.to_simple_strain()
+        new_strains[entry.wja] = new_strain
+
+    make_strains(new_strains)
 
     # ic(get_thaw_requester_initials(old_strain_entries))
-    userrprofiles_list = []
-    for simple_user in build_simple_user_list(USER_INITIALS_DICT):
-        # profile_models.UserProfile.objects.filter(initials=simple_user.initials).delete()
-        profile_models.StrainRange.objects.filter(user_profile__initials=simple_user.initials).delete()
-        userrprofiles_list.append(simple_user.to_UserProfile())
-    # 
+    # userrprofiles_list = []
+    # for simple_user in build_simple_user_list(USER_INITIALS_DICT):
+    #     # profile_models.UserProfile.objects.filter(initials=simple_user.initials).delete()
+    #     profile_models.StrainRange.objects.filter(user_profile__initials=simple_user.initials).delete()
+    #     userrprofiles_list.append(simple_user.to_UserProfile())
+    # ic(profile_models.UserProfile.objects.all().count())
+
+    for i, entry in enumerate(old_strain_entries[::-1]):
+        if i > 10:
+            break
+        entry.pprint()
+        entry.to_simple_freeze_list()
+
     # # old_strain_entries[22].pprint()
-    # # make_boxes()
-    # 
+    # make_boxes()
     # for col, entries in old_strain_entries[25].split_column_dict.items():
     #     ic(col, len(entries), entries)
-    # 
     # no_entry_count, single_entry_count, match_count, two_match_count, fail_count = 0, 0, 0, 0, 0
     # for entry in old_strain_entries:
     #     if (

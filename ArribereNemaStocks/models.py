@@ -22,7 +22,7 @@ class Strain(models.Model):
     date_created = models.DateField(auto_now_add=True, editable=True)
     phenotype = models.CharField(max_length=255, null=True, blank=True, editable=True)
     formatted_wja = models.CharField(max_length=8, editable=False)
-# additional_comments = models.CharField(max_length=255, null=True, blank=True, editable=True)
+    additional_comments = models.CharField(max_length=255, null=True, blank=True, editable=True)
     history = HistoricalRecords()
     
     objects = StrainManager()
@@ -145,6 +145,7 @@ class Box(models.Model):
 
     class Meta:
         unique_together = ('dewar', 'rack', 'box')
+        verbose_name_plural = 'Boxes'
 
     def __repr__(self):
         return f'Box(JA{self.dewar:0>2}-Rack{self.rack:0>2}-Box{self.box:0>4})'

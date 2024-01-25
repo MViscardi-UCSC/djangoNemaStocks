@@ -92,3 +92,13 @@ class StrainRange(models.Model):
         return_str = (f"{num_strains} of {potential_num_strains} "
                       f"assigned WJA{'s' if potential_num_strains > 1 else ''} used")
         return return_str
+    
+    def get_short_summary(self, with_initials=False) -> str:
+        summary_string = ""
+        if with_initials:
+            summary_string += f"{self.user_profile.initials} "
+        summary_string += (f"WJA{self.strain_numbers_start:0>4} - "
+                           f"WJA{self.strain_numbers_end:0>4} "
+                           f"({self.get_usage_string()})")
+        return summary_string
+        
