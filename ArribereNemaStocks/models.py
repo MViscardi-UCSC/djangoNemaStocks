@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
 
@@ -19,7 +20,7 @@ class StrainManager(models.Manager):
 class Strain(models.Model):
     wja = models.IntegerField(unique=True)
     description = models.CharField(max_length=255, null=True, blank=True, editable=True)
-    date_created = models.DateField(auto_now_add=True, editable=True)
+    date_created = models.DateField(default=timezone.now, editable=True)
     phenotype = models.CharField(max_length=255, null=True, blank=True, editable=True)
     formatted_wja = models.CharField(max_length=8, editable=False)
     additional_comments = models.CharField(max_length=255, null=True, blank=True, editable=True)
@@ -81,8 +82,8 @@ class Strain(models.Model):
 
 
 class Tube(models.Model):
-    cap_color = models.CharField(max_length=50, default='N/A')
-    date_created = models.DateField(auto_now_add=True, editable=True)
+    cap_color = models.CharField(max_length=50, default='unknown')
+    date_created = models.DateField(default=timezone.now(), editable=True)
     date_thawed = models.DateField(null=True, editable=True)
     box = models.ForeignKey('Box', on_delete=models.CASCADE, null=True,
                             related_name='tube_set')
@@ -91,9 +92,13 @@ class Tube(models.Model):
                                related_name='tube_set')
     freeze_group = models.ForeignKey('FreezeGroup', on_delete=models.CASCADE, null=True,
                                      related_name='tube_set')
+    set_number = models.IntegerField(default=-1)
     thawed = models.BooleanField(default=False)
     thaw_requester = models.CharField(max_length=50, null=True)
     history = HistoricalRecords()
+    
+    class Meta:
+        unique_together = ('strain', 'freeze_group', 'box', 'set_number')
     
     def thawed_state(self):
         return 'Thawed' if self.thawed else 'Frozen'
@@ -148,7 +153,7 @@ class Box(models.Model):
         verbose_name_plural = 'Boxes'
 
     def __repr__(self):
-        return f'Box(JA{self.dewar:0>2}-Rack{self.rack:0>2}-Box{self.box:0>4})'
+        return f'Box(JA{self.dewar:0>2}-Rack{self.rack:0>2}-Box{self.box:0>2})'
 
     def repr(self):
         return self.__repr__()
@@ -158,7 +163,7 @@ class Box(models.Model):
 
 
 class FreezeGroup(models.Model):
-    date_created = models.DateField(auto_now_add=True, editable=True)
+    date_created = models.DateField(default=timezone.now(), editable=True)
     date_stored = models.DateField(null=True)
     strain = models.ForeignKey('Strain', on_delete=models.CASCADE)
     freezer = models.ForeignKey('profiles.UserProfile', on_delete=models.CASCADE,
@@ -176,9 +181,12 @@ class FreezeGroup(models.Model):
     stored = models.BooleanField(default=False)
     history = HistoricalRecords()
 
+    class Meta:
+        unique_together = ('strain', 'date_stored')
+
     def __repr__(self):
-        return f'FreezeGroup(ID-{self.id:0>6}, Strain-WJA{self.strain.wja}, ' \
-               f'Frozen-{self.date_stored.strftime("%m/%d/%Y") if self.date_stored else "N/A"})'
+        return f"FreezeGroup(ID-{self.id if self.id else 'xxxx':0>6}, Strain-{self.strain.formatted_wja}, " \
+               f"Frozen-{self.date_stored.strftime('%m/%d/%Y') if self.date_stored else 'N/A'})"
 
     def repr(self):
         return self.__repr__()
@@ -240,7 +248,6 @@ class ThawRequest(models.Model):
                                   null=True, blank=True)
     history = HistoricalRecords()
     
-
     objects = ThawRequestManager()
 
     def __repr__(self):

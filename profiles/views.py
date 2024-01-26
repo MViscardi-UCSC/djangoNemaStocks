@@ -75,6 +75,8 @@ def edit_user_profile(request):
 
             messages.success(request, 'User profile updated successfully!')
             return redirect('user_page')
+        else:
+            messages.warning(request, f'User profile update failed!: {form.errors}')
     else:
         form = forms.UserProfileForm(instance=user_profile,
                                      initial={'email': user_profile.user.email})

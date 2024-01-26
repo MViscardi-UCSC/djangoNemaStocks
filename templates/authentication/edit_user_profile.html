@@ -22,8 +22,22 @@
                         {% bootstrap_field form.role %}
                     </div>
                     <div class="col-md-6">
-                        {% bootstrap_field form.email %}
-                        {% bootstrap_field form.initials%}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {% bootstrap_field form.first_name %}
+                            </div>
+                            <div class="col-md-6">
+                                {% bootstrap_field form.last_name %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {% bootstrap_field form.email %}
+                            </div>
+                            <div class="col-md-6">
+                                {% bootstrap_field form.initials%}
+                            </div>
+                        </div>
                         {% bootstrap_field form.active_status %}
                     </div>
                 </div>

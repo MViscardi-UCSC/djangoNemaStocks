@@ -16,10 +16,13 @@ CAP_COLOR_OPTIONS = (
     ('yellow', 'Yellow'),
     ('green', 'Green'),
     ('blue', 'Blue'),
+    ('lavender', 'Lavender'),
     ('purple', 'Purple'),
     ('white', 'White'),
     ('brown', 'Brown'),
     ('gray', 'Gray'),
+    ('grey', 'Grey'),
+    ('unknown', 'Unknown'),
 )
 
 # Roles options for use in the UserProfile model:

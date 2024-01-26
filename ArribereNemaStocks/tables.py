@@ -15,7 +15,7 @@ class StrainTable(tables.Table):
         fields = ('selected', 'formatted_wja', 'description', 'date_created', 'phenotype')
 
 
-class TubeTable(tables.Table):
+class TubeTable(tables.Table):  # CURRENTLY UNUSED
     selected = tables.CheckBoxColumn(accessor='pk', orderable=False)
     strain = tables.Column(linkify=lambda record: record.strain.get_absolute_url(),
                            accessor='strain.formatted_wja', verbose_name='WJA')
@@ -48,7 +48,6 @@ class FreezeGroupTable(tables.Table):
 
 class MiniFreezeGroupTable(tables.Table):
     date_created = tables.Column()
-    tester_initials = tables.Column()
     tester_comments = tables.Column()
     active_tubes_count = tables.Column(verbose_name='Active Tubes')
 
