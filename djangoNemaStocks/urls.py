@@ -73,6 +73,4 @@ urlpatterns = [
     path('freeze_request_management/requests:<str:freeze_request_ids>/', nema_views.freeze_request_management,
          name='freeze_request_management'),
     path('outstanding_thaw_requests/', nema_views.outstanding_thaw_requests, name='outstanding_thaw_requests'),
-    # Other:
-    path('load_data_from_json/', nema_views.load_data_from_json, name='load_data_from_json'),
 ]

@@ -10,8 +10,6 @@ from . import tables as nema_tables
 
 from profiles.models import UserProfile
 
-from .json_DB_parser import main as json_db_parser_main
-
 
 # General Navigation:
 def index(request, *args, **kwargs):
@@ -261,8 +259,3 @@ def freeze_request_management(request, freeze_request_ids, *args, **kwargs):
     return render(request, 'freezes_and_thaws/freeze_request_management.html',
                   {'freeze_request_objs_and_forms': freeze_request_and_group_forms,
                    'freeze_request_ids': freeze_request_ids})
-
-# Other items:
-def load_data_from_json(request, *args, **kwargs):
-    json_db_parser_main()
-    return HttpResponse('Completed')
