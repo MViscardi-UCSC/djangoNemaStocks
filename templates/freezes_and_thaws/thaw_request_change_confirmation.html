@@ -1,0 +1,58 @@
+<!-- thaw_request_change_confirmation.html -->
+
+{% extends "pieces/base.html" %}
+{% load django_bootstrap5 %}
+{% load render_table from django_tables2 %}
+
+{% block title %}Thaw Requests - NemaStocks{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h1>Thaw Requests to <i>{{ action|title }}</i></h1>
+        <div class="d-flex align-content-around flex-wrap" id="grid">
+        {% for thaw_request in thaw_requests %}
+            <div class="col-sm-12 col-md-6 col-lg-4 col-xl-3 p-2 flex-fill">
+                <div class="card m-2">
+                    <div class="row g-0">
+                        <div class="card-header">
+                            <b>Selected Thaw Request {{ forloop.counter }}:</b> {{ thaw_request.strain.formatted_wja }}
+                        </div>
+                        <div class="col-md-12">
+                            <div class="card-body">
+                                <div class="row mt-2">
+                                    <dt class="col-sm-6">Requester:</dt>
+                                    <dd class="col-sm-6">{{ thaw_request.requester }}</dd>
+                                </div>
+                                <div class="row mt-2">
+                                    <dt class="col-sm-6">Is Urgent:</dt>
+                                    <dd class="col-sm-6">{{ thaw_request.is_urgent }}</dd>
+                                </div>
+                                <div class="col mt-2">
+                                    <dt class="col-sm-12 align-self-center">Request Comments:</dt>
+                                    <dd class="col-sm-12 align-self-center">{{ thaw_request.request_comments }}</dd>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        Submitted: {{ thaw_request.date_created }} ({{ thaw_request.date_created|timesince }} ago)
+                </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+        <form method="post" action="{% url 'thaw_request_change_confirmation' action=action thaw_request_ids=thaw_request_ids %}">
+            {% csrf_token %}
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <button class="btn btn-primary btn-block" type="submit" name="all">
+                        {{ action|title }} All
+                    </button>
+                    <a href="{% url 'outstanding_thaw_requests' %}" class="btn btn-secondary">
+                        Go Back
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,58 @@
+<!-- freeze_request_change_confirmation.html -->
+
+{% extends "pieces/base.html" %}
+{% load django_bootstrap5 %}
+{% load render_table from django_tables2 %}
+
+{% block title %}Freeze Requests - NemaStocks{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h1>Freeze Requests to <i>{{ action|title }}</i></h1>
+        <div class="d-flex align-content-around flex-wrap" id="grid">
+        {% for freeze_request in freeze_requests %}
+            <div class="col-sm-12 col-md-6 col-lg-4 col-xl-3 p-2 flex-fill">
+                <div class="card m-2">
+                    <div class="row g-0">
+                        <div class="card-header">
+                            <b>Selected Freeze Request {{ forloop.counter }}:</b> {{ freeze_request.strain.formatted_wja }}
+                        </div>
+                        <div class="col-md-12">
+                            <div class="card-body">
+                                <div class="row mt-2">
+                                    <dt class="col-sm-6">Requester:</dt>
+                                    <dd class="col-sm-6">{{ freeze_request.requester }}</dd>
+                                </div>
+                                <div class="row mt-2">
+                                    <dt class="col-sm-6">Number of Tubes:</dt>
+                                    <dd class="col-sm-6">{{ freeze_request.number_of_tubes }}</dd>
+                                </div>
+                                <div class="col mt-2">
+                                    <dt class="col-sm-12 align-self-center">Request Comments:</dt>
+                                    <dd class="col-sm-12 align-self-center">{{ freeze_request.request_comments }}</dd>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        Submitted: {{ freeze_request.date_created }} ({{ freeze_request.date_created|timesince }} ago)
+                </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+        <form method="post" action="{% url 'freeze_request_change_confirmation' action=action freeze_request_ids=freeze_request_ids %}">
+            {% csrf_token %}
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <button class="btn btn-primary btn-block" type="submit" name="all">
+                        {{ action|title }} All
+                    </button>
+                    <a href="{% url 'outstanding_freeze_requests' %}" class="btn btn-secondary">
+                        Go Back
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,32 @@
+<!-- strain_assignments.html -->
+
+{% extends "pieces/base.html" %}
+{% load django_bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{% block title %}
+    Strain Assignments - NemaStocks
+{% endblock %}
+
+{% block content %}
+    <div>
+        {% for user_profile in user_profiles %}
+            {% if user_profile.strain_ranges.all %}
+                <dl>
+                    <dt>
+                        {{ user_profile.user.username|title }}
+                    </dt>
+                    {% for strain_range in user_profile.strain_ranges.all %}
+                        <dd>
+                            {{ strain_range.get_short_summary|safe }}
+                        </dd>
+                    {% endfor %}
+                </dl>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

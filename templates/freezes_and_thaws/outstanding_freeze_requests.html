@@ -2,6 +2,7 @@
 
 {% extends "pieces/base.html" %}
 {% load django_bootstrap5 %}
+
 {% load render_table from django_tables2 %}
 
 {% block title %}Freeze Requests - NemaStocks{% endblock %}
@@ -15,19 +16,53 @@
         </p>
         <form method="post" action="{% url 'outstanding_freeze_requests' %}">
             {% csrf_token %}
-            {% render_table table %}
-            <div class="row">
-                <div class="col-md-6"> <!-- Adjust the column size based on your layout preference -->
-                    <button class="btn btn-primary btn-block" type="submit" id="freezeManagement"
-                    name="selected">
-                        Process Selected
-                    </button>
-                    <button class="btn btn-secondary btn-block" type="submit" id="freezeManagementAll"
-                    name="all">
-                        Process All
-                    </button>
-                </div>
+            <div class="mb-4">
+                {% render_table table %}
             </div>
+                <div class="mt-2">
+                        <div class="btn-group">
+                            <button class="btn btn-primary" type="submit" id="cancel" name="action-cancel-selected">
+                                Cancel Selected
+                            </button>
+                            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu" style="">
+                                <li><button class="dropdown-item btn btn-link" type="submit" id="advance" name="action-cancel-all">
+                                    Cancel All
+                                </button></li>
+                                    {% for user_profile in requesting_users %}
+                                    <li><button class="dropdown-item btn btn-link" type="submit" id="advance" name="action-cancel-{{ user_profile.initials }}">
+                                        Cancel Requests from: {{ user_profile }}
+                                    </button></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <i>Please note you can only cancel your own requests unless you have extra permissions.</i>
+                </div>
+            {% if request.user.is_staff %}
+                <div class="mt-2">
+                        <div class="btn-group">
+                            <button class="btn btn-primary" type="submit" id="advance" name="action-advance-selected">
+                                Advance Selected
+                            </button>
+                            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu" style="">
+                                <li><button class="dropdown-item btn btn-link" type="submit" id="advance" name="action-advance-all">
+                                    Advance All
+                                </button></li>
+                                    {% for user_profile in requesting_users %}
+                                    <li><button class="dropdown-item btn btn-link" type="submit" id="advance" name="action-advance-{{ user_profile.initials }}">
+                                        Advance Requests from: {{ user_profile }}
+                                    </button></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <i>This option is only available to staff.</i>
+                </div>
+            {% endif %}
         </form>
     </div>
 {% endblock %}

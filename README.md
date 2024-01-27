@@ -113,4 +113,9 @@ gunicorn --bind 128.114.150.214:8080 djangoNemaStocks.wsgi:application
 But this only seems to be working on TinCan? I have another computer on the local network (via VPN),
 which is able to ping TinCan's IP on the command line but is not able to access the website??
 
+On BlackBox (the computer on the VPN) when I open a browser with http://128.114.150.214:8080 I do not get a response.
+But when I open http://128.114.150.214, I get the default nginx page... So I ***think*** something is working?
+
+I am unsure of the next step though... Can you help?
+
 # To Do

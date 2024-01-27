@@ -101,4 +101,11 @@ class StrainRange(models.Model):
                            f"WJA{self.strain_numbers_end:0>4} "
                            f"({self.get_usage_string()})")
         return summary_string
+    
+    def get_html_summer_with_link(self, with_initials=False) -> str:
+        summary_string = ("This would be really nice to get working. The idea would be to have "
+                          "it link to the strain datatables with the strain range pre-populated "
+                          "in the search bar). In order to do this I would need to implement a "
+                          "specific ability to query in a WJA range!!")
+        raise NotImplementedError(summary_string)
         

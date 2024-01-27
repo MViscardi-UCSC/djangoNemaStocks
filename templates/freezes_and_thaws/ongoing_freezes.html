@@ -1,0 +1,12 @@
+{% extends "pieces/base.html" %}
+{% block title %}
+    Ongoing Freezes
+{% endblock %}
+{% block content %}
+    <h1>Ongoing Freezes</h1>
+    <ul>
+        {% for freeze in ongoing_freezes %}
+            <li>{{ freeze.strain }} - {{ freeze.get_status_display }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

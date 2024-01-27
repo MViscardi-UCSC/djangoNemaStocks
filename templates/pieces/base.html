@@ -6,6 +6,11 @@
 
 <html style="height: 100%" lang="en">
 <head style="flex-shrink: 1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% block meta %}
+        
+    {% endblock %}
     <title>
         {% block title %}
             NemaStocks
@@ -49,11 +54,19 @@
                     <a class="nav-link" href="/strain/new">New Strain</a>
                 </li>
                 <li class="nav-item {% block outstanding_freeze_requests %}{% endblock %}">
-                    <a class="nav-link" href="/outstanding_freeze_requests/">Outstanding Freezes</a>
+                    <a class="nav-link" href="/outstanding_freeze_requests/">Pending Freezes</a>
                 </li>
                 <li class="nav-item {% block outstanding_thaw_requests %}{% endblock %}">
-                    <a class="nav-link" href="/outstanding_thaw_requests/">Outstanding Thaws</a>
+                    <a class="nav-link" href="/outstanding_thaw_requests/">Pending Thaws</a>
                 </li>
+                {% if user.is_staff %}
+                    <li class="nav-item {% block ongoing_freezes %}{% endblock %}">
+                        <a class="nav-link" href="/ongoing_freezes/">Ongoing Freezes</a>
+                    </li>
+                    <li class="nav-item {% block ongoing_thaws %}{% endblock %}">
+                        <a class="nav-link" href="/ongoing_thaws/">Ongoing Thaws</a>
+                    </li>
+                {% endif %}
                 {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="/user_page">User Page</a>
@@ -82,9 +95,14 @@
 </content>
 <footer class="footer navbar-dark bg-dark" style="flex-shrink: 0">
     <div class="container-fluid" style="margin-top: 15px">
-        <p class="text-muted">Arribere Lab</p>
-        <p class="text-muted">University of California, Santa Cruz</p>
-        <p class="text-muted"><a href="/admin">(Admin Site)</a></p>
+        <p class="text-muted my-0">Arribere Lab</p>
+        <p class="text-muted my-0">University of California, Santa Cruz</p>
+        <p class="text-muted my-0">1156 High Street</p>
+        <p class="text-muted my-0">Santa Cruz, CA 95064</p>
+    
+        {% if request.user.is_staff %}
+            <p class="text-muted my-1"><a href="/admin">Admin Site Link</a></p>
+        {% endif %}
         {% block footer %}
         {% endblock %}
     </div>

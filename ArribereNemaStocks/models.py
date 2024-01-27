@@ -3,6 +3,8 @@ from django.db.models import Q
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
+from hardcoded import CAP_COLOR_OPTIONS
+
 
 class StrainManager(models.Manager):
     def get_by_natural_key(self, wja):
@@ -82,8 +84,8 @@ class Strain(models.Model):
 
 
 class Tube(models.Model):
-    cap_color = models.CharField(max_length=50, default='unknown')
-    date_created = models.DateField(default=timezone.now(), editable=True)
+    cap_color = models.CharField(max_length=50, choices=CAP_COLOR_OPTIONS, default='unknown')
+    date_created = models.DateField(default=timezone.now, editable=True)
     date_thawed = models.DateField(null=True, editable=True)
     box = models.ForeignKey('Box', on_delete=models.CASCADE, null=True,
                             related_name='tube_set')
@@ -160,10 +162,16 @@ class Box(models.Model):
 
     def __str__(self):
         return self.__repr__()
+    
+    def get_active_tubes(self):
+        return self.tube_set.filter(thawed=False)
+    
+    def get_usage(self, max_tubes_per_box=81):
+        return f'{self.get_active_tubes().count()}/{max_tubes_per_box}'
 
 
 class FreezeGroup(models.Model):
-    date_created = models.DateField(default=timezone.now(), editable=True)
+    date_created = models.DateField(default=timezone.now, editable=True)
     date_stored = models.DateField(null=True)
     strain = models.ForeignKey('Strain', on_delete=models.CASCADE)
     freezer = models.ForeignKey('profiles.UserProfile', on_delete=models.CASCADE,
@@ -179,6 +187,8 @@ class FreezeGroup(models.Model):
     tester_comments = models.CharField(max_length=255, null=True)
     test_check_date = models.DateField(null=True)
     stored = models.BooleanField(default=False)
+    
+    freeze_request = models.OneToOneField('FreezeRequest', on_delete=models.CASCADE, null=True)
     history = HistoricalRecords()
 
     class Meta:
@@ -211,6 +221,10 @@ class FreezeGroup(models.Model):
 
     def total_tubes_count(self):
         return self.total_tubes().count()
+    
+    def create_tubes_from_request(self):
+        # TODO: Write this method. Note that we need some degree of Box finding logic here!!
+        raise NotImplementedError
 
 
 class ThawRequestManager(models.Manager):
@@ -242,6 +256,13 @@ class ThawRequest(models.Model):
     is_urgent = models.BooleanField(default=False)
     request_comments = models.CharField(max_length=255, null=True, blank=True)
     date_completed = models.DateField(null=True, blank=True)
+    STATUS_OPTIONS = (
+        ('R', 'Requested'),
+        ('O', 'Ongoing'),
+        ('C', 'Completed'),
+        ('X', 'Cancelled'),
+    )
+    status = models.CharField(max_length=1, choices=STATUS_OPTIONS, default='R')
     completed = models.BooleanField(default=False)
     thawed_by = models.ForeignKey('profiles.UserProfile', on_delete=models.CASCADE,
                                   related_name='thawed_tubes',
@@ -285,13 +306,26 @@ class FreezeRequest(models.Model):
                                   related_name='freeze_requests')
     request_comments = models.CharField(max_length=255, null=True, blank=True)
     date_advanced = models.DateField(null=True)
-    advanced = models.BooleanField(default=False)
     number_of_tubes = models.IntegerField(default=1)
-    cap_color = models.CharField(max_length=50, null=True, blank=True)
+    cap_color = models.CharField(max_length=50, choices=CAP_COLOR_OPTIONS, null=True, blank=True)
     freeze_group = models.OneToOneField('FreezeGroup', on_delete=models.CASCADE, null=True)
+    STATUS_CHOICES = (
+        ('R', 'Requested'),
+        ('A', 'Advanced'),
+        ('C', 'Completed'),
+        ('F', 'Failed'),
+        ('X', 'Cancelled'),
+    )
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='R')
+    
     history = HistoricalRecords()
     
     objects = FreezeRequestManager()
+
+    def advance_to_testing(self):
+        self.status = 'A'
+        self.date_advanced = timezone.now()
+        self.save()
 
     def __repr__(self):
         return f'FreezeRequest(ID-{self.id:0>6}, Strain-{self.strain.formatted_wja}, ' \
