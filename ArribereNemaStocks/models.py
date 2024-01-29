@@ -96,7 +96,9 @@ class Tube(models.Model):
                                      related_name='tube_set')
     set_number = models.IntegerField(default=-1)
     thawed = models.BooleanField(default=False)
-    thaw_requester = models.CharField(max_length=50, null=True)
+    thaw_requester = models.ForeignKey('profiles.UserProfile', on_delete=models.CASCADE,
+                                        related_name='thawed_tubes',
+                                        null=True, blank=True)
     history = HistoricalRecords()
     
     class Meta:
@@ -107,21 +109,21 @@ class Tube(models.Model):
 
     def __repr__(self):
         if self.box:
-            location_string = f'Location-JA{self.box.dewar:0>2}-Rack{self.box.rack:0>2}-Box{self.box.box:0>4}'
+            location_string = f'JA{self.box.dewar:0>2}-{self.box.rack:0>2}-{self.box.box:0>2}'
         else:
-            location_string = 'Location-NotStored'
-        cap_color_string = f'Cap-{self.cap_color:->6}'
+            location_string = 'NotStored'
+        cap_color_string = f'{self.cap_color}'
 
         if not self.thawed:
-            return f'Tube(Strain-WJA{self.strain.wja:0>4}, ' \
+            return f'tWJA{self.strain.wja:0>4}, ' \
                    f'{location_string}, {cap_color_string}, ' \
-                   f'DateFrozen-{self.date_created.strftime("%m/%d/%Y")})'
+                   f'Frozen-{self.date_created.strftime("%m/%d/%Y")})'
         else:
             formatted_thaw_date = self.date_thawed.strftime("%m/%d/%Y") if self.date_thawed else 'N/A'
-            return f'ThawedTube(Strain-WJA{self.strain.wja:0>4}, ' \
+            return f'Thawed-tWJA{self.strain.wja:0>4}, ' \
                    f'{location_string}, {cap_color_string}, ' \
-                   f'DateFrozen-{self.date_created.strftime("%m/%d/%Y")}, ' \
-                   f'DateThawed-{formatted_thaw_date})'
+                   f'Frozen-{self.date_created.strftime("%m/%d/%Y")}, ' \
+                   f'Thawed-{formatted_thaw_date})'
 
     def repr(self):
         return self.__repr__()
@@ -265,7 +267,7 @@ class ThawRequest(models.Model):
     status = models.CharField(max_length=1, choices=STATUS_OPTIONS, default='R')
     completed = models.BooleanField(default=False)
     thawed_by = models.ForeignKey('profiles.UserProfile', on_delete=models.CASCADE,
-                                  related_name='thawed_tubes',
+                                  related_name='czar_thawed_tubes',
                                   null=True, blank=True)
     history = HistoricalRecords()
     

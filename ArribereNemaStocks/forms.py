@@ -17,7 +17,7 @@ class StrainEditForm(forms.ModelForm):
         fields = ['wja', 'description']
 
 
-class ThawRequestForm(forms.ModelForm):
+class InitialThawRequestForm(forms.ModelForm):
     class Meta:
         model = nema_models.ThawRequest
         fields = ['strain', 'requester', 'is_urgent', 'request_comments']
@@ -50,6 +50,43 @@ class ThawRequestForm(forms.ModelForm):
         help_text='Please check this box if this request is urgent.',
         required=False,
     )
+
+
+class AdvancingThawRequestForm(forms.ModelForm):
+    date_completed = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        initial=datetime.date.today()
+    )
+    
+    save_changes = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input',
+                                            'id': 'flexSwitchCheckChecked'}),
+        label='Save Changes',
+        help_text='Please check this box to save your changes when you click Submit.',
+        required=False,
+    )
+    
+    class Meta:
+        model = nema_models.ThawRequest
+        fields = ['tube', 'date_completed',
+                  'status', 'thawed_by']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['tube'].queryset = nema_models.Tube.objects.filter(strain=self.instance.strain,
+                                                                           thawed=False,)
+    
+    def save(self, commit=True):
+        if self.cleaned_data['save_changes']:
+            if self.cleaned_data['status'] == 'C':
+                self.instance.tube.thawed = True
+                self.instance.tube.date_thawed = self.cleaned_data['date_completed']
+                self.instance.tube.thawed_by = self.cleaned_data['thawed_by']
+                self.instance.tube.thaw_requester = None  # TODO: figure out how to access the thaw request here!!
+                self.instance.tube.save()
+        return super().save(commit=commit)
+    # TODO: Implement all of this for Freeze requests!
 
 
 class FreezeRequestForm(forms.ModelForm):

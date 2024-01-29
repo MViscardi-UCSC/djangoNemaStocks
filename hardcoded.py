@@ -59,6 +59,7 @@ USER_INITIALS_DICT = {
     'mg': ("Marissa", "Glover", ((3000, 3027),)),
     'MM': ("Matthew", "Modena", ((5051, 5100),)),
     'MNP': ("Makenna", "Pule", ((2100, 2150),)),
+    'MJV': ("Marcus", "Viscardi", ((6000, 6100),)),
     'MV': ("Marcus", "Viscardi", ((6000, 6100),)),
     'NV': ("Nitin", "Vidyasagar", ((1151, 1168),)),
     'PM': ("Parissa", "Monem", ((1002, 1049),
@@ -68,4 +69,11 @@ USER_INITIALS_DICT = {
     'SN': ("Swathi", "Nair", ((1101, 1150),)),
     'Swathi': ("Swathi", "Nair", ((1101, 1150),)),
     'TE': ("Thea", "E", ((-1, -1),)),
+    
+    'SS': ("Susan", "Strome (Lab)", ((-1, -1),)),
+    'NB': ("Needhi", "Bhalla (Lab)", ((-1, -1),)),
+    'JW': ("Jordan", "Ward (Lab)", ((-1, -1),)),
+    'AZ': ("Al", "Zahler (Lab)", ((-1, -1),)),
+    
+    'XXX': ("unknown_XXX", "unknown_XXX", ((-1, -1),)),
 }

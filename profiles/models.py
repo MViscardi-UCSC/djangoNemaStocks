@@ -26,11 +26,17 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE,
                                 related_name='userprofile')
     role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='o')
-    initials = models.CharField(max_length=4, null=False, blank=False, unique=True)
-    other_associated_initials = models.CharField(max_length=100, null=True, blank=True)
+    initials = models.CharField(max_length=4, null=False, blank=False, unique=True)  # These are the primary ones used!
     active_status = models.BooleanField(default=False)
     
     history = HistoricalRecords()
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)  # Call the "real" save() method.
+        UserInitials.objects.update_or_create(initials=self.initials, defaults={'user_profile': self})
+    
+    def add_initials(self, initials):
+        UserInitials.objects.create(user_profile=self, initials=initials)
     
     def __repr__(self):
         return f'{self.user.username.title()} ({self.initials})'
@@ -48,6 +54,19 @@ class UserProfile(models.Model):
         all_strain_numbers = [strain_number for strain_number_list in all_strain_numbers_lists
                               for strain_number in strain_number_list]
         return nema_models.Strain.objects.filter(wja__in=all_strain_numbers)
+
+
+class UserInitials(models.Model):
+    initials = models.CharField(max_length=4, null=False, blank=False, unique=True)
+    user_profile = models.ForeignKey('UserProfile', on_delete=models.CASCADE,
+                                     related_name='all_associated_initials',
+                                     null=True)
+
+    def __repr__(self):
+        return self.initials
+
+    def __str__(self):
+        return self.__repr__()
 
 
 class StrainRange(models.Model):
@@ -108,4 +127,4 @@ class StrainRange(models.Model):
                           "in the search bar). In order to do this I would need to implement a "
                           "specific ability to query in a WJA range!!")
         raise NotImplementedError(summary_string)
-        
+

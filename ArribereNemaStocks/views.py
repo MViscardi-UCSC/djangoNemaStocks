@@ -1,8 +1,12 @@
+from datetime import date
+
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect, reverse
 from django.contrib import messages
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
+from django.forms import formset_factory, modelformset_factory
+
 from django_tables2 import RequestConfig
 
 from . import models as nema_models
@@ -24,6 +28,7 @@ def about(request, *args, **kwargs):
 
 def send_test_mail(request, *args, **kwargs):
     pass
+
 
 # Strain Navigation:
 def strain_assignments(request, *args, **kwargs):
@@ -106,12 +111,18 @@ def thaw_request_form(request, *args, **kwargs):
 
     formatted_wja = request.GET.get('formatted_wja', None)
     strain_locked = bool(formatted_wja)
-    form = nema_forms.ThawRequestForm(request.POST or None,
-                                      initial={'strain': formatted_wja,
-                                               'requester': request.user.userprofile},
-                                      strain_locked=strain_locked)
     
+    form = nema_forms.InitialThawRequestForm(request.POST or None,
+                                             initial={'strain': formatted_wja,
+                                                      'requester': request.user.userprofile},
+                                             strain_locked=strain_locked)
+
     if form.is_valid():
+        strain_from_form = form.cleaned_data['strain']
+        strain = get_object_or_404(nema_models.Strain, formatted_wja=strain_from_form.formatted_wja)
+        if strain.tube_set.filter(thawed=False).count() == 0:
+            messages.warning(request, 'This strain has no tubes available to be thawed!')
+            return redirect('strain_details', wja=strain_from_form.wja)
         # Redirect to the confirmation step
         return thaw_request_confirmation(request, form=form)
 
@@ -141,7 +152,8 @@ def thaw_request_confirmation(request, form=None, *args, **kwargs):
     if request.method == 'POST' and 'confirm' in request.POST:
         thaw_request = nema_models.ThawRequest.objects.create(**thaw_request_data)
 
-        messages.success(request, f'New thaw request created successfully! Target: {formatted_wja}; ID: {thaw_request.id:>05d}')
+        messages.success(request,
+                         f'New thaw request created successfully! Target: {formatted_wja}; ID: {thaw_request.id:>05d}')
 
         return redirect('outstanding_thaw_requests')
 
@@ -151,7 +163,7 @@ def thaw_request_confirmation(request, form=None, *args, **kwargs):
 
 
 def outstanding_thaw_requests(request):
-    thaw_requests = nema_models.ThawRequest.objects.filter(completed=False)
+    thaw_requests = nema_models.ThawRequest.objects.filter(status__in=['R', 'O'])
     requesting_users = UserProfile.objects.filter(thaw_requests__in=thaw_requests).distinct()
     requesting_users_initials = [user_profile.initials for user_profile in requesting_users]
 
@@ -217,7 +229,7 @@ def thaw_request_change_confirmation(request, thaw_request_ids, action='NoAction
             return redirect('outstanding_thaw_requests')
         elif action == 'advance':
             for thaw_request in thaw_requests:
-                thaw_request.completed = False
+                thaw_request.status = 'O'
                 thaw_request.save()
                 messages.success(request, f'Thaw requests {thaw_request_ids} advanced successfully!')
             return redirect('ongoing_thaws')
@@ -232,9 +244,34 @@ def thaw_request_change_confirmation(request, thaw_request_ids, action='NoAction
 
 
 def ongoing_thaws(request):
-    ongoing_thaws = nema_models.ThawRequest.objects.filter(completed=False)
+    print(date.today())
+    ongoing_thaws = nema_models.ThawRequest.objects.filter(status__in=['O'])
+
+    AdvThawFormSet = modelformset_factory(nema_models.ThawRequest,
+                                          form=nema_forms.AdvancingThawRequestForm,
+                                          extra=0)
+    
+    if request.method == 'POST':
+        adv_thaw_formset = AdvThawFormSet(request.POST, queryset=ongoing_thaws)
+        # print(adv_thaw_formset)
+        if adv_thaw_formset.is_valid():
+            for form in adv_thaw_formset:
+                if form.cleaned_data['save_changes']:
+                    messages.success(request, mark_safe(f'Saved changes to<br><strong>{form.instance}</strong>'))
+                    form.save()
+            return redirect('ongoing_thaws')
+        else:
+            messages.warning(request, f'Invalid formset!{adv_thaw_formset.errors}')
+    else:
+        adv_thaw_formset = AdvThawFormSet(queryset=ongoing_thaws)
+        for form in adv_thaw_formset:
+            form.initial['thawed_by'] = request.user.userprofile
+            form.initial['date_completed'] = date.today()
+
     return render(request, 'freezes_and_thaws/ongoing_thaws.html',
-                  {'ongoing_thaws': ongoing_thaws})
+                  {'ongoing_thaws': ongoing_thaws,
+                   'formset': adv_thaw_formset})
+
 
 # Freeze Functionality:
 def freeze_request_form(request, *args, **kwargs):
@@ -298,15 +335,15 @@ def outstanding_freeze_requests(request):
     freeze_requests = nema_models.FreezeRequest.objects.filter(status__in=['R'])
     requesting_users = UserProfile.objects.filter(freeze_requests__in=freeze_requests).distinct()
     requesting_users_initials = [user_profile.initials for user_profile in requesting_users]
-    
+
     # Table using django-tables2
     table = nema_tables.FreezeRequestTable(freeze_requests)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
-    
+
     # All the options include:
     # cancel-selected, cancel-all, cancel-<user initials>
     # advance-selected, advance-all, advance-<user initials>
-    
+
     if request.method == 'POST':
         _, option, act_targets = next(k for k in request.POST if k.startswith('action')).split('-')
         selected_requests_pks = [pk for pk in request.POST.getlist('selected') if pk]
@@ -322,7 +359,7 @@ def outstanding_freeze_requests(request):
         else:
             messages.warning(request, f'Invalid action target! You provided {act_targets}.')
             return redirect('outstanding_freeze_requests')
-        
+
         if option == 'cancel' and not request.user.is_staff:
             for freeze_request in selected_requests:
                 if freeze_request.requester != request.user.userprofile:
@@ -331,33 +368,35 @@ def outstanding_freeze_requests(request):
                                                         f'<br><strong>{freeze_request}</strong>'))
                     # First lets just remove the ones that are not from the current user
             selected_requests = selected_requests.filter(requester=request.user.userprofile)
-        
+
         if not selected_requests:
             messages.warning(request, 'No freeze requests to process!')
             return redirect('outstanding_freeze_requests')
-        
+
         selected_reqeust_ids_str = '&'.join([f"{request.id:>05d}" for request in selected_requests])
-        
+
         # Redirect to the new page with selected FreezeRequests
         return redirect('freeze_request_change_confirmation',
                         action=option,
                         freeze_request_ids=selected_reqeust_ids_str)
-    
+
     return render(request, 'freezes_and_thaws/outstanding_freeze_requests.html',
                   {'table': table, 'requesting_users': requesting_users})
+
 
 def ongoing_freezes(request):
     ongoing_freezes = nema_models.FreezeRequest.objects.filter(status__in=['A'])
     return render(request, 'freezes_and_thaws/ongoing_freezes.html',
                   {'ongoing_freezes': ongoing_freezes})
 
+
 def freeze_request_change_confirmation(request, freeze_request_ids, action='NoAction', *args, **kwargs):
     if action not in ['cancel', 'advance']:
         messages.warning(request, f'Invalid action! You provided {action}.')
         redirect('outstanding_freeze_requests')
-    
+
     freeze_requests = nema_models.FreezeRequest.objects.filter(pk__in=freeze_request_ids.split('&'))
-    
+
     if request.method == 'POST':
         if action == 'cancel':
             for freeze_request in freeze_requests:
@@ -377,8 +416,8 @@ def freeze_request_change_confirmation(request, freeze_request_ids, action='NoAc
             messages.warning(request, f'Invalid action! You provided {action}.')
             redirect('outstanding_freeze_requests')
         return redirect('outstanding_freeze_requests')
-    
+
     return render(request, 'freezes_and_thaws/freeze_request_change_confirmation.html',
                   {'freeze_request_ids': freeze_request_ids,
-                          'freeze_requests': freeze_requests,
-                          'action': action})
+                   'freeze_requests': freeze_requests,
+                   'action': action})

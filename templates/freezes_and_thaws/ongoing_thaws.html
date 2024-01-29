@@ -1,0 +1,57 @@
+{% extends "pieces/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block title %}
+    Ongoing Thaws
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <form method="post" action="{% url 'ongoing_thaws' %}">
+        {% csrf_token %}
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Ongoing Thaws ({{ ongoing_thaws.count }})</h1>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+        <div class="d-flex align-content-around flex-wrap" id="grid">
+        {{ formset.management_form }}
+        {% for form in formset %}
+            {% with thaw_request=form.instance %}
+                <div class="col-sm-12 col-md-6 col-lg-4 col-xl-3 p-2 flex-fill">
+                    <div class="card m-2">
+                        <div class="row g-0">
+                            <div class="card-header">
+                                <b>Selected Thaw Request {{ forloop.counter }}:</b> {{ thaw_request.strain.formatted_wja }}
+                            </div>
+                            <div class="col-md-12">
+                                <div class="card-body">
+                                    <div class="row mt-2">
+                                        <dt class="col-sm-6">Requester:</dt>
+                                        <dd class="col-sm-6">{{ thaw_request.requester }}</dd>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <dt class="col-sm-6">Is Urgent:</dt>
+                                        <dd class="col-sm-6">{{ thaw_request.is_urgent }}</dd>
+                                    </div>
+                                    <div class="col mt-2">
+                                        <dt class="col-sm-12 align-self-center">Request Comments:</dt>
+                                        <dd class="col-sm-12 align-self-center">{{ thaw_request.request_comments }}</dd>
+                                    </div>
+                                    <hr/>
+                                    <div class="col-md-12">
+                                        {% bootstrap_form form %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted">
+                            Submitted: {{ thaw_request.date_created }} ({{ thaw_request.date_created|timesince }} ago)
+                    </div>
+                    </div>
+                </div>
+            {% endwith %}
+        {% endfor %}
+        </div>
+        </form>
+    </div>
+{% endblock %}
