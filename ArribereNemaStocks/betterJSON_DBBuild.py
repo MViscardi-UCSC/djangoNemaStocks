@@ -17,6 +17,8 @@ from datetime import datetime as dt
 from datetime import date
 from datetime import timedelta as dt_delta
 
+from tqdm import tqdm
+
 import bisect
 
 import os
@@ -26,9 +28,20 @@ import django
 
 django.setup()
 
+from django.contrib.auth.models import User, Group
 import ArribereNemaStocks.models as nema_models
 import profiles.models as profile_models
 from hardcoded import CAP_COLOR_OPTIONS, USER_INITIALS_DICT
+
+
+def make_superuser(username):
+    try:
+        user = User.objects.get(username=username)
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
+    except User.DoesNotExist:
+        print(f"User {username} does not exist.")
 
 
 def parse_date(date_str, return_format="%Y-%m-%d", return_datetime_object=False):
@@ -297,6 +310,8 @@ class OldStrainEntry:
 
         # Things from entry dict:
         self.wja = entry_dict['WJA_NUMBER']
+        self.formatted_wja = self.wja
+        self.stripped_wja = int(self.wja.split(' ')[-1])
         self.description = entry_dict['DESCRIPTION']
         self.phenotype = entry_dict['PHENOTYPE']
         self.received_from_date = entry_dict['RECEIVED_FROM_DATE']
@@ -444,9 +459,6 @@ class OldStrainEntry:
         date_to_color_dict = dict(zip(collapsed_freeze_dates, self.cap_color_list))
         self.cap_color_list = [date_to_color_dict[date] for date in self.date_frozen_list]
 
-    def return_freezes(self) -> Tuple[List[SimpleFreeze] | None, str]:
-        pass
-
     def return_user_initials(self):
         user_initials_set = set()
         for date_thawed_and_user in self.date_thawed_list:
@@ -475,17 +487,6 @@ class OldStrainEntry:
                 non_freeze_comments.append(comment)
         non_freeze_comments = ' | '.join(non_freeze_comments)
         return non_freeze_comments
-
-    def get_freeze_comments(self):
-        freeze_comments = []
-        for comment in self.comments_list:
-            try:
-                date_thaw = comment.split(' ')[0]
-                parse_date(date_thaw, return_datetime_object=True)
-                freeze_comments.append(comment)
-            except ValueError:
-                continue
-        return freeze_comments
 
     def get_freeze_comments_and_testers(self):
         freeze_date_comments_testers_dict = {}
@@ -522,13 +523,15 @@ class OldStrainEntry:
             # ic(unmatched_freezes)
             # self.pprint_lists()
             # raise ValueError(f"Unmatched freezes for {self.wja}: {unmatched_freezes}")
-            print(f"Unmatched freezes for {self.wja}: {unmatched_freezes}")
+            # print(f"Unmatched freezes for {self.wja}: {unmatched_freezes}")
+            pass
         if len(unmatched_tests) > 0:
-            ic(unmatched_tests)
+            # ic(unmatched_tests)
             self.pprint_lists()
             raise ValueError(f"Unmatched tests for {self.wja}: {unmatched_tests}")
         if len(matches) > 1:
-            ic(matches)  # interesting but probably not important
+            # ic(matches)  # interesting but probably not important
+            pass
 
         for freeze_date, freeze_dicts in freeze_nest_dict.items():
             if freeze_date not in matches:
@@ -546,7 +549,7 @@ class OldStrainEntry:
                 freeze_dicts['general']['test_date'] = matches[freeze_date]
         return freeze_nest_dict
 
-    def to_simple_freeze_and_tube_list(self) -> Tuple[List[SimpleFreeze, ...], List[SimpleTube, ...]] | None:
+    def to_simple_freeze_and_tube_list(self) -> Tuple[List[SimpleFreeze], List[SimpleTube]] | None:
         # date_created: date,
         # date_stored: date,
         # strain: nema_models.Strain,
@@ -600,16 +603,17 @@ class OldStrainEntry:
 
                 freeze_nest_dict[parsed_freeze_date]['general']['strain'].build_dict = freeze_nest_dict
             except ValueError:
-                ic(freeze_date, self)
+                # ic(freeze_date, self)
                 self.pprint_lists()
                 continue
             except TypeError:
-                ic(freeze_date, self)
+                # ic(freeze_date, self)
                 self.pprint_lists()
                 continue
         # ic(self.wja, freeze_nest_dict)
         if len(freeze_nest_dict) > 3:
-            print("interesting")
+            # print("interesting")
+            pass
 
         freeze_comments_plus_dict = self.match_freeze_and_freeze_comments(freeze_nest_dict)
 
@@ -627,7 +631,11 @@ class OldStrainEntry:
                 test_comments = freeze_dicts['general']['tester_comments']
                 test_date = freeze_dicts['general']['test_date']
                 tester = freeze_dicts['general']['tester']
-                tester_profile = profile_models.UserProfile.objects.get(initials=tester)
+                try:
+                    tester_profile = profile_models.UserProfile.objects.get(initials=tester)
+                except profile_models.UserProfile.DoesNotExist as e:
+                    ic(freeze_dicts['general']['tester'])
+                    raise e
             try:
                 unknown_freezer = profile_models.UserProfile.objects.get(initials='XXX')
             except profile_models.UserProfile.DoesNotExist as e:
@@ -668,7 +676,7 @@ class OldStrainEntry:
                         set_number=tube_count,
                     )
                     simple_tube_list.append(simple_tube)
-        ic(simple_freeze_list, simple_tube_list)
+        # ic(simple_freeze_list, simple_tube_list)
         return simple_freeze_list, simple_tube_list
 
     def get_creation_date(self):
@@ -714,11 +722,11 @@ class OldStrainEntry:
             # This is ridiculous. There are too many cases like above, I am writing a rule for it:
             if self.date_frozen_list[0] == '11/22/2017' and len(self.date_frozen_list) == 1 and len(
                     self.tube_no_list) == 2:
-                print(f"{self.wja} is a early strain w/ one date (type A)")
+                # print(f"{self.wja} is a early strain w/ one date (type A)")
                 self.date_frozen_list.append(self.date_frozen_list[0])
             elif self.date_frozen_list[0] == '3/15/2018' and len(self.date_frozen_list) == 1 and len(
                     self.tube_no_list) == 2:
-                print(f"{self.wja} is a early strain w/ one date (type B)")
+                # print(f"{self.wja} is a early strain w/ one date (type B)")
                 self.date_frozen_list.append(self.date_frozen_list[0])
             # Revisionism (b/c I don't want to extend the acceptable freeze association window too far):
             elif self.date_frozen_list[-1] == '12/23/19' and self.comments_list[-1].startswith('01/06/20 AC'):
@@ -726,7 +734,7 @@ class OldStrainEntry:
                 self.comments_list.append(comment.replace('01/06/20 AC', '12/30/19 AC'))
         if self.comments_list:
             if self.comments_list[-1].startswith('8/9/18 MNP'):
-                ic(self.wja, "This strain we MNP's typo set (8/9/18 to 3/9/18)")
+                # ic(self.wja, "This strain we MNP's typo set (8/9/18 to 3/9/18)")
                 self.comments_list[-1] = self.comments_list[-1].replace('8/9/18 MNP', '3/9/18 MNP')
             for i, comment in enumerate(self.comments_list):
                 if comment.startswith('11/21/2017 JAA '):
@@ -755,10 +763,14 @@ class OldStrainEntry:
             self.date_frozen_list.append('10/10/22')
             self.cap_color_list.append('unknown')
             self.cap_color_list.append('unknown')
+            self.date_thawed_list[5] = '03/03/2021 XXX'
 
         if self.wja == 'WJA 2106':
             # OUR MALES
             self.comments_list[-1] = self.comments_list[-1].replace('3/29/18', '3/29/18 JAA')
+        elif self.wja == 'WJA 0045':
+            self.no_of_tubes_thawed_list.pop(4)
+            self.date_thawed_list.pop(4)
         elif self.wja == 'WJA 0141':
             # This strain has 4 freezes but only one date_frozen
             self.date_frozen_list = ['12/27/2017', '12/27/2017',
@@ -780,6 +792,8 @@ class OldStrainEntry:
             self.comments_list[-2] = self.comments_list[-2].replace('11/21/2017 JAA', '11/25/2017 JAA')
             # And a tube color thing!!!!
             self.cap_color_list[1] = 'red'
+            # AND a freeze tube thing!?!
+            self.no_of_tubes_thawed_list[2] = '1(JA2 1-8)'
         elif self.wja == 'WJA 0572':
             # Same issue
             self.date_frozen_list = ['11/22/2017',
@@ -845,8 +859,114 @@ class OldStrainEntry:
             color_date = self.cap_color_list.pop(0)
             self.cap_color_list.append('unknown ' + color_date)
             self.cap_color_list.append('unknown')
+        elif self.wja == 'WJA 0278':
+            self.date_thawed_list[0] = "10/24/2020 SS"
+        elif self.wja == 'WJA 0458':
+            self.date_thawed_list[4] = '7/9/21 NB'
+        elif self.wja == 'WJA 2126':
+            self.date_thawed_list[2] = '10/8/20 JW'
+        elif self.wja == 'WJA 2128':
+            self.no_of_tubes_thawed_list[1] = '1(JA2 1-7)'
+            self.date_thawed_list[8] = '5/5/22 XXX'
+        elif self.wja == 'WJA 0780':
+            self.date_thawed_list[3] = '6/6/23 XXX'
+        elif self.wja == 'WJA 5106':
+            self.no_of_tubes_thawed_list[0] = '1(JA1 5-6)'
+        elif self.wja == 'WJA 6111':
+            self.no_of_tubes_thawed_list[0] = '1(JA1 2-4)'
+        elif self.wja == 'WJA 5051':
+            self.date_thawed_list[2] = '10/8/2020 JW'
+        elif self.wja == 'WJA 4005':
+            self.date_thawed_list[0] = '12/10/19 AZ'
         elif self.wja == 'WJA ':
             pass
+
+    def parse_thaws(self):
+        def _parse_no_tubes_thaw(no_tubes_thawed_item):
+            pattern = r"(\d+)\((JA\s?\d+)\s{1,2}(\d+)-(\d+)\)"
+            match = re.match(pattern, no_tubes_thawed_item)
+            assert match
+            no_tubes, tank_no, rack_no, box_no = match.groups()
+            return no_tubes, tank_no, rack_no, box_no
+
+        thaws_dict = {}  # key: tank_rack_box: value: (date, user)
+        assert len(self.date_thawed_list) == len(self.no_of_tubes_thawed_list)
+        for i, (date_thawed_and_user, no_tubes_and_loc) in enumerate(zip(self.date_thawed_list,
+                                                                         self.no_of_tubes_thawed_list)):
+            try:
+                no_tubes, tank_no, rack_no, box_no = _parse_no_tubes_thaw(no_tubes_and_loc)
+            except AssertionError:
+                ic(no_tubes_and_loc, self)
+                self.pprint_lists()
+                raise AssertionError(f"Could not parse no_tubes_and_loc ({no_tubes_and_loc}) for {self.wja}")
+            try:
+                date_thawed, user = date_thawed_and_user.split(' ', 1)
+            except ValueError:
+                ic(date_thawed_and_user, self)
+                self.pprint_lists()
+                raise ValueError(f"Could not split date and user ({date_thawed_and_user}) for {self.wja}")
+            try:
+                parsed_date = parse_date(date_thawed, return_datetime_object=True)
+            except ValueError:
+                ic(date_thawed, self)
+                self.pprint_lists()
+                raise ValueError(f"Could not parse date {date_thawed} for {self.wja}")
+            box_tuple = (
+                tank_no[-1],
+                rack_no,
+                box_no,
+            )
+            thaw_dict = {
+                'date': parsed_date,
+                'user_initials': user,
+                'no_tubes': no_tubes,
+                'dewar-rack-box': box_tuple,
+            }
+            if box_tuple in thaws_dict:
+                thaws_dict[box_tuple].append(thaw_dict)
+            else:
+                thaws_dict[box_tuple] = [
+                    thaw_dict
+                ]
+
+        for i, ((dewar, rack, box), thaw_list) in enumerate(thaws_dict.items()):
+            # First lets find the right box:
+            try:
+                box = nema_models.Box.objects.get(
+                    dewar=dewar,
+                    rack=rack,
+                    box=box,
+                )
+            except nema_models.Box.DoesNotExist:
+                ic(dewar, rack, box)
+                raise ValueError(f"The box {dewar}-{rack}-{box} does not exist!")
+            # Now let's try to find the right tubes:
+            box_tubes = nema_models.Tube.objects.filter(strain__wja=self.stripped_wja,
+                                                        box=box)
+            for thaw_dict, tube in zip(thaw_list, box_tubes):
+                # Get user:
+                try:
+                    user = profile_models.UserInitials.objects.get(initials=thaw_dict['user_initials']).user_profile
+                except profile_models.UserInitials.DoesNotExist:
+                    ic(thaw_dict['user_initials'], self)
+                    self.pprint_lists()
+                    raise ValueError(f"Could not find a user with initials {thaw_dict['user_initials']}")
+                thaw_dict['tube'] = tube
+                if int(thaw_dict['no_tubes']) != 1:
+                    ic(thaw_dict['no_tubes'], thaw_dict['tube'].set_number, thaw_dict['tube'].box)
+                    raise ValueError(f"Found a thaw with more than one tube! This seems weird...")
+                # Now I want to update the tube record with the thaw info:
+                tube.date_thawed = thaw_dict['date']
+                tube.thaw_requester = user
+                tube.thawed = True
+                tube.save()
+
+        # Now let's quickly check the total number of tubes every frozen, and the total number of tubes thawed:
+        strain_tubes = nema_models.Tube.objects.filter(strain__wja=self.stripped_wja)
+        total_tubes_frozen = strain_tubes.count()
+        total_tubes_thawed = strain_tubes.filter(thawed=True).count()
+        total_tubes_remaining = strain_tubes.filter(thawed=False).count()
+        # ic(total_tubes_frozen, total_tubes_thawed, total_tubes_remaining)
 
 
 class SimpleUserProfile:
@@ -872,7 +992,6 @@ class SimpleUserProfile:
     def __str__(self):
         return self.__repr__()
 
-    @property
     def to_UserProfile(self):
         default_pw = 'augMETuaaSTOP'
         try:
@@ -897,6 +1016,9 @@ class SimpleUserProfile:
                                                                      )
         except django.db.utils.IntegrityError:
             user_profile = profile_models.UserProfile.objects.get(user=user)
+            if user_profile.initials != self.initials:
+                # If this user was already made, try to add the new set of initials to the existing user:
+                user_profile.add_initials(self.initials)
         for strain_numbers_set in self.strain_numbers_sets:
             # First lets check if the strain range already exists:
             strain_range = profile_models.StrainRange.objects.filter(
@@ -906,8 +1028,8 @@ class SimpleUserProfile:
             )
             if strain_range:
                 continue
-            elif strain_numbers_set[0] == -1 and strain_numbers_set[1] == -1: \
-                    continue
+            elif strain_numbers_set[0] == -1 and strain_numbers_set[1] == -1:
+                continue
             else:
                 strain_range = profile_models.StrainRange.objects.create(
                     user_profile=user_profile,
@@ -922,7 +1044,7 @@ from django.db import transaction
 
 
 @transaction.atomic
-def make_boxes():
+def create_boxes(delete_old=True):
     num_dewars = 2
     num_racks_per_dewar = 6
     num_boxes_per_rack = 8
@@ -935,15 +1057,15 @@ def make_boxes():
             for box in range(1, num_boxes_per_rack + 1):
                 box_name = f"D{dewar}R{rack}B{box}"
                 boxes_to_create.append(nema_models.Box(dewar=dewar, rack=rack, box=box))
-
-    nema_models.Box.objects.all().delete()
-    ic("Old boxes deleted.")
+    if delete_old:
+        nema_models.Box.objects.all().delete()
+        ic("Old boxes deleted.")
     nema_models.Box.objects.bulk_create(boxes_to_create)
     ic("New boxes created.", len(boxes_to_create))
 
 
 @transaction.atomic
-def make_strains(strains_dict, delete_old=True):
+def make_strains_from_simple_strains(strains_dict, delete_old=True):
     if delete_old:
         nema_models.Strain.objects.all().delete()
     for wja, simple_strain in strains_dict.items():
@@ -956,42 +1078,38 @@ def make_strains(strains_dict, delete_old=True):
     ic(nema_models.Strain.objects.all().count())
 
 
+def create_strains(old_db_entries, delete_old=True):
+    new_strain_dict = {}
+    
+    iterator = tqdm(enumerate(old_db_entries), total=len(old_db_entries),
+                    desc="Building database strain list")
+    for i, entry in iterator:
+        # entry.creation_date = entry.get_creation_date()  # added this to __init__
+        new_strain = entry.to_simple_strain()
+        new_strain_dict[entry.wja] = new_strain
+
+    make_strains_from_simple_strains(new_strain_dict)
+
+
 def build_simple_user_list(input_dict, ) -> List[SimpleUserProfile]:
     out_dict = {}
-    for initials, (first, last, strain_num_sets) in input_dict.items():
-        print(initials, first, last, strain_num_sets)
-        if (first, last) in out_dict:
-            continue
-        out_dict[(first, last)] = SimpleUserProfile(first_name=first,
-                                                    last_name=last,
-                                                    role='o',
-                                                    initials=initials,
-                                                    active_status=False,
-                                                    strain_numbers_sets=strain_num_sets,
-                                                    )
-    return list(out_dict.values())
-
-
-# Example strain dictionary for Copilot:
-# {'WJA_NUMBER': 'WJA 0066',
-# 'DESCRIPTION': 'unc-54(unc-54(e1301)::gfp::TAA::NSUTR)I',
-# 'PHENOTYPE': 'ts Unc',
-# 'RECEIVED_FROM_DATE': 'Joshua Arribere/4/13/2015',
-# 'LOCATION': None,
-# 'FROZEN': None,
-# 'THAWED': None,
-# 'DATE_FROZEN': '|11/22/2017',
-# 'TUBE_NO': '|1|1',
-# 'TANK_NO': '|JA1|JA2',
-# 'RACK_NO': '|2|4',
-# 'RACK_BOX_NO': '|2-8|4-5',
-# 'DATE_THAWED': None,
-# 'NO_OF_TUBES_THAWED': None,
-# 'COMMENTS': '|made by CRISPR using dpy-10 as marker in PD2859 background  Contains e1301 mutation conferring ts Unc behavior  JA from PD2859-74 21 4 2|9 120  9 150||formerly|PD 2883 |',
-# 'CAP_COLOR': 'blue'}
+    out_list = []
+    iterator = tqdm(input_dict.items(), total=len(input_dict),
+                    desc="Building initial user list")
+    for initials, (first, last, strain_num_sets) in iterator:
+        # print(initials, first, last, strain_num_sets)
+        out_list.append(SimpleUserProfile(first_name=first,
+                                          last_name=last,
+                                          role='o',
+                                          initials=initials,
+                                          active_status=False,
+                                          strain_numbers_sets=strain_num_sets,
+                                          ))
+    return out_list
 
 
 def get_thaw_requester_initials(_old_strain_entries):
+    # This was used to make the USER_INITIALS_DICT that's now in the hardcoded.py file
     user_initials_super_set = set()
     for i, entry in enumerate(_old_strain_entries):
         # tube_return = entry.return_tubes()
@@ -1001,13 +1119,48 @@ def get_thaw_requester_initials(_old_strain_entries):
     return user_initials_super_set
 
 
-def create_freezes_and_tubes(delete_old=True):
+@transaction.atomic
+def create_freezes(super_freeze_list, delete_old=False):
+    if delete_old:
+        nema_models.FreezeGroup.objects.all().delete()
+        ic("Old freezes deleted.")
+    
+    nema_freezes = []
+    iterator = tqdm(super_freeze_list, total=len(super_freeze_list),
+                    desc="Building database freeze list")
+    for freeze in iterator:
+        nema_freeze = freeze.to_nemaFreezeGroup()
+        nema_freezes.append(nema_freeze)
+    ic("Freeze Groups Done!")
+    return nema_freezes
+
+
+@transaction.atomic
+def create_tubes(super_tube_list, delete_old=False):
+    if delete_old:
+        nema_models.Tube.objects.all().delete()
+        ic("Old tubes deleted.")
+    
+    nema_tubes = []
+    iterator = tqdm(super_tube_list, total=len(super_tube_list),
+                    desc="Building database tube list")
+    for tube in iterator:
+        nema_tube = tube.to_nemaTube()
+        nema_tubes.append(nema_tube)
+    ic("Tubes Done!")
+    return nema_tubes
+
+
+def create_freezes_and_tubes(_old_strain_entries, delete_old=True):
     super_tube_list = []
     super_freeze_list = []
-    for i, entry in enumerate(old_strain_entries):
+    
+    iterator = tqdm(enumerate(_old_strain_entries), total=len(_old_strain_entries),
+                    desc="Building database freeze and tube list")
+    for i, entry in iterator:
         results = entry.to_simple_freeze_and_tube_list()
         if results is None:
-            ic(entry.wja, "No results")
+            # ic(entry.wja, "No results")
             continue
         else:
             freezes, tubes = results
@@ -1020,130 +1173,67 @@ def create_freezes_and_tubes(delete_old=True):
     create_tubes(super_tube_list, delete_old=delete_old)
 
 
-@transaction.atomic
-def create_freezes(super_freeze_list, delete_old=False):
+def create_users(user_initials_dict, delete_old=False, open_registration=True):
     if delete_old:
-        nema_models.FreezeGroup.objects.all().delete()
-        ic("Old freezes deleted.")
-    nema_freezes = []
-    for freeze in super_freeze_list:
-        nema_freeze = freeze.to_nemaFreezeGroup()
-        nema_freezes.append(nema_freeze)
-    ic("Freeze Groups Done!")
-    return nema_freezes
+        _ = [user.delete() for user in profile_models.User.objects.all()]
+        profile_models.UserProfile.objects.all().delete()
+        profile_models.UserInitials.objects.all().delete()
+        ic("Old users deleted.")
+    simple_user_list = build_simple_user_list(user_initials_dict)
+    user_profiles_list = []
+    
+    iterator = tqdm(simple_user_list, total=len(simple_user_list),
+                    desc="Building database user list")
+    for simple_user in iterator:
+        user_profiles_list.append(simple_user.to_UserProfile())
+    ic(profile_models.UserProfile.objects.all().count(),
+       "Users Done!")
+    profile_models.OpenRegistration.objects.all().delete()
+    profile_models.OpenRegistration.objects.create(is_open=open_registration)
+    return user_profiles_list
 
 
 @transaction.atomic
-def create_tubes(super_tube_list, delete_old=False):
-    if delete_old:
-        nema_models.Tube.objects.all().delete()
-        ic("Old tubes deleted.")
-    nema_tubes = []
-    for tube in super_tube_list:
-        nema_tube = tube.to_nemaTube()
-        nema_tubes.append(nema_tube)
-    ic("Tubes Done!")
-    return nema_tubes
+def thaw_used_tubes(_old_strain_entries: List[OldStrainEntry], reset_all=False):
+    if reset_all:
+        nema_models.Tube.objects.all().update(thawed=False,
+                                              thaw_requester=None,
+                                              date_thawed=None,
+                                              )
+        ic("All tubes reset to unthawed")
+    
+    iterator = tqdm(_old_strain_entries, total=len(_old_strain_entries),
+                    desc="Thawing used tubes")
+    for old_strain in iterator:
+        old_strain.parse_thaws()
 
-
-# TODO: I need to implement new parsing for THAWED TUBES!!
 
 if __name__ == '__main__':
-    ic(profile_models.UserProfile.objects.all().count())
+    # Ideally we should be able to run this from a brand-new database and have it build everything!!
 
-    db = load_old_db()
+    # This is the actual load step. The OldStrainEntry class does all the parsing and cleaning
+    
+    json_db = load_old_db()
+    iterator = tqdm(json_db, total=len(json_db),
+                    desc="Parsing JSON database")
     old_strain_entries = []
-    new_strains = {}
-    for entry in db:
-        old_strain = OldStrainEntry(entry)
-        old_strain_entries.append(old_strain)
+    for entry in iterator:
+        old_strain_entries.append(OldStrainEntry(entry))
 
-    # old_strain_entries[22].pprint()
-    # old_strain_entries[22].pprint_lists(len_per_item=20)
-    # print(old_strain_entries[24].original_dict)
-    for i, entry in enumerate(old_strain_entries):
-        # entry.creation_date = entry.get_creation_date()  # added this to __init__
-        new_strain = entry.to_simple_strain()
-        new_strains[entry.wja] = new_strain
+    # Each of the following steps should be skip-able for databases that are already built:
 
-    make_strains(new_strains)
+    create_users(USER_INITIALS_DICT,
+                 delete_old=True)
 
-    # ic(get_thaw_requester_initials(old_strain_entries))
-    # userrprofiles_list = []
-    # for simple_user in build_simple_user_list(USER_INITIALS_DICT):
-    #     # profile_models.UserProfile.objects.filter(initials=simple_user.initials).delete()
-    #     profile_models.StrainRange.objects.filter(user_profile__initials=simple_user.initials).delete()
-    #     userrprofiles_list.append(simple_user.to_UserProfile())
-    # ic(profile_models.UserProfile.objects.all().count())
+    create_boxes(delete_old=True)
 
-    create_freezes_and_tubes()
-    print("Done!")
+    create_strains(old_strain_entries,
+                   delete_old=True)
 
-    # # old_strain_entries[22].pprint()
-    # make_boxes()
-    # for col, entries in old_strain_entries[25].split_column_dict.items():
-    #     ic(col, len(entries), entries)
-    # no_entry_count, single_entry_count, match_count, two_match_count, fail_count = 0, 0, 0, 0, 0
-    # for entry in old_strain_entries:
-    #     if (
-    #                 len(entry.split_column_dict['TANK_NO']) ==
-    #                 len(entry.split_column_dict['TUBE_NO']) ==
-    #                 len(entry.split_column_dict['RACK_NO']) ==
-    #                 len(entry.split_column_dict['RACK_BOX_NO']) ==
-    #                 len(entry.split_column_dict['DATE_FROZEN'])
-    #                 ):
-    #         if len(entry.split_column_dict['DATE_FROZEN']) == 0:
-    #             no_entry_count += 1
-    #         elif len(entry.split_column_dict['DATE_FROZEN']) == 1:
-    #             # ic("One entry:", entry.wja, entry.date_frozen, entry.tube_no)
-    #             single_entry_count += 1
-    #         elif entry.split_column_dict['DATE_FROZEN'][-2] != entry.split_column_dict['DATE_FROZEN'][-1]:
-    #             ic("Not dup", entry.wja, entry.date_frozen, entry.tube_no)
-    #             fail_count += 1
-    #         else:
-    #             match_count += 1
-    #     elif (
-    #                 len(entry.split_column_dict['TANK_NO']) ==
-    #                 len(entry.split_column_dict['TUBE_NO']) ==
-    #                 len(entry.split_column_dict['RACK_NO']) ==
-    #                 len(entry.split_column_dict['RACK_BOX_NO']) ==
-    #                 len(entry.split_column_dict['DATE_FROZEN'])*2
-    #                 ):
-    #         two_match_count += 1
-    #     else:
-    #         ic(entry.wja, entry.date_frozen, entry.tube_no)
-    #         fail_count += 1
-    # #                                      Same number
-    # ic(no_entry_count, single_entry_count, match_count, two_match_count, fail_count)
-    # 
-    # color_match_dates, color_off_one, color_mismatch_dates = 0, 0, 0
-    # for entry in old_strain_entries:
-    #     # Using "sets" here lets us collapse cases where we have two copies of the same date for each freeze event
-    #     # 1 freeze event has 1 color, but it'll have two entries of the same date
-    #     if len(entry.split_column_dict['CAP_COLOR']) == len(set(entry.split_column_dict['DATE_FROZEN'])):
-    #         color_match_dates += 1
-    #     elif len(entry.split_column_dict['CAP_COLOR']) == len(set(entry.split_column_dict['DATE_FROZEN']))+1:
-    #         color_off_one += 1
-    #         entry.cap_color_list.pop(0)
-    #         # entry.pprint_lists(len_per_item=20)
-    #     else:
-    #         color_mismatch_dates += 1
-    #         ic(entry.wja, entry.split_column_dict['CAP_COLOR'], entry.split_column_dict['DATE_FROZEN'])
-    #         # entry.pprint_lists(len_per_item=20)
-    # ic(color_match_dates, color_off_one, color_mismatch_dates)
-    # 
-    # color_match_dates, color_off_one, color_mismatch_dates = 0, 0, 0
-    # for entry in old_strain_entries:
-    #     # Using "sets" here lets us collapse cases where we have two copies of the same date for each freeze event
-    #     # 1 freeze event has 1 color, but it'll have two entries of the same date
-    #     if len(entry.split_column_dict['CAP_COLOR']) == len(set(entry.split_column_dict['DATE_FROZEN'])):
-    #         color_match_dates += 1
-    #     elif len(entry.split_column_dict['CAP_COLOR']) == len(set(entry.split_column_dict['DATE_FROZEN']))+1:
-    #         color_off_one += 1
-    #         entry.cap_color_list.pop(0)
-    #         entry.pprint_lists(len_per_item=20)
-    #     else:
-    #         color_mismatch_dates += 1
-    #         ic(entry.wja, entry.split_column_dict['CAP_COLOR'], entry.split_column_dict['DATE_FROZEN'])
-    #         entry.pprint_lists(len_per_item=20)
-    # ic(color_match_dates, color_off_one, color_mismatch_dates)
+    create_freezes_and_tubes(old_strain_entries,
+                             delete_old=True)
+
+    thaw_used_tubes(old_strain_entries,
+                    reset_all=True)
+
+    ic("Done!")
