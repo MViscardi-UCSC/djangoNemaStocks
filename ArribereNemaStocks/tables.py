@@ -66,13 +66,13 @@ class FreezeRequestTable(tables.Table):
                            accessor='strain.formatted_wja', verbose_name='WJA')
     number_of_tubes = tables.Column()
     cap_color = tables.Column()
-    completed = tables.Column()
+    status = tables.Column()
     
     class Meta:
         model = FreezeRequest
         # template_name = 'django_tables2/bootstrap4.html'
         fields = ('selected', 'date_created', 'requester', 'strain',
-                  'number_of_tubes', 'cap_color', 'completed')
+                  'number_of_tubes', 'cap_color', 'status')
 
 class ThawRequestTable(tables.Table):
     selected = tables.CheckBoxColumn(accessor='pk', orderable=False)

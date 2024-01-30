@@ -9,6 +9,18 @@
 
 {% block content %}
     <div class="container mt-4">
+        <h1>Freeze Requests</h1>
+        <p>
+            This page shows all the freeze requests that have been made by users, 
+            but haven't yet been completed by the strain czar.
+            You can cancel
+            {% if request.user.is_staff %}
+                or advance
+            {% else %}
+                your own
+            {% endif %}
+            requests from here.
+        </p>
         <p>
                 Displaying {{ table.page.start_index }}
                 - {{ table.page.end_index }} 

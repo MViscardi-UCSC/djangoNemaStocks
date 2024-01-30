@@ -13,4 +13,24 @@
             </div>
         </div>
     </div>
+    <div class="container mt-4">
+        <h1>NemaStocks Strain Search</h1>
+        <p>
+            Use this to search within WJA, Phenotype, Genotype, and Description for strains.
+        </p>
+        <form class="d-flex" method="get" action="{% url 'strain_list_datatable' %}">
+            <div class="input-group mt-3">
+                <input class="form-control" type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}"
+                title="Search within WJA, Phenotype, Genotype, and Description for strains"
+                id="searchBoxInput">
+                <label class="form-check-label" for="searchBoxInput"></label>
+                <button class="btn btn-primary" type="submit"
+                        title="Search within WJA, Phenotype, Genotype, and Description for strains">Search</button>
+                <a href="{% url 'strain_list_datatable' %}" class="btn btn-secondary" title="View all strains">View All</a>
+            </div>
+        </form>
+        <small>
+            In the future we can add functionality to search within specific fields if we'd like... Ask Marcus
+        </small>
+    </div>
 {% endblock %}

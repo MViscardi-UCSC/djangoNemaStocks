@@ -37,16 +37,7 @@ def strain_assignments(request, *args, **kwargs):
 
 
 def strain_search(request, *args, **kwargs):
-    strains = nema_models.Strain.objects.all()
-    search_term = request.GET.get('q')
-
-    if search_term:
-        strains = nema_models.Strain.objects.search(search_term)
-
-    table = nema_tables.StrainTable(strains)
-    RequestConfig(request, paginate={"per_page": 15}).configure(table)
-
-    return render(request, 'strains/strain_search.html', {'table': table, 'results_count': strains.count()})
+    return render(request, 'strains/strain_search.html')
 
 
 def strain_list_datatable(request, *args, **kwargs):
@@ -222,6 +213,7 @@ def thaw_request_change_confirmation(request, thaw_request_ids, action='NoAction
         if action == 'cancel':
             for thaw_request in thaw_requests:
                 thaw_request.completed = True
+                thaw_request.status = 'X'
                 thaw_request.save()
                 thaw_str = thaw_request.__str__()
                 thaw_request.delete()
@@ -332,7 +324,7 @@ def freeze_request_confirmation(request, form=None, *args, **kwargs):
 
 
 def outstanding_freeze_requests(request):
-    freeze_requests = nema_models.FreezeRequest.objects.filter(status__in=['R'])
+    freeze_requests = nema_models.FreezeRequest.objects.filter(status__in=['R', 'A'])
     requesting_users = UserProfile.objects.filter(freeze_requests__in=freeze_requests).distinct()
     requesting_users_initials = [user_profile.initials for user_profile in requesting_users]
 
@@ -366,8 +358,13 @@ def outstanding_freeze_requests(request):
                     messages.warning(request, mark_safe(f'You do not have permission to cancel requests from '
                                                         f'other users! Removed the following from your request:'
                                                         f'<br><strong>{freeze_request}</strong>'))
+                if freeze_request.status == 'A':
+                    messages.warning(request, mark_safe(f'You cannot cancel an request that has moved on to testing! '
+                                                        f'Removed the following from your request:'
+                                                        f'<br><strong>{freeze_request}</strong>'))
                     # First lets just remove the ones that are not from the current user
             selected_requests = selected_requests.filter(requester=request.user.userprofile)
+            selected_requests = selected_requests.exclude(status='A')
 
         if not selected_requests:
             messages.warning(request, 'No freeze requests to process!')
@@ -385,37 +382,69 @@ def outstanding_freeze_requests(request):
 
 
 def ongoing_freezes(request):
-    ongoing_freezes = nema_models.FreezeRequest.objects.filter(status__in=['A'])
+    print(date.today())
+    ongoing_freeze_set = nema_models.FreezeRequest.objects.filter(status__in=['A'])
+
+    AdvFreezeFormSet = modelformset_factory(nema_models.FreezeRequest,
+                                            form=nema_forms.AdvancingFreezeRequestForm,
+                                            extra=0)
+
+    if request.method == 'POST':
+        adv_freeze_formset = AdvFreezeFormSet(request.POST, queryset=ongoing_freeze_set)
+        if adv_freeze_formset.is_valid():
+            for form in adv_freeze_formset:
+                if form.cleaned_data['save_changes']:
+                    messages.success(request, mark_safe(f'Saved changes to<br><strong>{form.instance}</strong>'))
+                    form.save()
+            return redirect('ongoing_freezes')
+        else:
+            messages.warning(request, f'Invalid formset!{adv_freeze_formset.errors}')
+    else:
+        adv_freeze_formset = AdvFreezeFormSet(queryset=ongoing_freeze_set)
+        for form in adv_freeze_formset:
+            if form.instance.id % 2 == 0:  # Evens get all but one in box 1
+                form.initial['tubes_for_box1'] = form.instance.number_of_tubes - 2
+                form.initial['tubes_for_box2'] = 1
+            else:  # Odds get all but one in box 2
+                form.initial['tubes_for_box1'] = 1
+                form.initial['tubes_for_box2'] = form.instance.number_of_tubes - 2
+            form.initial['freezer'] = form.instance.requester
+            form.initial['tester'] = request.user.userprofile
+            form.initial['date_completed'] = date.today()
+
     return render(request, 'freezes_and_thaws/ongoing_freezes.html',
-                  {'ongoing_freezes': ongoing_freezes})
+                  {'ongoing_freezes': ongoing_freeze_set,
+                   'formset': adv_freeze_formset})
 
 
 def freeze_request_change_confirmation(request, freeze_request_ids, action='NoAction', *args, **kwargs):
     if action not in ['cancel', 'advance']:
         messages.warning(request, f'Invalid action! You provided {action}.')
-        redirect('outstanding_freeze_requests')
+        return redirect('outstanding_freeze_requests')
 
     freeze_requests = nema_models.FreezeRequest.objects.filter(pk__in=freeze_request_ids.split('&'))
 
     if request.method == 'POST':
         if action == 'cancel':
             for freeze_request in freeze_requests:
-                freeze_request.status = 'C'
+                freeze_request.completed = True
+                freeze_request.status = 'X'
                 freeze_request.save()
                 freeze_str = freeze_request.__str__()
                 freeze_request.delete()
                 messages.success(request, mark_safe(f'Deleted freeze request:<br><strong>{freeze_str}</strong>'))
+            return redirect('outstanding_freeze_requests')
         elif action == 'advance':
             for freeze_request in freeze_requests:
                 freeze_request.status = 'A'
+                # TODO: Create a freeze_group here and connect it to the request!!
+                
                 freeze_request.save()
-                # TODO: I need to add a new FreezeGroup for each FreezeRequest here
                 messages.success(request, f'Freeze requests {freeze_request_ids} advanced successfully!')
             return redirect('ongoing_freezes')
         else:
             messages.warning(request, f'Invalid action! You provided {action}.')
-            redirect('outstanding_freeze_requests')
-        return redirect('outstanding_freeze_requests')
+            return redirect('outstanding_freeze_requests')
 
     return render(request, 'freezes_and_thaws/freeze_request_change_confirmation.html',
                   {'freeze_request_ids': freeze_request_ids,

@@ -11,6 +11,8 @@ from simple_history.admin import SimpleHistoryAdmin
 # Register your models here.
 from .models import Strain, Tube, Box, FreezeGroup, ThawRequest, FreezeRequest
 
+admin.site.site_header = 'Arribere Lab NemaStocks Database'
+
 
 @admin.register(Tube)
 class TubeAdmin(SimpleHistoryAdmin):
@@ -53,35 +55,23 @@ class TubeAdmin(SimpleHistoryAdmin):
 
     autocomplete_fields = ['strain', 'box', 'freeze_group']
 
-
-@admin.register(Strain)
-class StrainAdmin(SimpleHistoryAdmin):
-    list_display = ('formatted_wja', 'description', 'date_created',
-                    'phenotype', 'active_tubes_count', 'inactive_tubes_count')
-    # list_filter = ('date_created', 'wja')
-    search_fields = ('wja', 'date_created')
-    ordering = ('wja',)
-    
-    def get_readonly_fields(self, request, obj=None):
-        readonly_fields = super(StrainAdmin, self).get_readonly_fields(request, obj)
-        if not request.user.is_superuser:
-            readonly_fields += ('wja', 'formatted_wja',)
-        return readonly_fields
-    
-    def active_tubes_count(self, obj):
-        return obj.active_tubes_count()
-    active_tubes_count.short_description = 'Active Tubes'
-    
-    def inactive_tubes_count(self, obj):
-        return obj.inactive_tubes_count()
-    inactive_tubes_count.short_description = 'Thawed Tubes'
+class TubeInline(admin.TabularInline):
+    model = Tube
+    extra = 0
+    autocomplete_fields = ['strain', 'box', 'freeze_group']
 
 
 @admin.register(Box)
 class BoxAdmin(SimpleHistoryAdmin):
-    list_display = ('id', 'dewar', 'rack', 'box')
+    list_display = ('id', 'dewar', 'rack', 'box', 'active_tubes')
     list_filter = ('dewar', 'rack', 'box')
     search_fields = ('dewar', 'rack', 'box')
+    
+    inlines = [TubeInline,]
+    
+    def active_tubes(self, obj):
+        return obj.get_active_tubes().count()
+    active_tubes.short_description = 'Active Tubes'
 
 
 @admin.register(FreezeGroup)
@@ -131,9 +121,21 @@ class FreezeGroupAdmin(SimpleHistoryAdmin):
                mark_test_passed, unmark_test_passed,
                mark_stored, unmark_stored]
 
+    inlines = [TubeInline, ]
+
+class FreezeGroupInline(admin.TabularInline):
+    model = FreezeGroup
+    extra = 0
+    autocomplete_fields = ['strain']
+
+class FreezeGroupInlineS(admin.StackedInline):
+    model = FreezeGroup
+    extra = 0
+    autocomplete_fields = ['strain']
 
 @admin.register(ThawRequest)
 class ThawRequestAdmin(SimpleHistoryAdmin):
+    
     @admin.action(description="Mark selected thaw requests as completed")
     def mark_completed(self, request, queryset):
         queryset.update(completed=True)
@@ -146,13 +148,47 @@ class ThawRequestAdmin(SimpleHistoryAdmin):
         queryset.update(date_completed=None)
 
     list_display = ('id', 'strain', 'date_created', 'requester',
-                    'is_urgent', 'completed', 'thawed_by', 'request_comments')
+                    'is_urgent', 'status', 'thawed_by', 'request_comments')
     list_filter = ('date_created', 'date_completed',
-                   'completed', 'requester', 'thawed_by')
-    search_fields = ('date_completed', 'completed', 'thawed_by', 'strain__wja',
+                   'status', 'requester', 'thawed_by')
+    search_fields = ('date_completed', 'status', 'thawed_by', 'strain__wja',
                      )
     actions = [mark_completed, unmark_completed]
 
-admin.site.register(FreezeRequest)
 
-admin.site.site_header = 'Arribere Lab NemaStocks Database'
+# admin.site.register(FreezeRequest)
+@admin.register(FreezeRequest)
+class FreezeRequestAdmin(SimpleHistoryAdmin):
+    list_display = ('id', 'strain', 'date_created', 'requester',
+                    'number_of_tubes', 'cap_color', 'status')
+    list_filter = ('date_created', 'status', 'requester', 'cap_color')
+    search_fields = ('date_created', 'status', 'requester', 'strain__wja',
+                     'cap_color', 'number_of_tubes')
+    
+    inlines = [FreezeGroupInlineS, ]
+
+
+@admin.register(Strain)
+class StrainAdmin(SimpleHistoryAdmin):
+    list_display = ('formatted_wja', 'description', 'date_created',
+                    'phenotype', 'active_tubes_count', 'inactive_tubes_count')
+    # list_filter = ('date_created', 'wja')
+    search_fields = ('wja', 'date_created')
+    ordering = ('wja',)
+    inlines = [FreezeGroupInline, ]
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super(StrainAdmin, self).get_readonly_fields(request, obj)
+        if not request.user.is_superuser:
+            readonly_fields += ('wja', 'formatted_wja',)
+        return readonly_fields
+
+    def active_tubes_count(self, obj):
+        return obj.active_tubes_count()
+
+    active_tubes_count.short_description = 'Active Tubes'
+
+    def inactive_tubes_count(self, obj):
+        return obj.inactive_tubes_count()
+
+    inactive_tubes_count.short_description = 'Thawed Tubes'

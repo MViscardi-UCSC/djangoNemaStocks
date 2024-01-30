@@ -35,41 +35,88 @@
                 </a>
             {% endif %}
         </div>
-        <a class="navbar-brand" href="#">Arribere Nemastocks</a>
+        <a class="navbar-brand" href="/">Arribere Nemastocks</a>
         <div class="collapse navbar-collapse" id="myNavbar">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            {% if request.path != '/strain_list_datatable' %}
+                <li class="nav-item">
+                    <form class="col-md-3" method="get" action="{% url 'strain_list_datatable' %}">
+                        <div class="input-group mt-3">
+                            <input class="form-control" type="text" name="q" placeholder="Strain Search..." value="{{ request.GET.q }}"
+                            title="Search within WJA, Phenotype, Genotype, and Description for strains"
+                            id="searchBoxInput">
+                            <label class="form-check-label" for="searchBoxInput"></label>
+                            <button class="btn btn-primary" type="submit"
+                                    title="Search within WJA, Phenotype, Genotype, and Description for strains">Search</button>
+                            <a href="{% url 'strain_list_datatable' %}" class="btn btn-secondary" title="View all strains">View All</a>
+                        </div>
+                    </form>
+                </li>
+            {% endif %}
                 <li class="nav-item {% block home_active %}{% endblock %}">
                     <a class="nav-link" href="/">Home</a>
                 </li>
                 <li class="nav-item {% block strains_active %}{% endblock %}">
                     <a class="nav-link" href="/strain_list_datatable">Strains</a>
                 </li>
-                <li class="nav-item {% block strain_search_active %}{% endblock %}">
-                    <a class="nav-link" href="/strain_search">Strain Search</a>
-                </li>
+{#                <li class="nav-item {% block strain_search_active %}{% endblock %}">#}
+{#                    <a class="nav-link" href="/strain_search">Strain Search</a>#}
+{#                </li>#}
                 <li class="nav-item {% block strain_assignments_active %}{% endblock %}">
                     <a class="nav-link" href="/strain_assignments">Strain Assignments</a>
                 </li>
                 <li class="nav-item {% block about_active %}{% endblock %}">
                     <a class="nav-link" href="/about">About</a>
                 </li>
-                <li class="nav-item {% block new_strain_active %}{% endblock %}">
-                    <a class="nav-link" href="/strain/new">New Strain</a>
-                </li>
+{#                <li class="nav-item {% block new_strain_active %}{% endblock %}">#}
+{#                    <a class="nav-link" href="/strain/new">New Strain</a>#}
+{#                </li>#}
                 <li class="nav-item {% block outstanding_freeze_requests %}{% endblock %}">
-                    <a class="nav-link" href="/outstanding_freeze_requests/">Pending Freezes</a>
+                    <div class="d-flex">
+                        <a class="nav-link" href="/outstanding_freeze_requests/">
+                            Pending Freezes 
+{#                            <span class="badge bg-danger">#}
+{#                                {{ outstanding_freeze_requests|length }}#}
+{#                            </span>#}
+                        </a>
+                        {% if user.is_staff %}
+                            <a class="nav-link" href="/ongoing_freezes/" style="margin-left: 15px;">
+                                <i>Ongoing Freezes</i>
+                            </a>
+                        {% endif %}
+                    </div>
                 </li>
                 <li class="nav-item {% block outstanding_thaw_requests %}{% endblock %}">
-                    <a class="nav-link" href="/outstanding_thaw_requests/">Pending Thaws</a>
+                    <div class="d-flex">
+                        <a class="nav-link" href="/outstanding_thaw_requests/">
+                            Pending Thaws 
+{#                            <span class="badge bg-danger">#}
+{#                                {{ outstanding_freeze_requests|length }}#}
+{#                            </span>#}
+                        </a>
+                        {% if user.is_staff %}
+                            <a class="nav-link" href="/ongoing_thaws/" style="margin-left: 15px;">
+                                <i>Ongoing Thaws</i>
+                            </a>
+                        {% endif %}
+                    </div>
                 </li>
-                {% if user.is_staff %}
-                    <li class="nav-item {% block ongoing_freezes %}{% endblock %}">
-                        <a class="nav-link" href="/ongoing_freezes/">Ongoing Freezes</a>
-                    </li>
-                    <li class="nav-item {% block ongoing_thaws %}{% endblock %}">
-                        <a class="nav-link" href="/ongoing_thaws/">Ongoing Thaws</a>
-                    </li>
-                {% endif %}
+{#                <li class="nav-item {% block outstanding_thaw_requests %}{% endblock %}">#}
+{#                    <a class="nav-link" href="/outstanding_thaw_requests/">#}
+{#                        Pending Thaws#}
+{#                        <span class="badge bg-danger">#}
+{#                            {{ outstanding_thaw_requests|length }}#}
+{#                        </span>#}
+{#                    </a>#}
+{#                </li>#}
+{#                {% if user.is_staff %}#}
+{#                    <li class="nav-item {% block ongoing_freezes %}{% endblock %}">#}
+{#                        <a class="nav-link" href="/ongoing_freezes/">Ongoing Freezes</a>#}
+{#                    </li>#}
+{#                    <li class="nav-item {% block ongoing_thaws %}{% endblock %}">#}
+{#                        <a class="nav-link" href="/ongoing_thaws/">Ongoing Thaws</a>#}
+{#                    </li>#}
+{#                {% endif %}#}
                 {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="/user_page">User Page</a>

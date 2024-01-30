@@ -17,38 +17,31 @@ class LoginForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput)
 
 class UserProfileForm(forms.ModelForm):
+    username = forms.CharField(max_length=20)
     email = forms.EmailField()
+    first_name = forms.CharField(max_length=30)
+    last_name = forms.CharField(max_length=30)
+    
     ROLE_CHOICES = UserProfile.ROLE_CHOICES
     role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect)
     
     class Meta:
         model = UserProfile
-        fields = ['role', 'initials', 'active_status', 'email']
-
-    first_name = forms.CharField(max_length=30)
-    last_name = forms.CharField(max_length=30)
-    
-    class Meta:
-        model = UserProfile
-        fields = ['role', 'initials', 'active_status', 'email', 'first_name', 'last_name']
-    ROLE_CHOICES = [
-        ('i', 'Professor/Primary Investigator'),
-        ('p', 'Postdoctoral Fellow'),
-        ('c', 'Collaborator'),
-        ('g', 'Graduate Student'),
-        ('t', 'Technician'),
-        ('u', 'Undergraduate'),
-        ('o', 'Other/Undefined'),
-    ]
-    
-    role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.RadioSelect)
+        fields = ['role', 'initials', 'active_status', 'username', 'email', 'first_name', 'last_name']
     
     def __init__(self, *args, **kwargs):
         super(UserProfileForm, self).__init__(*args, **kwargs)
         self.fields['active_status'].help_text = 'This will control whether or not you receive emails.'
+        self.fields['first_name'].initial = self.instance.user.first_name
+        self.fields['last_name'].initial = self.instance.user.last_name
+        self.fields['username'].initial = self.instance.user.username
+        self.fields['username'].help_text = ('This will be your login username. '
+                                             'For ease of identification, please just use your first name (lower case).')
+        self.fields['email'].initial = self.instance.user.email
         
     def save(self, commit=True):
         user_profile = super(UserProfileForm, self).save(commit=False)
+        user_profile.user.username = self.cleaned_data['username']
         user_profile.user.email = self.cleaned_data['email']
         user_profile.user.first_name = self.cleaned_data['first_name']
         user_profile.user.last_name = self.cleaned_data['last_name']

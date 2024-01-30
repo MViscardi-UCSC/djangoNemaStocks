@@ -86,7 +86,7 @@ class Strain(models.Model):
 class Tube(models.Model):
     cap_color = models.CharField(max_length=50, choices=CAP_COLOR_OPTIONS, default='unknown')
     date_created = models.DateField(default=timezone.now, editable=True)
-    date_thawed = models.DateField(null=True, editable=True)
+    date_thawed = models.DateField(null=True, blank=True, editable=True)
     box = models.ForeignKey('Box', on_delete=models.CASCADE, null=True,
                             related_name='tube_set')
     strain = models.ForeignKey('Strain', on_delete=models.CASCADE,
@@ -157,7 +157,7 @@ class Box(models.Model):
         verbose_name_plural = 'Boxes'
 
     def __repr__(self):
-        return f'Box(JA{self.dewar:0>2}-Rack{self.rack:0>2}-Box{self.box:0>2})'
+        return f'Box(JA{self.dewar:0>2}-Rack{self.rack:0>2}-Box{self.box:0>2}; {self.get_usage()})'
 
     def repr(self):
         return self.__repr__()
@@ -169,7 +169,10 @@ class Box(models.Model):
         return self.tube_set.filter(thawed=False)
     
     def get_usage(self, max_tubes_per_box=81):
-        return f'{self.get_active_tubes().count()}/{max_tubes_per_box}'
+        return f'{self.get_active_tubes().count():0>2}/{max_tubes_per_box}'
+    
+    def is_full(self, max_tubes_per_box=81) -> bool:
+        return self.get_active_tubes().count() >= max_tubes_per_box
 
 
 class FreezeGroup(models.Model):
@@ -191,6 +194,7 @@ class FreezeGroup(models.Model):
     stored = models.BooleanField(default=False)
     
     freeze_request = models.OneToOneField('FreezeRequest', on_delete=models.CASCADE, null=True)
+    
     history = HistoricalRecords()
 
     class Meta:
@@ -313,7 +317,7 @@ class FreezeRequest(models.Model):
     freeze_group = models.OneToOneField('FreezeGroup', on_delete=models.CASCADE, null=True)
     STATUS_CHOICES = (
         ('R', 'Requested'),
-        ('A', 'Advanced'),
+        ('A', 'Advanced/Testing'),
         ('C', 'Completed'),
         ('F', 'Failed'),
         ('X', 'Cancelled'),

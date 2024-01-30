@@ -9,8 +9,12 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
 from pathlib import Path
+
+import environ
+
+env = environ.Env()
+environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-lak#^=v&2@8dez66*h@mvball+e@0=qm$y9=18*_xifcp8y2p5'
+SECRET_KEY = env('SECRET_KEY')  # Changed by Marcus, 1/29/2024
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -146,4 +150,4 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'arriberenemastocks@gmail.com'  # replace with your email
-EMAIL_HOST_PASSWORD = 'oipa yqtn onyf giqh'  # replace with your password
+EMAIL_HOST_PASSWORD = env('EMAIL_PASS')  # replace with your password
