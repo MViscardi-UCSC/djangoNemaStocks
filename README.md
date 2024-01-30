@@ -8,6 +8,8 @@ track of our stock of *C. elegans* strains.
 # Table of Contents
 1. [Installation](#installation)
 2. [Notes](#notes)
+   - [Green Unicorn setup for local network hosting](#green-unicorn-setup-for-local-hosting)
+   - [Database Building](#database-building)
 3. [To Do](#to-do)
 
 # Installation
@@ -31,6 +33,7 @@ pip install -r requirements.txt
 
 Below I will have a list of some general notes and steps!
 
+## Green Unicorn setup for local hosting
 So on Jan 26, 2023 I really wanted to make an attempt to have the project be accessible on the local network.
 I followed [this guide on Medium](https://medium.com/@huzaifazahoor654/how-to-deploy-django-on-ubuntu-with-nginx-and-gunicorn-9288b2c4e922#id_token=eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ4YTYzYmM0NzY3Zjg1NTBhNTMyZGM2MzBjZjdlYjQ5ZmYzOTdlN2MiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIyMTYyOTYwMzU4MzQtazFrNnFlMDYwczJ0cDJhMmphbTRsamRjbXMwMHN0dGcuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiIyMTYyOTYwMzU4MzQtazFrNnFlMDYwczJ0cDJhMmphbTRsamRjbXMwMHN0dGcuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDQ0MDUxNjQ5NTY4NzczNDA5MzEiLCJlbWFpbCI6Im1hcmN1cy52aXNjYXJkaUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmJmIjoxNzA2Mjk5NjgwLCJuYW1lIjoiTWFyY3VzIFZpc2NhcmRpIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0t6X3VhM013YzNsbGlqLUFYdXlrbExjLUhnM2U2aHZuU2RfM1RIWlRueENMQUU9czk2LWMiLCJnaXZlbl9uYW1lIjoiTWFyY3VzIiwiZmFtaWx5X25hbWUiOiJWaXNjYXJkaSIsImxvY2FsZSI6ImVuIiwiaWF0IjoxNzA2Mjk5OTgwLCJleHAiOjE3MDYzMDM1ODAsImp0aSI6Ijk0MjkzMzQxYjJiZDhkN2MzNTA2Y2RkODQ4YTkxYTMzYTgzMmUyZDMifQ.ImnPq2T6rQQIcziPEM91PAbvtQZGHLBMAr8UKUD5pFn7f2MyKKX6jzW3rpJBajWVpoeX68Gvd_nNtlsq8pb9iLXzRDUUzyx5SJC1Vwz54V49V3JcxYoAKZ1PERDjuAW-z3D-y1usaIUEKA7JO79ccVCVRJzDxAQ5WhVrQQcJ9LhL40zxZIh7V_TVWoPB03dl_ddgBSygNbviRYonqKt9SCWqHZjSFhC2IURVSRMmtFwRnZ9RemxNiS5hFlGB7NRJbMVxm7UeyOX4oBJqCUYB6ShxjziIo041-6ojvash8aa0xgdiDWoqgMha7Kc8THLa8ZaH5SY-hOOI0sUmGVo0Tg).
 Briefly, the guide included the following steps:
@@ -110,12 +113,29 @@ Now if I run the following command I have a working website at http://128.114.15
 ```bash
 gunicorn --bind 128.114.150.214:8080 djangoNemaStocks.wsgi:application
 ```
-But this only seems to be working on TinCan? I have another computer on the local network (via VPN),
-which is able to ping TinCan's IP on the command line but is not able to access the website??
 
-On BlackBox (the computer on the VPN) when I open a browser with http://128.114.150.214:8080 I do not get a response.
-But when I open http://128.114.150.214, I get the default nginx page... So I ***think*** something is working?
 
-I am unsure of the next step though... Can you help?
+
+***
+
+## Database Building
+Generally the whole database should be able to be stood up just using the following pieces:
+
+First, it would be best to wipe whatever version of the database might have come with github:
+```bash
+python3 manage.py flush
+```
+
+Then, we can build the database from the models:
+```bash
+python3 manage.py makemigrations
+python3 manage.py migrate
+```
+
+Then, we can load the data from the JSON file of the old database:
+```bash
+python3 ArribereNemaStocks/betterJSON_DBBuild.py
+```
+The above step will additionally make users and give users joshua & marcus superuser status.
 
 # To Do

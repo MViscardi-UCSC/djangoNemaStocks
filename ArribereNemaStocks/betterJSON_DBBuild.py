@@ -33,6 +33,10 @@ import ArribereNemaStocks.models as nema_models
 import profiles.models as profile_models
 from hardcoded import CAP_COLOR_OPTIONS, USER_INITIALS_DICT
 
+import environ
+
+env = environ.FileAwareEnv()
+environ.Env.read_env()
 
 def make_superuser(username):
     try:
@@ -993,7 +997,7 @@ class SimpleUserProfile:
         return self.__repr__()
 
     def to_UserProfile(self):
-        default_pw = 'augMETuaaSTOP'
+        default_pw = env('DEFAULT_USER_PASS')
         try:
             user = profile_models.User.objects.create_user(username=self.first_name.lower(),
                                                            first_name=self.first_name,
