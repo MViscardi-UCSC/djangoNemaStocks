@@ -13,7 +13,7 @@ from pathlib import Path
 
 import environ
 
-env = environ.Env()
+env = environ.FileAwareEnv()
 environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')  # Changed by Marcus, 1/29/2024
+SECRET_KEY = env('DJANGO_SECRET_KEY')  # Changed by Marcus, 1/29/2024
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
