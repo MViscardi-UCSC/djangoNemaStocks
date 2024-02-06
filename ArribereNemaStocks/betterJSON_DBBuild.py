@@ -22,6 +22,10 @@ from tqdm import tqdm
 import bisect
 
 import os
+import sys
+SCRIPT_DIR = os.path.dirname(__file__)
+PROJECT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "../"))
+sys.path.insert(0, PROJECT_DIR)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djangoNemaStocks.settings")
 import django
@@ -72,10 +76,10 @@ ic("Imports Successful.")
 
 # Load the old database to memory:
 def load_old_db():
-    database_json_path = '../240123_OFFICIAL_WORMSTOCKS_export.json'
-    database_json_Path = Path(database_json_path)
+    database_json_name = '240123_OFFICIAL_WORMSTOCKS_export.json'
+    database_json_Path = Path(PROJECT_DIR) / database_json_name
     ic(database_json_Path)
-    with open(database_json_path, 'r') as f:
+    with open(database_json_Path, 'r') as f:
         database = json.load(f)  # The database is a list of dictionaries!
     # Let's just drop WJA 0000
     database = [x for x in database if x['WJA_NUMBER'] != 'WJA 0000']
