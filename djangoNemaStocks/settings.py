@@ -142,7 +142,7 @@ DJANGO_TABLES2_TABLE_ATTRS = {
     },
 }
 
-# REMEMBER: WE CAN JUST USE SYSTEM MAIL AND SEND FROM ARRIBERELAB.PBSCI.UCSC.EDU
+# TODO: REMEMBER: WE CAN JUST USE SYSTEM MAIL AND SEND FROM ARRIBERELAB.PBSCI.UCSC.EDU
 
 # Added by Marcus based on: https://docs.djangoproject.com/en/3.1/topics/auth/default/#the-login-required-decorator
 LOGIN_URL = '/login/'
