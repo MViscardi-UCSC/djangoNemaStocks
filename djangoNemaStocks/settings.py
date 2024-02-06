@@ -29,7 +29,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')  # Changed by Marcus, 1/29/2024
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['128.114.150.214', '0.0.0.0']  # Added by Marcus, 1/26/2024
+ALLOWED_HOSTS = ['128.114.144.55', '0.0.0.0', '128.114.0.0/16', '169.233.0.0/16']  # Added by Eric Shell, 2/5/2024
 
 
 # Application definition
@@ -141,6 +141,8 @@ DJANGO_TABLES2_TABLE_ATTRS = {
         'class': 'table-light',
     },
 }
+
+# REMEMBER: WE CAN JUST USE SYSTEM MAIL AND SEND FROM ARRIBERELAB.PBSCI.UCSC.EDU
 
 # Added by Marcus based on: https://docs.djangoproject.com/en/3.1/topics/auth/default/#the-login-required-decorator
 LOGIN_URL = '/login/'
