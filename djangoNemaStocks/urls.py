@@ -21,6 +21,8 @@ from profiles import views as profile_views
 
 from ArribereNemaStocks.converters import WJAConverter
 
+from django.conf import settings
+
 
 register_converter(WJAConverter, 'wja')
 
@@ -70,3 +72,7 @@ urlpatterns = [
          nema_views.thaw_request_change_confirmation, name='thaw_request_change_confirmation'),
     path('outstanding_thaw_requests/', nema_views.outstanding_thaw_requests, name='outstanding_thaw_requests'),
 ]
+
+if settings.DEBUG:
+    from django.conf.urls.static import static
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
