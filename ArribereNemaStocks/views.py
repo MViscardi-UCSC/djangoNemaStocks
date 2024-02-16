@@ -236,7 +236,6 @@ def thaw_request_change_confirmation(request, thaw_request_ids, action='NoAction
 
 
 def ongoing_thaws(request):
-    print(date.today())
     ongoing_thaws = nema_models.ThawRequest.objects.filter(status__in=['O'])
 
     AdvThawFormSet = modelformset_factory(nema_models.ThawRequest,
@@ -382,7 +381,6 @@ def outstanding_freeze_requests(request):
 
 
 def ongoing_freezes(request):
-    print(date.today())
     ongoing_freeze_set = nema_models.FreezeRequest.objects.filter(status__in=['A'])
 
     AdvFreezeFormSet = modelformset_factory(nema_models.FreezeRequest,
