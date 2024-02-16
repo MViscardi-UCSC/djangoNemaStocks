@@ -34,7 +34,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')  # Changed by Marcus, 1/29/2024
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG', default=False)  # Changed by Marcus, 2/6/2024
 
-+ALLOWED_HOSTS = ['arriberelab.pbsci.ucsc.edu', '128.114.144.55', '0.0.0.0', '128.114.0.0/16', '169.233.0.0/16']  # Modified by Eric Shell, 2/5/2024
+ALLOWED_HOSTS = ['arriberelab.pbsci.ucsc.edu', '128.114.144.55', '0.0.0.0', '128.114.0.0/16', '169.233.0.0/16']  # Modified by Eric Shell, 2/5/2024
 
 # Application definition
 
