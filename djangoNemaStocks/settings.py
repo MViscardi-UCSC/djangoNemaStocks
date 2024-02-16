@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Adding a static root for deployment based on:
 # https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/#static-root-and-static-url
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = str(BASE_DIR / 'static')
 STATIC_URL = '/static/'
 
 
