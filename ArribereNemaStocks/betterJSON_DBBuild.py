@@ -2,7 +2,7 @@
 betterJSON_DBBuild.py
 Marcus Viscardi,    January 19, 2024
 
-
+Updated in Sept 2024 to work with the database recovery
 """
 from __future__ import annotations
 
@@ -23,6 +23,9 @@ import bisect
 
 import os
 import sys
+OLD_DB_NAME = "240821_OFFICIAL_WORMSTOCKS.json"
+
+
 SCRIPT_DIR = os.path.dirname(__file__)
 PROJECT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "../"))
 sys.path.insert(0, PROJECT_DIR)
@@ -76,7 +79,7 @@ ic("Imports Successful.")
 
 # Load the old database to memory:
 def load_old_db():
-    database_json_name = '240123_OFFICIAL_WORMSTOCKS_export.json'
+    database_json_name = OLD_DB_NAME
     database_json_Path = Path(PROJECT_DIR) / database_json_name
     ic(database_json_Path)
     with open(database_json_Path, 'r') as f:
@@ -754,23 +757,26 @@ class OldStrainEntry:
                     self.comments_list[i] = comment.replace('6/26/18 MNP', '5/26/18 MNP')
 
         # Type 2 list:
-        # These have the same issue as our big list up above, but the strains were used more subsiquently
+        # These have the same issue as our big list up above, but the strains were used more subsequently
         # So we'll have to insert the correct dates in the middle of the list
         early_strains_with_issues_and_usage_list = [33, 40, 45, 65, 73,
                                                     84, 85, 111, 143, 168,
                                                     278, 330, 331, 573, 574,
                                                     578, 611, 612, 628, 629,
-                                                    630, ]
+                                                    630,
+                                                    # 240821: Coming back to this good old list MONTHS later:
+                                                    341, 346, 405, 
+                                                    ]
         if self.wja in [f"WJA {strain:0>4}" for strain in early_strains_with_issues_and_usage_list]:
             self.date_frozen_list.insert(1, self.date_frozen_list[0])
 
         if self.wja == 'WJA 0639':
             # OUR WILDTYPE <3
-            self.date_frozen_list.append('9/1/22')
-            self.date_frozen_list.append('10/10/22')
-            self.date_frozen_list.append('10/10/22')
-            self.cap_color_list.append('unknown')
-            self.cap_color_list.append('unknown')
+            self.date_frozen_list.insert(3, '9/1/22')
+            self.date_frozen_list.insert(4, '10/10/22')
+            self.date_frozen_list.insert(4, '10/10/22')
+            self.cap_color_list.insert(2, 'unknown')
+            self.cap_color_list.insert(2, 'unknown')
             self.date_thawed_list[5] = '03/03/2021 XXX'
 
         if self.wja == 'WJA 2106':
@@ -781,92 +787,92 @@ class OldStrainEntry:
             self.date_thawed_list.pop(4)
         elif self.wja == 'WJA 0141':
             # This strain has 4 freezes but only one date_frozen
-            self.date_frozen_list = ['12/27/2017', '12/27/2017',
-                                     '01/30/2018', '01/30/2018']
+            self.date_frozen_list.insert(1, '01/30/2018')
+            self.date_frozen_list.insert(1, '01/30/2018')
+            self.date_frozen_list.insert(1, '12/27/2017')
         elif self.wja == 'WJA 0498':
             # This strain has 5 freezes and 3 dates
             # Based the middle date off when the thaw was done of the first tube
-            self.date_frozen_list = ['11/22/2017',
-                                     '10/20/2020', '10/20/2020',  # Inferred
-                                     '03/16/2022', '03/16/2022']
+            self.date_frozen_list.insert(1, '10/20/2020')
+            self.date_frozen_list.insert(1, '10/20/2020')
         elif self.wja == 'WJA 0552':
             # This strain again has 5 freeze and 3 dates
             # It seems like there was a stretch in mid 2018-20 where new freezes were not recorded...
             # Based the middle date off when the thaw was done of the first tube
-            self.date_frozen_list = ['11/22/2017',
-                                     '02/01/2019', '02/01/2019',  # Inferred
-                                     '11/16/2020', '11/16/2020']
+            self.date_frozen_list.insert(1, '02/01/2019')
+            self.date_frozen_list.insert(1, '02/01/2019')
             # Also a comment thing!
-            self.comments_list[-2] = self.comments_list[-2].replace('11/21/2017 JAA', '11/25/2017 JAA')
+            self.comments_list[4] = self.comments_list[4].replace('11/21/2017 JAA', '11/25/2017 JAA')
+            # There was another comment that doesn't seem like it matters?
+            self.comments_list[7] = self.comments_list[7].replace('6/19/24- IMPT NOTE:', 'IMPT NOTE (6/19/24):')
             # And a tube color thing!!!!
             self.cap_color_list[1] = 'red'
             # AND a freeze tube thing!?!
             self.no_of_tubes_thawed_list[2] = '1(JA2 1-8)'
         elif self.wja == 'WJA 0572':
             # Same issue
-            self.date_frozen_list = ['11/22/2017',
-                                     '04/01/2018', '04/01/2018',  # Inferred
-                                     '07/26/2019', '07/26/2019']
+            self.date_frozen_list.insert(1, '04/01/2018')
+            self.date_frozen_list.insert(1, '04/01/2018')
             # Also a comment thing!
-            self.comments_list[-2] = self.comments_list[-2].replace('11/21/2017 JAA', '11/25/2017 JAA')
+            self.comments_list[4] = self.comments_list[4].replace('11/21/2017 JAA', '11/25/2017 JAA')
         elif self.wja == 'WJA 0097':
             # Weird cap colors
             self.cap_color_list = ['green 09/28/17']
         elif self.wja == 'WJA 3129':
             # 3/21/23- typo noticed in phenotype and comments. Phenotype is supposed to be srf1004, not srf0745.
             # Cross description is supposed to begin with 2016 males with 3107 hermaphrodites (not 3017).
-            comment = self.comments_list.pop(-1)
-            self.comments_list.append(comment.replace('3/21/23- ', 'CW (3/21/23):'))
+            comment = self.comments_list.pop(2)
+            self.comments_list.insert(2, comment.replace('3/21/23- ', 'CW (3/21/23):'))
         elif self.wja == 'WJA 1234':
-            comment = self.comments_list.pop(-1)
-            self.comments_list.append(comment.replace('10/21/22 CW', 'CW (10/21/22)'))
+            comment = self.comments_list.pop(2)
+            self.comments_list.insert(2, comment.replace('10/21/22 CW', 'CW (10/21/22)'))
         elif self.wja == 'WJA 3069':
             # Was missing freeze date:
-            self.date_frozen_list.append('4/11/22')
-            self.date_frozen_list.append('4/11/22')
+            self.date_frozen_list.insert(0, '4/11/22')
+            self.date_frozen_list.insert(0, '4/11/22')
         elif self.wja == 'WJA 6014':
             # 9/20/21 NV WT and some dpy-uncs observed, very few survivors, refreeze recommended
             # 9/22/22 CW good- clean and ok amount of worms
             # 9/22/22 CW Comment above is error, meant for 6104
-            self.comments_list.pop(-1)
-            self.comments_list.pop(-1)
+            self.comments_list.pop(2)
+            self.comments_list.pop(2)
         elif self.wja == 'WJA 3013':
             # seems like an erroneous freeze comment?
-            self.comments_list.pop(-1)
+            self.comments_list[3] = "ERROR (MJV doesn't think this comment is for this strain)" + self.comments_list[3]
         elif self.wja == 'WJA 3015':
             # This comment was meant to be on 3105:
             # 7/21/22 CW ok- some contamination
-            self.comments_list.pop(-1)
+            self.comments_list.pop(2)
         elif self.wja == 'WJA 3105':
-            self.comments_list.append('7/21/22 CW ok- some contamination')
+            self.comments_list.insert(3, '7/21/22 CW ok- some contamination')
         elif self.wja == 'WJA 4002':
             # Comment dated like freeze
-            self.comments_list[-2] = self.comments_list[-2].replace('8/4/2021 MJV', 'MJV (8/4/2021)')
+            self.comments_list[2] = self.comments_list[2].replace('8/4/2021 MJV', 'MJV (8/4/2021)')
         elif self.wja == 'WJA 2107':
             # Comment dated like freeze
-            self.comments_list[-1] = self.comments_list[-1].replace('05/18/18', 'Note (05/18/18)')
+            self.comments_list[2] = self.comments_list[2].replace('05/18/18', 'Note (05/18/18)')
         elif self.wja == 'WJA 0682':
-            self.comments_list[-3] = self.comments_list[-3].replace('1/16/18 MNP', '1/20/18 MNP')
+            self.comments_list[2] = self.comments_list[2].replace('1/16/18 MNP', '1/20/18 MNP')
         elif self.wja == 'WJA 0628':
-            self.comments_list[-3] = self.comments_list[-3].replace('1/16/18 MNP', '1/20/18 MNP')
+            self.comments_list[4] = self.comments_list[4].replace('1/16/18 MNP', '1/20/18 MNP')
         elif self.wja == 'WJA 0654':
-            self.comments_list[-1] = self.comments_list[-1].replace('1/5/2018 JAA', 'JAA (1/5/2018) Note:')
+            self.comments_list[4] = self.comments_list[4].replace('1/5/2018 JAA', 'JAA (1/5/2018) Note:')
         elif self.wja == 'WJA 0680':
-            self.comments_list[-1] = self.comments_list[-1].replace('1/7/22 note:', 'Note (1/7/22):')
+            self.comments_list[2] = self.comments_list[2].replace('1/7/22 note:', 'Note (1/7/22):')
         elif self.wja == 'WJA 0043':
-            self.comments_list[4] = self.comments_list[-1].replace('1/16/18 MNP', '1/26/18 MNP')
+            self.comments_list[4] = self.comments_list[4].replace('1/16/18 MNP', '1/26/18 MNP')
         elif self.wja == 'WJA 0432':
             color_date = self.cap_color_list.pop(0)
-            self.cap_color_list.append('unknown ' + color_date)
-            self.cap_color_list.append('unknown')
+            self.cap_color_list.insert(0, 'unknown ' + color_date)
+            self.cap_color_list.insert(1, 'unknown')
         elif self.wja == 'WJA 0433':
             color_date = self.cap_color_list.pop(0)
-            self.cap_color_list.append('unknown ' + color_date)
-            self.cap_color_list.append('unknown')
+            self.cap_color_list.insert(0, 'unknown ' + color_date)
+            self.cap_color_list.insert(1, 'unknown')
         elif self.wja == 'WJA 0434':
             color_date = self.cap_color_list.pop(0)
-            self.cap_color_list.append('unknown ' + color_date)
-            self.cap_color_list.append('unknown')
+            self.cap_color_list.insert(0, 'unknown ' + color_date)
+            self.cap_color_list.insert(1, 'unknown')
         elif self.wja == 'WJA 0278':
             self.date_thawed_list[0] = "10/24/2020 SS"
         elif self.wja == 'WJA 0458':
@@ -886,6 +892,12 @@ class OldStrainEntry:
             self.date_thawed_list[2] = '10/8/2020 JW'
         elif self.wja == 'WJA 4005':
             self.date_thawed_list[0] = '12/10/19 AZ'
+        elif self.wja == 'WJA 1009':
+            # comment looks like a freeze check
+            self.comments_list[4] = self.comments_list[4].replace('6/19/24-', 'Note (6/19/24 CW):')
+        elif self.wja == 'WJA 3163':
+            # comment looks like a freeze check
+            self.comments_list[1] = self.comments_list[1].replace('5/21/24 UPDATE:', 'UPDATE (5/21/24):')
         elif self.wja == 'WJA ':
             pass
 
