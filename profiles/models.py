@@ -39,7 +39,7 @@ class UserProfile(models.Model):
         UserInitials.objects.create(user_profile=self, initials=initials)
     
     def __repr__(self):
-        return f'{self.user.username.title()} ({self.initials})'
+        return f'{self.initials} ({self.user.username.title()})'
     
     def __str__(self):
         return self.__repr__()

@@ -86,7 +86,6 @@ class Strain(models.Model):
 class Tube(models.Model):
     cap_color = models.CharField(max_length=50, choices=CAP_COLOR_OPTIONS, default='unknown')
     date_created = models.DateField(default=timezone.now, editable=True)
-    date_thawed = models.DateField(null=True, blank=True, editable=True)
     box = models.ForeignKey('Box', on_delete=models.CASCADE, null=True,
                             related_name='tube_set')
     strain = models.ForeignKey('Strain', on_delete=models.CASCADE,
@@ -95,7 +94,9 @@ class Tube(models.Model):
     freeze_group = models.ForeignKey('FreezeGroup', on_delete=models.CASCADE, null=True,
                                      related_name='tube_set')
     set_number = models.IntegerField(default=-1)
+    
     thawed = models.BooleanField(default=False)
+    date_thawed = models.DateField(null=True, blank=True, editable=True)
     thaw_requester = models.ForeignKey('profiles.UserProfile', on_delete=models.CASCADE,
                                         related_name='thawed_tubes',
                                         null=True, blank=True)
@@ -165,6 +166,9 @@ class Box(models.Model):
     def __str__(self):
         return self.__repr__()
     
+    def short_pos_repr(self):
+        return f'JA{self.dewar:0>2}-R{self.rack:0>2}-B{self.box:0>2}'
+    
     def get_active_tubes(self):
         return self.tube_set.filter(thawed=False)
     
@@ -197,8 +201,8 @@ class FreezeGroup(models.Model):
     
     history = HistoricalRecords()
 
-    class Meta:
-        unique_together = ('strain', 'date_stored')
+    # class Meta:
+    #     unique_together = ('strain', 'date_stored')
 
     def __repr__(self):
         return f"FreezeGroup(ID-{self.id if self.id else 'xxxx':0>6}, Strain-{self.strain.formatted_wja}, " \
@@ -228,9 +232,9 @@ class FreezeGroup(models.Model):
     def total_tubes_count(self):
         return self.total_tubes().count()
     
-    def create_tubes_from_request(self):
-        # TODO: Write this method. Note that we need some degree of Box finding logic here!!
-        raise NotImplementedError
+    # Turns out we don't need this!
+    # def create_tubes_from_request(self):
+    #     raise NotImplementedError
 
 
 class ThawRequestManager(models.Manager):
@@ -323,6 +327,22 @@ class FreezeRequest(models.Model):
         ('X', 'Cancelled'),
     )
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='R')
+    
+    # Fields added for the new freeze request form:
+    # This will allow things like box choice and number of tubes to be easier to track
+    box1 = models.ForeignKey('Box', on_delete=models.SET_NULL, null=True, blank=True,
+                             related_name='box1_freeze_requests')
+    box2 = models.ForeignKey('Box', on_delete=models.SET_NULL, null=True, blank=True,
+                             related_name='box2_freeze_requests')
+    tubes_for_box1 = models.IntegerField(null=True, blank=True)
+    tubes_for_box2 = models.IntegerField(null=True, blank=True)
+    freezer = models.ForeignKey('profiles.UserProfile', on_delete=models.SET_NULL,
+                                related_name='freeze_requests_again',
+                                null=True, blank=True)
+    tester = models.ForeignKey('profiles.UserProfile', on_delete=models.SET_NULL,
+                               related_name='tested_freeze_requests',
+                               null=True, blank=True)
+    tester_comments = models.CharField(max_length=255, null=True, blank=True)
     
     history = HistoricalRecords()
     

@@ -9,16 +9,17 @@ from django.forms import formset_factory, modelformset_factory
 
 from django_tables2 import RequestConfig
 
-from . import models as nema_models
-from . import forms as nema_forms
-from . import tables as nema_tables
+from .models import FreezeRequest, ThawRequest, Strain
+from .forms import StrainEditForm, AdvancingFreezeRequestForm, StrainForm, InitialThawRequestForm, \
+    AdvancingThawRequestForm, FreezeRequestForm
+from .tables import StrainTable, MiniThawRequestTable, FreezeRequestTable, MiniFreezeGroupTable, ThawRequestTable
 
 from profiles.models import UserProfile
 
 
 # General Navigation:
 def index(request, *args, **kwargs):
-    strains = nema_models.Strain.objects.all()
+    strains = Strain.objects.all()
     return render(request, 'basic_navigation/index.html')
 
 
@@ -41,20 +42,21 @@ def strain_search(request, *args, **kwargs):
 
 
 def strain_list_datatable(request, *args, **kwargs):
-    strains = nema_models.Strain.objects.all()
+    strains = Strain.objects.all()
     search_term = request.GET.get('q')
 
     if search_term:
-        strains = nema_models.Strain.objects.search(search_term)
+        strains = Strain.objects.search(search_term)
 
-    table = nema_tables.StrainTable(strains)
+    table = StrainTable(strains)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
 
     return render(request, 'strains/strain_list_datatable.html', {'table': table, 'results_count': strains.count()})
 
 
 def new_strain(request, *args, **kwargs):
-    form = nema_forms.StrainForm(request.POST or None)
+    # TODO: Get NEW STRAIN page working, with permission checks
+    form = StrainForm(request.POST or None)
     if form.is_valid():
         form.save()
         messages.success(request, 'New strain created successfully!')
@@ -63,8 +65,9 @@ def new_strain(request, *args, **kwargs):
 
 
 def edit_strain(request, wja, *args, **kwargs):
-    strain = get_object_or_404(nema_models.Strain, wja=wja)
-    form = nema_forms.StrainEditForm(request.POST or None, instance=strain)
+    # TODO: Get EDIT STRAIN page working, with permission checks
+    strain = get_object_or_404(Strain, wja=wja)
+    form = StrainEditForm(request.POST or None, instance=strain)
     if form.is_valid():
         form.save()
         messages.info(request, 'Strain updated.')
@@ -73,15 +76,16 @@ def edit_strain(request, wja, *args, **kwargs):
 
 
 def strain_details(request, wja, *args, **kwargs):
-    strain = get_object_or_404(nema_models.Strain, wja=wja)
+    # TODO: Make sure to add all of the stored information to this page
+    strain = get_object_or_404(Strain, wja=wja)
 
     active_freeze_groups = [freeze_group for freeze_group in strain.freezegroup_set.all()
                             if freeze_group.active_tubes_count() > 0]
-    tubes_table = nema_tables.MiniFreezeGroupTable(active_freeze_groups)
+    tubes_table = MiniFreezeGroupTable(active_freeze_groups)
     RequestConfig(request, paginate={"per_page": 10}).configure(tubes_table)
 
     recent_thaw_requests = strain.thaw_requests.all().order_by('-date_created')[:3]
-    thaws_table = nema_tables.MiniThawRequestTable(nema_models.ThawRequest.objects.filter(pk__in=recent_thaw_requests))
+    thaws_table = MiniThawRequestTable(ThawRequest.objects.filter(pk__in=recent_thaw_requests))
     RequestConfig(request, paginate={"per_page": 10}).configure(thaws_table)
 
     return render(request, 'strains/strain_details.html', {'strain': strain,
@@ -103,14 +107,14 @@ def thaw_request_form(request, *args, **kwargs):
     formatted_wja = request.GET.get('formatted_wja', None)
     strain_locked = bool(formatted_wja)
     
-    form = nema_forms.InitialThawRequestForm(request.POST or None,
-                                             initial={'strain': formatted_wja,
+    form = InitialThawRequestForm(request.POST or None,
+                                  initial={'strain': formatted_wja,
                                                       'requester': request.user.userprofile},
-                                             strain_locked=strain_locked)
+                                  strain_locked=strain_locked)
 
     if form.is_valid():
         strain_from_form = form.cleaned_data['strain']
-        strain = get_object_or_404(nema_models.Strain, formatted_wja=strain_from_form.formatted_wja)
+        strain = get_object_or_404(Strain, formatted_wja=strain_from_form.formatted_wja)
         if strain.tube_set.filter(thawed=False).count() == 0:
             messages.warning(request, 'This strain has no tubes available to be thawed!')
             return redirect('strain_details', wja=strain_from_form.wja)
@@ -132,7 +136,7 @@ def thaw_request_confirmation(request, form=None, *args, **kwargs):
     else:
         formatted_wja = request.POST.get('strain__formatted_wja', None)
         thaw_request_data = {
-            'strain': get_object_or_404(nema_models.Strain,
+            'strain': get_object_or_404(Strain,
                                         formatted_wja=formatted_wja),
             'requester': get_object_or_404(UserProfile,
                                            initials=request.POST.get('requester',
@@ -141,7 +145,7 @@ def thaw_request_confirmation(request, form=None, *args, **kwargs):
             'request_comments': request.POST.get('request_comments', None),
         }
     if request.method == 'POST' and 'confirm' in request.POST:
-        thaw_request = nema_models.ThawRequest.objects.create(**thaw_request_data)
+        thaw_request = ThawRequest.objects.create(**thaw_request_data)
 
         messages.success(request,
                          f'New thaw request created successfully! Target: {formatted_wja}; ID: {thaw_request.id:>05d}')
@@ -154,12 +158,12 @@ def thaw_request_confirmation(request, form=None, *args, **kwargs):
 
 
 def outstanding_thaw_requests(request):
-    thaw_requests = nema_models.ThawRequest.objects.filter(status__in=['R', 'O'])
+    thaw_requests = ThawRequest.objects.filter(status__in=['R', 'O'])
     requesting_users = UserProfile.objects.filter(thaw_requests__in=thaw_requests).distinct()
     requesting_users_initials = [user_profile.initials for user_profile in requesting_users]
 
     # Table using django-tables2
-    table = nema_tables.ThawRequestTable(thaw_requests)
+    table = ThawRequestTable(thaw_requests)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
 
     if request.method == 'POST':
@@ -171,9 +175,9 @@ def outstanding_thaw_requests(request):
         if act_targets == "all":
             selected_requests = thaw_requests
         elif act_targets == "selected":
-            selected_requests = nema_models.ThawRequest.objects.filter(pk__in=selected_requests_pks)
+            selected_requests = ThawRequest.objects.filter(pk__in=selected_requests_pks)
         elif act_targets in requesting_users_initials:
-            selected_requests = nema_models.ThawRequest.objects.filter(requester__initials=act_targets)
+            selected_requests = ThawRequest.objects.filter(requester__initials=act_targets)
         else:
             messages.warning(request, f'Invalid action target! You provided {act_targets}.')
             return redirect('outstanding_thaw_requests')
@@ -207,7 +211,7 @@ def thaw_request_change_confirmation(request, thaw_request_ids, action='NoAction
         messages.warning(request, f'Invalid action! You provided {action}.')
         return redirect('outstanding_thaw_requests')
 
-    thaw_requests = nema_models.ThawRequest.objects.filter(pk__in=thaw_request_ids.split('&'))
+    thaw_requests = ThawRequest.objects.filter(pk__in=thaw_request_ids.split('&'))
 
     if request.method == 'POST':
         if action == 'cancel':
@@ -236,10 +240,10 @@ def thaw_request_change_confirmation(request, thaw_request_ids, action='NoAction
 
 
 def ongoing_thaws(request):
-    ongoing_thaws = nema_models.ThawRequest.objects.filter(status__in=['O'])
+    ongoing_thaws = ThawRequest.objects.filter(status__in=['O'])
 
-    AdvThawFormSet = modelformset_factory(nema_models.ThawRequest,
-                                          form=nema_forms.AdvancingThawRequestForm,
+    AdvThawFormSet = modelformset_factory(ThawRequest,
+                                          form=AdvancingThawRequestForm,
                                           extra=0)
     
     if request.method == 'POST':
@@ -247,9 +251,8 @@ def ongoing_thaws(request):
         # print(adv_thaw_formset)
         if adv_thaw_formset.is_valid():
             for form in adv_thaw_formset:
-                if form.cleaned_data['save_changes']:
-                    messages.success(request, mark_safe(f'Saved changes to<br><strong>{form.instance}</strong>'))
-                    form.save()
+                messages.success(request, mark_safe(f'Saved changes to<br><strong>{form.instance}</strong>'))
+                form.save()
             return redirect('ongoing_thaws')
         else:
             messages.warning(request, f'Invalid formset!{adv_thaw_formset.errors}')
@@ -275,11 +278,11 @@ def freeze_request_form(request, *args, **kwargs):
     formatted_wja = request.GET.get('formatted_wja', None)
     number_of_tubes = request.GET.get('number_of_tubes', 1)
     strain_locked = bool(formatted_wja)
-    form = nema_forms.FreezeRequestForm(request.POST or None,
-                                        initial={'strain': formatted_wja,
+    form = FreezeRequestForm(request.POST or None,
+                             initial={'strain': formatted_wja,
                                                  'number_of_tubes': number_of_tubes,
                                                  'requester': request.user.userprofile},
-                                        strain_locked=strain_locked)
+                             strain_locked=strain_locked)
     if form.is_valid():
         # Redirect to the confirmation step
         messages.info(request, 'Please confirm the below information is correct.')
@@ -301,7 +304,7 @@ def freeze_request_confirmation(request, form=None, *args, **kwargs):
     else:
         formatted_wja = request.POST.get('strain__formatted_wja', None)
         freeze_request_data = {
-            'strain': get_object_or_404(nema_models.Strain,
+            'strain': get_object_or_404(Strain,
                                         formatted_wja=formatted_wja),
             'requester': get_object_or_404(UserProfile,
                                            initials=request.POST.get('requester',
@@ -311,7 +314,7 @@ def freeze_request_confirmation(request, form=None, *args, **kwargs):
             'cap_color': request.POST.get('cap_color', None),
         }
     if request.method == 'POST' and 'confirm' in request.POST:
-        freeze_request = nema_models.FreezeRequest.objects.create(**freeze_request_data)
+        freeze_request = FreezeRequest.objects.create(**freeze_request_data)
 
         messages.success(request, f'New freeze request created successfully! '
                                   f'Target: {formatted_wja}; ID: {freeze_request.id:>05d}')
@@ -323,12 +326,12 @@ def freeze_request_confirmation(request, form=None, *args, **kwargs):
 
 
 def outstanding_freeze_requests(request):
-    freeze_requests = nema_models.FreezeRequest.objects.filter(status__in=['R', 'A'])
+    freeze_requests = FreezeRequest.objects.filter(status__in=['R', 'A'])
     requesting_users = UserProfile.objects.filter(freeze_requests__in=freeze_requests).distinct()
     requesting_users_initials = [user_profile.initials for user_profile in requesting_users]
 
     # Table using django-tables2
-    table = nema_tables.FreezeRequestTable(freeze_requests)
+    table = FreezeRequestTable(freeze_requests)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
 
     # All the options include:
@@ -344,9 +347,9 @@ def outstanding_freeze_requests(request):
         if act_targets == "all":
             selected_requests = freeze_requests
         elif act_targets == "selected":
-            selected_requests = nema_models.FreezeRequest.objects.filter(pk__in=selected_requests_pks)
+            selected_requests = FreezeRequest.objects.filter(pk__in=selected_requests_pks)
         elif act_targets in requesting_users_initials:
-            selected_requests = nema_models.FreezeRequest.objects.filter(requester__initials=act_targets)
+            selected_requests = FreezeRequest.objects.filter(requester__initials=act_targets)
         else:
             messages.warning(request, f'Invalid action target! You provided {act_targets}.')
             return redirect('outstanding_freeze_requests')
@@ -381,64 +384,77 @@ def outstanding_freeze_requests(request):
 
 
 def ongoing_freezes(request):
-    ongoing_freeze_set = nema_models.FreezeRequest.objects.filter(status__in=['A'])
+    ongoing_freeze_set = FreezeRequest.objects.filter(status='A')
 
-    AdvFreezeFormSet = modelformset_factory(nema_models.FreezeRequest,
-                                            form=nema_forms.AdvancingFreezeRequestForm,
-                                            extra=0)
+    AdvFreezeFormSet = modelformset_factory(
+        FreezeRequest,
+        form=AdvancingFreezeRequestForm,
+        extra=0
+    )
 
     if request.method == 'POST':
-        adv_freeze_formset = AdvFreezeFormSet(request.POST, queryset=ongoing_freeze_set)
-        if adv_freeze_formset.is_valid():
-            for form in adv_freeze_formset:
-                if form.cleaned_data['save_changes']:
-                    messages.success(request, mark_safe(f'Saved changes to<br><strong>{form.instance}</strong>'))
-                    form.save()
+        formset = AdvFreezeFormSet(request.POST, queryset=ongoing_freeze_set)
+        if formset.is_valid():
+            formset.save()
+            messages.success(request, "Successfully updated freeze requests.")
             return redirect('ongoing_freezes')
         else:
-            messages.warning(request, f'Invalid formset!{adv_freeze_formset.errors}')
+            for form in formset:
+                if form.errors:
+                    messages.warning(request, mark_safe(f"Errors for request "
+                                                        f"#{form.instance.id:0>6}:<br>{form.errors}"))
     else:
-        adv_freeze_formset = AdvFreezeFormSet(queryset=ongoing_freeze_set)
-        for form in adv_freeze_formset:
-            if form.instance.id % 2 == 0:  # Evens get all but one in box 1
-                form.initial['tubes_for_box1'] = form.instance.number_of_tubes - 2
-                form.initial['tubes_for_box2'] = 1
-            else:  # Odds get all but one in box 2
-                form.initial['tubes_for_box1'] = 1
-                form.initial['tubes_for_box2'] = form.instance.number_of_tubes - 2
-            form.initial['freezer'] = form.instance.requester
-            form.initial['tester'] = request.user.userprofile
-            form.initial['date_completed'] = date.today()
+        formset = AdvFreezeFormSet(queryset=ongoing_freeze_set)
 
-    return render(request, 'freezes_and_thaws/ongoing_freezes.html',
-                  {'ongoing_freezes': ongoing_freeze_set,
-                   'formset': adv_freeze_formset})
+        for form in formset:
+            # Set initial 'tester' to current user if not already set
+            if not form.instance.tester:
+                form.initial['tester'] = request.user.userprofile
+            # Set initial 'freezer' to requester if not already set
+            if not form.instance.freezer:
+                form.initial['freezer'] = form.instance.requester
 
+            # Set other initial data if necessary
+            if not form.initial.get('tester_comments'):
+                form.initial['tester_comments'] = ''
+            if not form.initial.get('date_stored'):
+                form.initial['date_stored'] = date.today()
+
+            # Set initial tubes if not already set
+            if form.instance.number_of_tubes and not (form.instance.tubes_for_box1 or form.instance.tubes_for_box2):
+                if form.instance.id % 2 == 0:
+                    form.initial['tubes_for_box1'] = form.instance.number_of_tubes - 2
+                    form.initial['tubes_for_box2'] = 1
+                else:
+                    form.initial['tubes_for_box1'] = 1
+                    form.initial['tubes_for_box2'] = form.instance.number_of_tubes - 2
+
+    return render(request, 'freezes_and_thaws/ongoing_freezes.html', {
+        'formset': formset,
+        'ongoing_freezes': ongoing_freeze_set,
+    })
 
 def freeze_request_change_confirmation(request, freeze_request_ids, action='NoAction', *args, **kwargs):
     if action not in ['cancel', 'advance']:
         messages.warning(request, f'Invalid action! You provided {action}.')
         return redirect('outstanding_freeze_requests')
 
-    freeze_requests = nema_models.FreezeRequest.objects.filter(pk__in=freeze_request_ids.split('&'))
+    freeze_requests = FreezeRequest.objects.filter(pk__in=freeze_request_ids.split('&'))
 
     if request.method == 'POST':
         if action == 'cancel':
             for freeze_request in freeze_requests:
-                freeze_request.completed = True
                 freeze_request.status = 'X'
                 freeze_request.save()
                 freeze_str = freeze_request.__str__()
                 freeze_request.delete()
-                messages.success(request, mark_safe(f'Deleted freeze request:<br><strong>{freeze_str}</strong>'))
-            return redirect('outstanding_freeze_requests')
-        elif action == 'advance':
+                messages.success(request, mark_safe(f'Deleted thaw request:<br><strong>{freeze_str}</strong>'))
+            return redirect('outstanding_thaw_requests')
+        if action == 'advance':
             for freeze_request in freeze_requests:
                 freeze_request.status = 'A'
-                # TODO: Create a freeze_group here and connect it to the request!!
-                
                 freeze_request.save()
-                messages.success(request, f'Freeze requests {freeze_request_ids} advanced successfully!')
+                messages.success(request, f'Freeze request {freeze_request} advanced successfully!')
             return redirect('ongoing_freezes')
         else:
             messages.warning(request, f'Invalid action! You provided {action}.')

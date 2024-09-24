@@ -93,9 +93,9 @@ class MiniThawRequestTable(tables.Table):
     date_created = tables.Column()
     requester = tables.Column()
     requester_comments = tables.Column()
-    completed = tables.Column()
+    status = tables.Column()
 
     class Meta:
         model = ThawRequest
         # template_name = 'django_tables2/bootstrap4.html'
-        fields = ('date_created', 'requester', 'requester_comments', 'completed')
+        fields = ('date_created', 'requester', 'requester_comments', 'date_completed')

@@ -38,13 +38,14 @@ ROLE_CHOICES = [
 
 USER_INITIALS_DICT = {
     'AC': ("Annie", "Courney", ((4012, 4100),)),
-    'AP': ("Audrey", "Piatt", ((7000, 7100),)),
+    'AP': ("Audrey", "Piatt", ((7000, 7030),)),
     'BH': ("Benjamin", "Haag", ((-1, -1),)),
     'CD': ("Christian", "Dunn", ((6101, 6200),)),
     'CN': ("Celine", "N", ((-1, -1),)),
     'CW': ("Chloe", "Wohlenberg", ((3101, 3200),)),
     'DD': ("Dori", "D", ((5101, 5104),)),
     'ES': ("Enisha", "Sehgal", ((7101, 7200),)),
+    'EV': ("Evan", "Soukup", ((7031, 7100), )),
     'Giulio': ("Giulio", "unknown_Giulio", ((-1, -1),)),
     'HM': ("Heddy", "Menendez", ((1050, 1053),)),
     'Heddy': ("Heddy", "Menendez", ((1050, 1053),)),
@@ -74,6 +75,8 @@ USER_INITIALS_DICT = {
     'NB': ("Needhi", "Bhalla (Lab)", ((-1, -1),)),
     'JW': ("Jordan", "Ward (Lab)", ((-1, -1),)),
     'AZ': ("Al", "Zahler (Lab)", ((-1, -1),)),
+    
+    'RT': ("Roton", "Arribere Lab", ((-1, -1),)),
     
     'XXX': ("unknown_XXX", "unknown_XXX", ((-1, -1),)),
 }
