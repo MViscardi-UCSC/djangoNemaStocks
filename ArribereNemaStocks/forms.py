@@ -271,6 +271,7 @@ class AdvancingFreezeRequestForm(forms.ModelForm):
         # Handle bound form (POST request with potentially empty data)
         print(self.data.get('box1'), self.data.get('box2'))
         print(default_box1, default_box2)
+        # TODO: Fix this so that it actually selects the default box!!!
         if not self.data.get('box1') and default_box1:
             print('setting box1')
             self.fields['box1'].value = default_box1.box
