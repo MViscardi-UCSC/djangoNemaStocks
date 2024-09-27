@@ -95,7 +95,7 @@ def edit_strain(request, wja, *args, **kwargs):
     #       So super users can edit anything while regular users can only edit their own strains.
     if not user.userprofile.check_if_strain_in_any_ranges(strain):
         messages.warning(request, 'This is not one of your strains! Please be careful to not break anything. '
-                                  '(Note to Marcus: This could be a security issue.)')
+                                  '(Note to Josh/Marcus: This could be a security issue.)')
     else:
         print("User strain_range check passed.")
     
