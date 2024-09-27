@@ -249,6 +249,9 @@ class AdvancingFreezeRequestForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.warnings = []
+        default_box1 = nema_models.DefaultBox.get_default_box_for_dewar(1)
+        default_box2 = nema_models.DefaultBox.get_default_box_for_dewar(2)
+        # print(self.fields['box1'].data, self.fields['box2'].data)
         if not self.is_bound:
             # Remove initial data setting for 'freezer' and 'tester'
             # Set initial data only if not already set
@@ -264,6 +267,16 @@ class AdvancingFreezeRequestForm(forms.ModelForm):
                 else:
                     self.fields['tubes_for_box1'].initial = 1
                     self.fields['tubes_for_box2'].initial = self.instance.number_of_tubes - 2
+        print('avail to fix')
+        # Handle bound form (POST request with potentially empty data)
+        print(self.data.get('box1'), self.data.get('box2'))
+        print(default_box1, default_box2)
+        if not self.data.get('box1') and default_box1:
+            print('setting box1')
+            self.fields['box1'].value = default_box1.box
+        if not self.data.get('box2') and default_box2:
+            self.fields['box2'].value = default_box2.box.pk
+        print(self.data.get('box1'), self.data.get('box2'))
 
     def clean(self):
         cleaned_data = super().clean()
@@ -301,6 +314,10 @@ class AdvancingFreezeRequestForm(forms.ModelForm):
                 self.add_error('box1', 'Please select a "Box1".')
             if not box2 and tubes_for_box2 > 0:
                 self.add_error('box2', 'Please select a "Box2".')
+            if box1.get_active_tubes().count() + tubes_for_box1 > 81:
+                self.add_error('tubes_for_box1', 'The selected box would be overfull if you added to it.')
+            if box2.get_active_tubes().count() + tubes_for_box2 > 81:
+                self.add_error('tubes_for_box2', 'The selected box would be overfull if you added to it.')
         elif status in ['F', 'X']:
             if not tester_comments:
                 self.add_error('tester_comments', 'Please enter comments regarding '
@@ -352,6 +369,10 @@ class AdvancingFreezeRequestForm(forms.ModelForm):
                                         cap_color=instance.cap_color,
                                         set_number=i + 1,
                                     )
+                                # Update the default box for the dewar if we are freezing into non-default boxes!
+                                if not nema_models.DefaultBox.objects.filter(box=box).exists():
+                                    nema_models.DefaultBox.get_default_box_for_dewar(box.dewar).delete()
+                                    nema_models.DefaultBox.objects.create(box=box)
                     instance.freeze_group = freeze_group
                     instance.date_advanced = timezone.now().date()
 

@@ -7,14 +7,17 @@ from django.db.models.functions import Concat
 from datetime import datetime
 
 from simple_history.admin import SimpleHistoryAdmin
+from simple_history import register as register_history
 
 # Register your models here.
-from .models import Strain, Tube, Box, FreezeGroup, ThawRequest, FreezeRequest
+from . import models
 
 admin.site.site_header = 'Arribere Lab NemaStocks Database'
 
+admin.site.register(models.OpenStrainEditing)
+register_history(models.OpenStrainEditing)
 
-@admin.register(Tube)
+@admin.register(models.Tube)
 class TubeAdmin(SimpleHistoryAdmin):
     @admin.action(description="Mark selected tubes as thawed")
     def thaw_tubes(self, request, queryset):
@@ -55,13 +58,14 @@ class TubeAdmin(SimpleHistoryAdmin):
 
     autocomplete_fields = ['strain', 'box', 'freeze_group']
 
+
 class TubeInline(admin.TabularInline):
-    model = Tube
+    model = models.Tube
     extra = 0
     autocomplete_fields = ['strain', 'box', 'freeze_group']
 
 
-@admin.register(Box)
+@admin.register(models.Box)
 class BoxAdmin(SimpleHistoryAdmin):
     list_display = ('id', 'dewar', 'rack', 'box', 'active_tubes')
     list_filter = ('dewar', 'rack', 'box')
@@ -74,7 +78,14 @@ class BoxAdmin(SimpleHistoryAdmin):
     active_tubes.short_description = 'Active Tubes'
 
 
-@admin.register(FreezeGroup)
+@admin.register(models.DefaultBox)
+class DefaultBoxAdmin(SimpleHistoryAdmin):
+    list_display = ('id', 'box')
+    # list_filter = ('box__dewar', 'box__rack', 'box__box')
+    # search_fields = ('box__dewar', 'box__rack', 'box__box')
+
+
+@admin.register(models.FreezeGroup)
 class FreezeGroupAdmin(SimpleHistoryAdmin):
     @admin.action(description="Mark selected freezes with 'Test Started'")
     def mark_test_started(self, request, queryset):
@@ -123,17 +134,20 @@ class FreezeGroupAdmin(SimpleHistoryAdmin):
 
     inlines = [TubeInline, ]
 
+
 class FreezeGroupInline(admin.TabularInline):
-    model = FreezeGroup
+    model = models.FreezeGroup
     extra = 0
     autocomplete_fields = ['strain']
+
 
 class FreezeGroupInlineS(admin.StackedInline):
-    model = FreezeGroup
+    model = models.FreezeGroup
     extra = 0
     autocomplete_fields = ['strain']
 
-@admin.register(ThawRequest)
+
+@admin.register(models.ThawRequest)
 class ThawRequestAdmin(SimpleHistoryAdmin):
     
     @admin.action(description="Mark selected thaw requests as completed")
@@ -157,7 +171,7 @@ class ThawRequestAdmin(SimpleHistoryAdmin):
 
 
 # admin.site.register(FreezeRequest)
-@admin.register(FreezeRequest)
+@admin.register(models.FreezeRequest)
 class FreezeRequestAdmin(SimpleHistoryAdmin):
     list_display = ('id', 'strain', 'date_created', 'requester',
                     'number_of_tubes', 'cap_color', 'status')
@@ -168,7 +182,7 @@ class FreezeRequestAdmin(SimpleHistoryAdmin):
     inlines = [FreezeGroupInlineS, ]
 
 
-@admin.register(Strain)
+@admin.register(models.Strain)
 class StrainAdmin(SimpleHistoryAdmin):
     list_display = ('formatted_wja', 'description', 'date_created',
                     'phenotype', 'active_tubes_count', 'inactive_tubes_count')

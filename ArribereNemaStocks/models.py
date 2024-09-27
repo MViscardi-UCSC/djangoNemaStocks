@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -17,6 +18,24 @@ class StrainManager(models.Manager):
             Q(phenotype__icontains=query)
             # Add other fields as needed
         )
+
+
+class OpenStrainEditing(models.Model):
+    editing_levels = (
+        ('A', 'Edit Any Strains'),
+        ('O', 'Edit Own Strains'),
+        ('N', 'No Editing Permissions'),
+    )
+    edit_ability = models.CharField(max_length=1, choices=editing_levels, default='N')
+
+    def get_edit_ability_display(self):
+        return dict(self.editing_levels).get(self.edit_ability, 'Unknown')
+    
+    def __repr__(self):
+        return f'Strain Editing Permissions: {self.get_edit_ability_display()}'
+    
+    def __str__(self):
+        return self.__repr__()
 
 
 class Strain(models.Model):
@@ -157,9 +176,16 @@ class Box(models.Model):
     class Meta:
         unique_together = ('dewar', 'rack', 'box')
         verbose_name_plural = 'Boxes'
-
+    
+    def is_default_box(self):
+        return DefaultBox.objects.filter(box=self).exists()
+    
+    def short_pos_repr(self):
+        return f'JA{self.dewar:0>2}-R{self.rack:0>2}-B{self.box:0>2}'
+    
     def __repr__(self):
-        return f'Box(JA{self.dewar:0>2}-Rack{self.rack:0>2}-Box{self.box:0>2}; {self.get_usage()})'
+        is_default = 'Active' if self.is_default_box() else ''
+        return f'{is_default}Box({self.short_pos_repr()}; {self.get_usage_str()})'
 
     def repr(self):
         return self.__repr__()
@@ -167,18 +193,46 @@ class Box(models.Model):
     def __str__(self):
         return self.__repr__()
     
-    def short_pos_repr(self):
-        return f'JA{self.dewar:0>2}-R{self.rack:0>2}-B{self.box:0>2}'
-    
     def get_active_tubes(self):
         return self.tube_set.filter(thawed=False)
     
-    def get_usage(self, max_tubes_per_box=81):
+    def get_usage_str(self, max_tubes_per_box=81):
         return f'{self.get_active_tubes().count():0>2}/{max_tubes_per_box}'
     
     def is_full(self, max_tubes_per_box=81) -> bool:
         return self.get_active_tubes().count() >= max_tubes_per_box
 
+
+class DefaultBox(models.Model):
+    """
+    This model is used to store the box for each dewar that tubes are placed in by default.
+    """
+    box = models.ForeignKey('Box', on_delete=models.CASCADE)
+    history = HistoricalRecords()
+
+    class Meta:
+        verbose_name_plural = 'DefaultBoxes'
+    
+    def clean(self):
+        # Check if there is already a DefaultBox for the same dewar
+        if DefaultBox.objects.filter(box__dewar=self.box.dewar).exclude(pk=self.pk).exists():
+            raise ValidationError(f"A default box for dewar {self.box.dewar} already exists.")
+
+    @classmethod
+    def get_default_box_for_dewar(cls, dewar: int) -> 'DefaultBox':
+        try:
+            return cls.objects.get(box__dewar=dewar)
+        except cls.DoesNotExist:
+            return None
+
+    def __repr__(self):
+        return f'DefaultBox({self.box.short_pos_repr()}; {self.box.get_usage_str()})'
+
+    def repr(self):
+        return self.__repr__()
+
+    def __str__(self):
+        return self.__repr__()
 
 class FreezeGroup(models.Model):
     date_created = models.DateField(default=timezone.now, editable=True)

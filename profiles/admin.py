@@ -87,10 +87,19 @@ class ActiveStatusFilter(admin.SimpleListFilter):
 admin.site.unregister(User)
 @admin.register(User)
 class UserAdmin(SimpleHistoryAdmin, DefaultUserAdmin):
-    list_display = ('username', 'initials', 'email', 'is_staff', 'active_status')
+    list_display = ('username', 'initials', 'email', 'is_staff', 'is_superuser')
     list_filter = (ActiveStatusFilter, 'is_staff', 'is_superuser', 'groups')
     
-    actions = ['give_request_permissions']
+    actions = [
+        'give_request_permissions',
+        'remove_request_permissions',
+        'give_editing_permissions',
+        'remove_editing_permissions',
+        'give_viewing_permissions',
+        'remove_viewing_permissions',
+        'make_active',
+        'make_inactive',
+    ]
     
     inlines = [UserProfileInline, ]
     
@@ -110,3 +119,51 @@ class UserAdmin(SimpleHistoryAdmin, DefaultUserAdmin):
             user.groups.add(group)
         messages.success(request, f"Gave selected users request permissions {request.user}")
     
+    @admin.action(description="Remove selected users request permissions")
+    def remove_request_permissions(self, request, queryset):
+        group = Group.objects.get(name='requesters')
+        for user in queryset:
+            user.groups.remove(group)
+        messages.success(request, f"Removed selected users request permissions {request.user}")
+    
+    @admin.action(description="Give selected users editing permissions")
+    def give_editing_permissions(self, request, queryset):
+        group = Group.objects.get(name='editors')
+        for user in queryset:
+            user.groups.add(group)
+        messages.success(request, f"Gave selected users editing permissions {request.user}")
+    
+    @admin.action(description="Remove selected users editing permissions")
+    def remove_editing_permissions(self, request, queryset):
+        group = Group.objects.get(name='editors')
+        for user in queryset:
+            user.groups.remove(group)
+        messages.success(request, f"Removed selected users editing permissions {request.user}")
+    
+    @admin.action(description="Give selected users viewing permissions")
+    def give_viewing_permissions(self, request, queryset):
+        group = Group.objects.get(name='viewers')
+        for user in queryset:
+            user.groups.add(group)
+        messages.success(request, f"Gave selected users viewing permissions {request.user}")
+    
+    @admin.action(description="Remove selected users viewing permissions")
+    def remove_viewing_permissions(self, request, queryset):
+        group = Group.objects.get(name='viewers')
+        for user in queryset:
+            user.groups.remove(group)
+        messages.success(request, f"Removed selected users viewing permissions {request.user}")
+    
+    @admin.action(description="Make associated user-profiles active")
+    def make_active(self, request, queryset):
+        for user in queryset:
+            user.userprofile.active_status = True
+            user.userprofile.save()
+        messages.success(request, f"Made associated user profiles active {request.user}")
+    
+    @admin.action(description="Make associated user-profiles inactive")
+    def make_inactive(self, request, queryset):
+        for user in queryset:
+            user.userprofile.active_status = False
+            user.userprofile.save()
+        messages.success(request, f"Made associated user profiles inactive {request.user}")

@@ -7,6 +7,7 @@ from . import models
 from . import forms
 # Create your views here.
 
+
 def register(request):
     status = models.OpenRegistration.objects.first()
     if not status or not status.is_open:
@@ -41,6 +42,7 @@ def login_page(request):
                 message = 'Login failed! Potentially incorrect username or password. Ask admin for help.'
                 messages.warning(request, message)
     return render(request, 'authentication/login.html', context={'form': form})
+
 
 @login_required
 def user_page(request):

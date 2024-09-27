@@ -9,7 +9,7 @@ from django.forms import formset_factory, modelformset_factory
 
 from django_tables2 import RequestConfig
 
-from .models import FreezeRequest, ThawRequest, Strain
+from .models import FreezeRequest, ThawRequest, Strain, DefaultBox, Box, Tube, FreezeGroup, OpenStrainEditing
 from .forms import StrainEditForm, AdvancingFreezeRequestForm, StrainForm, InitialThawRequestForm, \
     AdvancingThawRequestForm, FreezeRequestForm
 from .tables import StrainTable, MiniThawRequestTable, FreezeRequestTable, MiniFreezeGroupTable, ThawRequestTable
@@ -61,7 +61,12 @@ def strain_list_datatable(request, *args, **kwargs):
         strains = Strain.objects.search(search_term)
     else:
         strains = Strain.objects.all()
-
+    
+    # If there is only one result we can redirect to the details page! But we'll add a message first.
+    if strains.count() == 1:
+        messages.info(request, f'Only one result found for "{search_term}"! Redirected to its details page.')
+        return redirect('strain_details', wja=strains.first().wja)
+    
     table = StrainTable(strains)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
 
@@ -83,21 +88,37 @@ def edit_strain(request, wja, *args, **kwargs):
     strain = get_object_or_404(Strain, wja=wja)
     user = request.user
     
-    # Check if user has permission to edit strains
+    open_editing_status = OpenStrainEditing.objects.first().edit_ability
+    
+    # Check if user has permission to edit strains (All users should be given this permission)
     if not user.has_perm('ArribereNemaStocks.change_strain'):
         messages.warning(request, 'You do not have permission to edit strains! Please contact an admin.')
         return redirect('strain_details', wja=wja)
     else:
         print("User change_strain permission check passed.")
     
-    # Check if the strain is in the user's strain range
-    # TODO: We could expand permissions to allow editing of strains that are not in the user's range.
-    #       So super users can edit anything while regular users can only edit their own strains.
-    if not user.userprofile.check_if_strain_in_any_ranges(strain):
-        messages.warning(request, 'This is not one of your strains! Please be careful to not break anything. '
-                                  '(Note to Josh/Marcus: This could be a security issue.)')
-    else:
-        print("User strain_range check passed.")
+    # Go through all the possible editing statuses:
+    if open_editing_status == 'N':  # No strain editing currently allowed
+        if not (user.is_superuser or user.is_staff):
+            messages.warning(request, 'Strain editing is currently disabled! Please contact an admin.')
+            return redirect('strain_details', wja=wja)
+    elif open_editing_status == 'O':  # Owned strain editing only
+        if not user.userprofile.check_if_strain_in_any_ranges(strain):
+            if not (user.is_superuser or user.is_staff):
+                messages.warning(request, 'This is not one of your strains! '
+                                          'Currently only owned strains can be edited. '
+                                          'Contact an admin if you need to edit this strain.')
+                return redirect('strain_details', wja=wja)
+            else:
+                messages.warning(request, 'This is not one of your strains, but you are an admin/staff. '
+                                          'Please be careful to not break other peoples things.')
+    elif open_editing_status == 'A':  # All strain editing allowed
+        if not user.userprofile.check_if_strain_in_any_ranges(strain):
+            messages.warning(request, 'This is not one of your strains, '
+                                      'but editing is currently available to all users. '
+                                      'Please be careful to not break anything.')
+        else:
+            print("User strain_range check passed.")
     
     form = StrainEditForm(request.POST or None, instance=strain)
     
@@ -396,7 +417,8 @@ def outstanding_freeze_requests(request):
                                                         f'other users! Removed the following from your request:'
                                                         f'<br><strong>{freeze_request}</strong>'))
                 if freeze_request.status == 'A':
-                    messages.warning(request, mark_safe(f'You cannot cancel an request that has moved on to testing! '
+                    messages.warning(request, mark_safe(f'You cannot cancel an request that has moved on to testing'
+                                                        f'from this page! Please do so from the ongoing freezes page. '
                                                         f'Removed the following from your request:'
                                                         f'<br><strong>{freeze_request}</strong>'))
                     # First lets just remove the ones that are not from the current user
@@ -470,7 +492,7 @@ def ongoing_freezes(request):
                 if form.errors:
                     messages.warning(request, mark_safe(f"Errors for request "
                                                         f"#{form.instance.id:0>6}:<br>{form.errors}"))
-    else:
+    else:  # GET request
         formset = AdvFreezeFormSet(queryset=ongoing_freeze_set)
 
         for form in formset:
@@ -486,6 +508,10 @@ def ongoing_freezes(request):
                 form.initial['tester_comments'] = ''
             if not form.initial.get('date_stored'):
                 form.initial['date_stored'] = date.today()
+            # if not form.instance.box1:
+            #     form.initial['box1'] = DefaultBox.get_default_box_for_dewar(1)
+            # if not form.instance.box2:
+            #     form.initial['box2'] = DefaultBox.get_default_box_for_dewar(2)
 
             # Set initial tubes if not already set
             if form.instance.number_of_tubes and not (form.instance.tubes_for_box1 or form.instance.tubes_for_box2):
