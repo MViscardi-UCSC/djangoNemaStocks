@@ -27,7 +27,7 @@ OLD_DB_NAME = "240821_OFFICIAL_WORMSTOCKS.json"
 
 
 SCRIPT_DIR = os.path.dirname(__file__)
-PROJECT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "../"))
+PROJECT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "/"))
 sys.path.insert(0, PROJECT_DIR)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djangoNemaStocks.settings")
