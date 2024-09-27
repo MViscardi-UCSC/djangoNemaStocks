@@ -11,11 +11,34 @@
 
 {% block content %}
     <div>
-        {% for user_profile in user_profiles %}
+        <h1>Active Users:</h1>
+        {% for user_profile in active_user_profiles %}
             {% if user_profile.strain_ranges.all %}
                 <dl>
                     <dt>
-                        {{ user_profile.user.username|title }}
+                        <a href="{% url 'strain_list_datatable' %}?user_profile_initials={{ user_profile.initials }}">
+                            {{ user_profile.user.username|title }}
+                        </a>
+                    </dt>
+                    {% for strain_range in user_profile.strain_ranges.all %}
+                        <dd>
+                            {{ strain_range.get_short_summary|safe }}
+                        </dd>
+                    {% endfor %}
+                </dl>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <hr>
+    <div>
+        <h1>Inactive Users:</h1>
+        {% for user_profile in inactive_user_profiles %}
+            {% if user_profile.strain_ranges.all %}
+                <dl>
+                    <dt>
+                        <a href="{% url 'strain_list_datatable' %}?user_profile_initials={{ user_profile.initials }}">
+                            {{ user_profile.user.username|title }}
+                        </a>
                     </dt>
                     {% for strain_range in user_profile.strain_ranges.all %}
                         <dd>

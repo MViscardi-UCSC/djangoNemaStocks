@@ -16,12 +16,13 @@
             <form method="post">
                 {% csrf_token %}
                 <input type="hidden" name="logout" value="True">
-                <button type="submit" name="logout" class="btn btn-primary">Logout</button>
-                <a href="{% url 'edit_user_profile' %}" class="btn btn-secondary">Edit User</a>
-                <a href="{% url 'password_change' %}" class="btn btn-secondary">Change Password</a>
+                <button type="submit" name="logout" class="btn btn-primary mb-2">Logout</button>
+                <a href="{% url 'edit_user_profile' %}" class="btn btn-secondary mb-2">Edit User</a>
+                <a href="{% url 'password_change' %}" class="btn btn-secondary mb-2">Change Password</a>
+                <div class="vr mb-2"><br></div>
+                <a href="{% url 'strain_list_datatable' %}?user_id={{ request.user.id }}" class="btn btn-primary mb-2">View My Strains</a>
             </form>
         </div>
-        
     </div>
     <hr>
     <div>
@@ -43,12 +44,13 @@
         <ul>
         {% if not user_profile.strain_ranges.all %}
             <li><i>No strains. Reach out to admin to get strain assignment numbers.</i></li>
-        {% endif %}
+        {% else %}
             {% for strain_range in user_profile.strain_ranges.all %}
                 <li>
                     {{ strain_range.get_short_summary|safe }}
                 </li>
             {% endfor %}
+        {% endif %}
         </ul>
         <p><b>Current Permissions:</b></p>
         <ul>

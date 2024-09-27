@@ -13,11 +13,16 @@
             <div>
                 <a href="{% url 'freeze_request_form' %}?formatted_wja={{ strain.formatted_wja }}&number_of_tubes=5" class="btn btn-primary">Request Freeze</a>
                 <a href="{% url 'thaw_request_form' %}?formatted_wja={{ strain.formatted_wja }}" class="btn btn-primary">Request Thaw</a>
+                <a href="{% url 'edit_strain' wja=strain.wja %}" class="btn btn-secondary">Edit {{ strain.formatted_WJA }}</a>
             </div>
         </div>
         <div>
-            <p>{{ strain.description }}</p>
-            <p>{{ strain.repr }}</p>
+            <p><strong>Description: </strong>{{ strain.description }}</p>
+            <p><strong>Phenotype: </strong>{{ strain.phenotype }}</p>
+            <p><strong>Genotype: </strong>{{ strain.genotype }}</p>
+{#            <p><strong>Description: </strong>{{ strain.repr }}</p>#}
+            <p><strong>Additional Comments: </strong>{{ strain.additional_comments }}</p>
+            <p><strong>Date Created: </strong>{{ strain.date_created }}</p>
         </div>
         <hr/>
         <div>

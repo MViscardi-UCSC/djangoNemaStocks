@@ -54,6 +54,12 @@ class UserProfile(models.Model):
         all_strain_numbers = [strain_number for strain_number_list in all_strain_numbers_lists
                               for strain_number in strain_number_list]
         return nema_models.Strain.objects.filter(wja__in=all_strain_numbers)
+    
+    def check_if_strain_in_any_ranges(self, strain: nema_models.Strain) -> bool:
+        for strain_range in self.strain_ranges.all():
+            if strain_range.check_if_strain_in_range(strain):
+                return True
+        return False
 
 
 class UserInitials(models.Model):
@@ -103,6 +109,9 @@ class StrainRange(models.Model):
         all_strain_numbers = list(range(self.strain_numbers_start, self.strain_numbers_end + 1))
         # Then we can use those strain numbers to return all the associated strains:
         return nema_models.Strain.objects.filter(wja__in=all_strain_numbers)
+    
+    def check_if_strain_in_range(self, strain: nema_models.Strain) -> bool:
+        return self.strain_numbers_start <= strain.wja <= self.strain_numbers_end
     
     def get_usage_string(self) -> str:
         strains = self.get_strains()

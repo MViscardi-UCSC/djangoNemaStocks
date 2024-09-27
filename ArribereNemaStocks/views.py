@@ -28,13 +28,18 @@ def about(request, *args, **kwargs):
 
 
 def send_test_mail(request, *args, **kwargs):
+    # TODO: Implement a email sending function
     pass
 
 
 # Strain Navigation:
 def strain_assignments(request, *args, **kwargs):
     user_profiles = UserProfile.objects.all()
-    return render(request, 'strains/strain_assignments.html', {'user_profiles': user_profiles})
+    active_user_profiles = [user_profile for user_profile in user_profiles if user_profile.active_status]
+    inactive_user_profiles = [user_profile for user_profile in user_profiles if not user_profile.active_status]
+    return render(request, 'strains/strain_assignments.html',
+                  {'active_user_profiles': active_user_profiles,
+                   'inactive_user_profiles': inactive_user_profiles})
 
 
 def strain_search(request, *args, **kwargs):
@@ -42,11 +47,20 @@ def strain_search(request, *args, **kwargs):
 
 
 def strain_list_datatable(request, *args, **kwargs):
-    strains = Strain.objects.all()
     search_term = request.GET.get('q')
-
-    if search_term:
+    user_id = request.GET.get('user_id')
+    user_profile_initials = request.GET.get('user_profile_initials')
+    
+    if user_profile_initials:
+        user_profile = UserProfile.objects.get(initials=user_profile_initials)
+        strains = user_profile.get_all_strains()
+    elif user_id:
+        user_profile = UserProfile.objects.get(user__id=user_id)
+        strains = user_profile.get_all_strains()
+    elif search_term:
         strains = Strain.objects.search(search_term)
+    else:
+        strains = Strain.objects.all()
 
     table = StrainTable(strains)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
@@ -56,6 +70,7 @@ def strain_list_datatable(request, *args, **kwargs):
 
 def new_strain(request, *args, **kwargs):
     # TODO: Get NEW STRAIN page working, with permission checks
+    #       Additional checks for the new strain being unique and in the user's range
     form = StrainForm(request.POST or None)
     if form.is_valid():
         form.save()
@@ -65,18 +80,37 @@ def new_strain(request, *args, **kwargs):
 
 
 def edit_strain(request, wja, *args, **kwargs):
-    # TODO: Get EDIT STRAIN page working, with permission checks
     strain = get_object_or_404(Strain, wja=wja)
+    user = request.user
+    
+    # Check if user has permission to edit strains
+    if not user.has_perm('ArribereNemaStocks.change_strain'):
+        messages.warning(request, 'You do not have permission to edit strains! Please contact an admin.')
+        return redirect('strain_details', wja=wja)
+    else:
+        print("User change_strain permission check passed.")
+    
+    # Check if the strain is in the user's strain range
+    # TODO: We could expand permissions to allow editing of strains that are not in the user's range.
+    #       So super users can edit anything while regular users can only edit their own strains.
+    if not user.userprofile.check_if_strain_in_any_ranges(strain):
+        messages.warning(request, 'This is not one of your strains! Please be careful to not break anything. '
+                                  '(Note to Marcus: This could be a security issue.)')
+    else:
+        print("User strain_range check passed.")
+    
     form = StrainEditForm(request.POST or None, instance=strain)
-    if form.is_valid():
-        form.save()
-        messages.info(request, 'Strain updated.')
-        return redirect('strain_details', wja=form.instance.wja)
+    
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            messages.info(request, f'Strain {strain.formatted_wja} updated.')
+            return redirect('strain_details', wja=form.instance.wja)
+    
     return render(request, 'strains/edit_strain.html', {'form': form, 'strain': strain})
 
 
 def strain_details(request, wja, *args, **kwargs):
-    # TODO: Make sure to add all of the stored information to this page
     strain = get_object_or_404(Strain, wja=wja)
 
     active_freeze_groups = [freeze_group for freeze_group in strain.freezegroup_set.all()
@@ -99,7 +133,8 @@ def strain_details(request, wja, *args, **kwargs):
 def thaw_request_form(request, *args, **kwargs):
     if not request.user.has_perm('ArribereNemaStocks.add_thawrequest'):
         if request.user.is_authenticated:
-            messages.warning(request, 'You do not have permission to create thaw requests! Please contact an admin.')
+            messages.warning(request, 'You do not have permission to create thaw requests! '
+                                      'Please contact an admin.')
         else:
             messages.warning(request, 'You do not have permission to create thaw requests! Please log in.')
         return redirect('strain_details', wja=request.GET.get('formatted_wja', None).lstrip('WJA'))
@@ -188,7 +223,7 @@ def outstanding_thaw_requests(request):
                     messages.warning(request, mark_safe(f'You do not have permission to cancel requests from '
                                                         f'other users! Removed the following from your request:'
                                                         f'<br><strong>{thaw_request}</strong>'))
-                    # First lets just remove the ones that are not from the current user
+            # Let's just remove the ones that are not from the current user
             selected_requests = selected_requests.filter(requester=request.user.userprofile)
 
         if not selected_requests:
@@ -383,6 +418,38 @@ def outstanding_freeze_requests(request):
                   {'table': table, 'requesting_users': requesting_users})
 
 
+def freeze_request_change_confirmation(request, freeze_request_ids, action='NoAction', *args, **kwargs):
+    if action not in ['cancel', 'advance']:
+        messages.warning(request, f'Invalid action! You provided {action}.')
+        return redirect('outstanding_freeze_requests')
+
+    freeze_requests = FreezeRequest.objects.filter(pk__in=freeze_request_ids.split('&'))
+
+    if request.method == 'POST':
+        if action == 'cancel':
+            for freeze_request in freeze_requests:
+                freeze_request.status = 'X'
+                freeze_request.save()
+                freeze_str = freeze_request.__str__()
+                freeze_request.delete()
+                messages.success(request, mark_safe(f'Deleted thaw request:<br><strong>{freeze_str}</strong>'))
+            return redirect('outstanding_thaw_requests')
+        if action == 'advance':
+            for freeze_request in freeze_requests:
+                freeze_request.status = 'A'
+                freeze_request.save()
+                messages.success(request, f'Freeze request {freeze_request} advanced successfully!')
+            return redirect('ongoing_freezes')
+        else:
+            messages.warning(request, f'Invalid action! You provided {action}.')
+            return redirect('outstanding_freeze_requests')
+
+    return render(request, 'freezes_and_thaws/freeze_request_change_confirmation.html',
+                  {'freeze_request_ids': freeze_request_ids,
+                   'freeze_requests': freeze_requests,
+                   'action': action})
+
+
 def ongoing_freezes(request):
     ongoing_freeze_set = FreezeRequest.objects.filter(status='A')
 
@@ -434,33 +501,3 @@ def ongoing_freezes(request):
         'ongoing_freezes': ongoing_freeze_set,
     })
 
-def freeze_request_change_confirmation(request, freeze_request_ids, action='NoAction', *args, **kwargs):
-    if action not in ['cancel', 'advance']:
-        messages.warning(request, f'Invalid action! You provided {action}.')
-        return redirect('outstanding_freeze_requests')
-
-    freeze_requests = FreezeRequest.objects.filter(pk__in=freeze_request_ids.split('&'))
-
-    if request.method == 'POST':
-        if action == 'cancel':
-            for freeze_request in freeze_requests:
-                freeze_request.status = 'X'
-                freeze_request.save()
-                freeze_str = freeze_request.__str__()
-                freeze_request.delete()
-                messages.success(request, mark_safe(f'Deleted thaw request:<br><strong>{freeze_str}</strong>'))
-            return redirect('outstanding_thaw_requests')
-        if action == 'advance':
-            for freeze_request in freeze_requests:
-                freeze_request.status = 'A'
-                freeze_request.save()
-                messages.success(request, f'Freeze request {freeze_request} advanced successfully!')
-            return redirect('ongoing_freezes')
-        else:
-            messages.warning(request, f'Invalid action! You provided {action}.')
-            return redirect('outstanding_freeze_requests')
-
-    return render(request, 'freezes_and_thaws/freeze_request_change_confirmation.html',
-                  {'freeze_request_ids': freeze_request_ids,
-                   'freeze_requests': freeze_requests,
-                   'action': action})

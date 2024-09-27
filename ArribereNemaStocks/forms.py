@@ -15,13 +15,31 @@ from hardcoded import CAP_COLOR_OPTIONS
 class StrainForm(forms.ModelForm):
     class Meta:
         model = nema_models.Strain
-        fields = ['wja', 'description']
+        fields = ['wja', 'description', 'genotype', 'phenotype', 'additional_comments']
+        help_texts = {
+            'wja': 'Please enter the strain in this format: WJA0002 or just the number. '
+                   'Aim to only add strains in your strain ranges!',
+            'description': 'Please enter a brief description of the strain.',
+            'genotype': 'Please provide a genotype in format "gene1(allele1#)chr1; gene2(allele2#)chr2", '
+                        'for example: skih-2(cc2854;PTC)IV; unc-54(cc2865)I',
+            'phenotype': 'Please enter the phenotype of the strain, for example: "slow growth, pvl"',
+            'additional_comments': 'Please enter any additional comments about the strain, '
+                                   'such as how the strain was constructed.',
+        }
 
 
 class StrainEditForm(forms.ModelForm):
     class Meta:
         model = nema_models.Strain
-        fields = ['wja', 'description']
+        fields = ['description', 'genotype', 'phenotype', 'additional_comments']
+        help_texts = {
+            'description': 'Please enter a brief description of the strain.',
+            'genotype': 'Please provide a genotype in format "gene1(allele1#)chr1; gene2(allele2#)chr2", '
+                        'for example: skih-2(cc2854;PTC)IV; unc-54(cc2865)I',
+            'phenotype': 'Please enter the phenotype of the strain, for example: "slow growth, pvl"',
+            'additional_comments': 'Please enter any additional comments about the strain, '
+                                   'such as how the strain was constructed.',
+        }
 
 
 class InitialThawRequestForm(forms.ModelForm):

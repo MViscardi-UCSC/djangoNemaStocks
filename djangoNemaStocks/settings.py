@@ -160,11 +160,11 @@ DJANGO_TABLES2_TABLE_ATTRS = {
     },
 }
 
-# TODO: REMEMBER: WE CAN JUST USE SYSTEM MAIL AND SEND FROM ARRIBERELAB.PBSCI.UCSC.EDU
 
 # Added by Marcus based on: https://docs.djangoproject.com/en/3.1/topics/auth/default/#the-login-required-decorator
 LOGIN_URL = '/login/'
 
+# TODO: REMEMBER: WE CAN JUST USE SYSTEM MAIL AND SEND FROM ARRIBERELAB.PBSCI.UCSC.EDU
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
