@@ -77,10 +77,18 @@ def new_strain(request, *args, **kwargs):
     # TODO: Get NEW STRAIN page working, with permission checks
     #       Additional checks for the new strain being unique and in the user's range
     form = StrainForm(request.POST or None)
-    if form.is_valid():
+    if request.method == 'POST' and form.is_valid():
+        # Let's add some quick checks to make sure the new strain is unique and in the user's range
+        if Strain.objects.filter(wja=form.cleaned_data['wja']).exists():
+            messages.warning(request, 'This strain already exists! Please check the WJA and try again.')
+            return redirect('new_strain')
+        if not request.user.userprofile.check_if_wja_int_in_any_ranges(form.cleaned_data['wja']):
+            messages.warning(request, 'This strain is not in your range! This SHOULD BE okay...')
+        else:
+            messages.success(request, 'This strain is unique and in your range! Creating new strain...')
         form.save()
         messages.success(request, 'New strain created successfully!')
-        return redirect('strain_details', wja=form.instance.wja)
+        return redirect('strain_details', wja=form.cleaned_data['wja'])
     return render(request, 'strains/new_strain.html', {'form': form})
 
 

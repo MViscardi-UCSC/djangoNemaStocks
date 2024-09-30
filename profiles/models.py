@@ -60,6 +60,12 @@ class UserProfile(models.Model):
             if strain_range.check_if_strain_in_range(strain):
                 return True
         return False
+    
+    def check_if_wja_int_in_any_ranges(self, wja_int: int) -> bool:
+        for strain_range in self.strain_ranges.all():
+            if strain_range.check_if_wja_int_in_range(wja_int):
+                return True
+        return False
 
 
 class UserInitials(models.Model):
@@ -112,6 +118,9 @@ class StrainRange(models.Model):
     
     def check_if_strain_in_range(self, strain: nema_models.Strain) -> bool:
         return self.strain_numbers_start <= strain.wja <= self.strain_numbers_end
+    
+    def check_if_wja_int_in_range(self, wja_int: int) -> bool:
+        return self.strain_numbers_start <= wja_int <= self.strain_numbers_end
     
     def get_usage_string(self) -> str:
         strains = self.get_strains()

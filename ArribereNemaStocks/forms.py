@@ -21,9 +21,9 @@ class StrainForm(forms.ModelForm):
                    'Aim to only add strains in your strain ranges! '
                    '(We can add a check for this like we do for editing strains if wanted - Marcus)',
             'genotype': 'Please enter a genotype in the following format: "gene1(allele1#)chr1"',
+            'phenotype': 'Please enter the phenotype of the strain, for example: "slow growth, pvl"',
             'description': 'Please provide any additional information about the strain, '
                            'such as how the strain was constructed.',
-            'phenotype': 'Please enter the phenotype of the strain, for example: "slow growth, pvl"',
             'additional_comments': 'Please enter any additional comments about the strain that don\'t fit '
                                    'in the "description" field, such as notebook pages.',
         }
