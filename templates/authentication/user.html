@@ -11,7 +11,7 @@
 
 {% block content %}
     <div class="d-flex justify-content-between align-items-center">
-        <h1 class="p-2 flex-grow-1">User {{ request.user|title }}/{{ user_profile }}</h1>
+        <h1 class="p-2 flex-grow-1">User {{ user_profile }}</h1>
         <div class="flex-d">
             <form method="post">
                 {% csrf_token %}
@@ -57,9 +57,13 @@
         {% if not user_permissions %}
             <li><i>No permissions</i></li>
         {% endif %}
+        {% if not request.user.is_superuser %}
             {% for permission in user_permissions %}
                 <li>{{ permission }}</li>
             {% endfor %}
+        {% else %}
+            <li><i>Superuser has <strong>all permissions</strong></i></li>
+        {% endif %}
         </ul>
     </div>
 {% endblock %}

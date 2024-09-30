@@ -27,7 +27,8 @@ OLD_DB_NAME = "240821_OFFICIAL_WORMSTOCKS.json"
 
 
 SCRIPT_DIR = os.path.dirname(__file__)
-PROJECT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "/"))
+PROJECT_DIR = SCRIPT_DIR
+print(SCRIPT_DIR, PROJECT_DIR)
 sys.path.insert(0, PROJECT_DIR)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djangoNemaStocks.settings")
@@ -53,6 +54,26 @@ def make_superuser(username):
         user.save()
     except User.DoesNotExist:
         print(f"User {username} does not exist.")
+
+
+def set_default_permission_flags(open_reg=True, edit_any_strain=False, edit_own_strain=True):
+    # Set the default permissions for the database
+    # Allow (or don't allow) new users to register
+    profile_models.OpenRegistration.objects.all().delete()
+    profile_registration = profile_models.OpenRegistration(is_open=open_reg)
+    profile_registration.save()
+    
+    # Set the permissions for strain editing
+    nema_models.OpenStrainEditing.objects.all().delete()
+    edit_level = 'N'
+    if edit_any_strain:
+        edit_level = 'A'
+    elif edit_own_strain:
+        edit_level = 'O'
+    strain_editing = nema_models.OpenStrainEditing(edit_ability=edit_level)
+    strain_editing.save()
+    ic("Permissions set.")
+    ic(strain_editing, profile_registration)
 
 
 def parse_date(date_str, return_format="%Y-%m-%d", return_datetime_object=False):
@@ -136,10 +157,10 @@ def assert_no_duplicates(lst):
 
 
 class SimpleStrain:
-    def __init__(self, wja: int, description: str, phenotype: str, date_created: date, additional_comments: str,
+    def __init__(self, wja: int, genotype: str, phenotype: str, date_created: date, additional_comments: str,
                  build_dict=None):
         self.wja = wja
-        self.description = description
+        self.genotype = genotype
         self.phenotype = phenotype
         self.date_created = date_created
         self.additional_comments = additional_comments
@@ -147,7 +168,7 @@ class SimpleStrain:
 
     def to_dict(self):
         return {'wja': self.wja,
-                'description': self.description,
+                'genotype': self.genotype,
                 'phenotype': self.phenotype,
                 'date_created': self.date_created,
                 'formatted_wja': f"WJA{self.wja:04d}",
@@ -156,7 +177,7 @@ class SimpleStrain:
 
     def to_nemaStrain(self):
         return nema_models.Strain(wja=self.wja,
-                                  description=self.description,
+                                  genotype=self.genotype,
                                   phenotype=self.phenotype,
                                   date_created=self.date_created,
                                   additional_comments=self.additional_comments,
@@ -382,6 +403,8 @@ class OldStrainEntry:
             print(self.wja, self.cap_color_list, self.date_frozen_list, self.tube_no_list, sep='\n')
             if self.wja != "WJA 0639":
                 raise ValueError(f"tube_no_list and date_frozen_list have different lengths for {self.wja}")
+            else:
+                raise ValueError(f"tube_no_list and date_frozen_list have different lengths for {self.wja}")
 
     def __repr__(self):
         return self.original_dict.__repr__()
@@ -408,7 +431,7 @@ class OldStrainEntry:
     def to_simple_strain(self, build_dict=None):
         wja_int = int(self.wja.split(' ')[-1])
         return SimpleStrain(wja=wja_int,
-                            description=self.description,
+                            genotype=self.description,
                             phenotype=self.phenotype,
                             date_created=self.creation_date,
                             additional_comments=self.get_non_freeze_comments(),
@@ -496,6 +519,7 @@ class OldStrainEntry:
                 parse_date(date_thaw, return_datetime_object=True)
             except ValueError:
                 non_freeze_comments.append(comment)
+        non_freeze_comments.append(self.received_from_date)
         non_freeze_comments = ' | '.join(non_freeze_comments)
         return non_freeze_comments
 
@@ -718,7 +742,9 @@ class OldStrainEntry:
     def perform_manual_fixes(self):
         # This is literally just a list of fixes that I found while parsing the data
         # They will be for individual strains, and will be applied here to avoid later issues:
-
+        if self.wja == 'WJA 6005':  #TODO: Figure out why we are losing some description data!!
+            self.pprint()
+            # self.pprint_lists(len_per_item=100)
         # All of these strains have the same issue with two tube freeze entries but only one date:
         early_strains_with_issues_list = [9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                                           25, 26, 28, 30, 35, 36, 41, 42, 44, 46, 47,
@@ -820,7 +846,7 @@ class OldStrainEntry:
             self.cap_color_list = ['green 09/28/17']
         elif self.wja == 'WJA 3129':
             # 3/21/23- typo noticed in phenotype and comments. Phenotype is supposed to be srf1004, not srf0745.
-            # Cross description is supposed to begin with 2016 males with 3107 hermaphrodites (not 3017).
+            # Cross genotype is supposed to begin with 2016 males with 3107 hermaphrodites (not 3017).
             comment = self.comments_list.pop(2)
             self.comments_list.insert(2, comment.replace('3/21/23- ', 'CW (3/21/23):'))
         elif self.wja == 'WJA 1234':
@@ -1056,6 +1082,7 @@ class SimpleUserProfile:
                     strain_numbers_start=strain_numbers_set[0],
                     strain_numbers_end=strain_numbers_set[1],
                 )
+                strain_range.save()
         return user_profile
 
 
@@ -1262,4 +1289,8 @@ if __name__ == '__main__':
     thaw_used_tubes(old_strain_entries,
                     reset_all=True)
 
+    set_default_permission_flags(open_reg=True,
+                                 edit_any_strain=True,
+                                 edit_own_strain=True,)
+    
     ic("Done!")

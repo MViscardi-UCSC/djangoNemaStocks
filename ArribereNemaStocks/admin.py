@@ -184,7 +184,7 @@ class FreezeRequestAdmin(SimpleHistoryAdmin):
 
 @admin.register(models.Strain)
 class StrainAdmin(SimpleHistoryAdmin):
-    list_display = ('formatted_wja', 'description', 'date_created',
+    list_display = ('formatted_wja', 'genotype', 'date_created',
                     'phenotype', 'active_tubes_count', 'inactive_tubes_count')
     # list_filter = ('date_created', 'wja')
     search_fields = ('wja', 'date_created')

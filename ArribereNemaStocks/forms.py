@@ -15,30 +15,37 @@ from hardcoded import CAP_COLOR_OPTIONS
 class StrainForm(forms.ModelForm):
     class Meta:
         model = nema_models.Strain
-        fields = ['wja', 'description', 'genotype', 'phenotype', 'additional_comments']
+        fields = ['wja', 'genotype', 'phenotype', 'description', 'additional_comments']
         help_texts = {
             'wja': 'Please enter the strain in this format: WJA0002 or just the number. '
-                   'Aim to only add strains in your strain ranges!',
-            'description': 'Please enter a brief description of the strain.',
-            'genotype': 'Please provide a genotype in format "gene1(allele1#)chr1; gene2(allele2#)chr2", '
-                        'for example: skih-2(cc2854;PTC)IV; unc-54(cc2865)I',
+                   'Aim to only add strains in your strain ranges! '
+                   '(We can add a check for this like we do for editing strains if wanted - Marcus)',
+            'genotype': 'Please enter a genotype in the following format: "gene1(allele1#)chr1"',
+            'description': 'Please provide any additional information about the strain, '
+                           'such as how the strain was constructed.',
             'phenotype': 'Please enter the phenotype of the strain, for example: "slow growth, pvl"',
-            'additional_comments': 'Please enter any additional comments about the strain, '
-                                   'such as how the strain was constructed.',
+            'additional_comments': 'Please enter any additional comments about the strain that don\'t fit '
+                                   'in the "description" field, such as notebook pages.',
         }
 
 
 class StrainEditForm(forms.ModelForm):
     class Meta:
         model = nema_models.Strain
-        fields = ['description', 'genotype', 'phenotype', 'additional_comments']
+        fields = ['genotype', 'phenotype', 'description',  'additional_comments']
+        labels = {
+            'wja': 'This is not working',
+        }
         help_texts = {
-            'description': 'Please enter a brief description of the strain.',
-            'genotype': 'Please provide a genotype in format "gene1(allele1#)chr1; gene2(allele2#)chr2", '
-                        'for example: skih-2(cc2854;PTC)IV; unc-54(cc2865)I',
+            'wja': 'Please enter the strain in this format: WJA0002 or just the number. '
+                   'Aim to only add strains in your strain ranges! '
+                   '(We can add a check for this, like we do for editing strains if wanted - Marcus)',
+            'genotype': 'Please enter a genotype in the following format: "gene1(allele1#)chr1"',
+            'description': 'Please provide any additional information about the strain, '
+                           'such as how the strain was constructed.',
             'phenotype': 'Please enter the phenotype of the strain, for example: "slow growth, pvl"',
-            'additional_comments': 'Please enter any additional comments about the strain, '
-                                   'such as how the strain was constructed.',
+            'additional_comments': 'Please enter any additional comments about the strain that do not fit '
+                                   'in the "description" field, such as notebook pages.',
         }
 
 

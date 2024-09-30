@@ -12,7 +12,7 @@ class StrainTable(tables.Table):
     class Meta:
         model = Strain
         # template_name = 'django_tables2/bootstrap4.html'
-        fields = ('selected', 'formatted_wja', 'description', 'date_created', 'phenotype')
+        fields = ('selected', 'formatted_wja', 'genotype', 'date_created', 'phenotype')
 
 
 class TubeTable(tables.Table):  # CURRENTLY UNUSED

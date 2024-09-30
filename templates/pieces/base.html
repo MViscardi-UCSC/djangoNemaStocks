@@ -31,7 +31,7 @@
                 </a>
             {% else %}
                 <a class="navbar-brand" href="/login" style="margin-left: 15px">
-                    {% bs_icon 'person-circle' %} Guest
+                    {% bs_icon 'person-circle' %} Guest (click to log in)
                 </a>
             {% endif %}
         </div>
@@ -40,7 +40,7 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             {% if request.path != '/strain_list_datatable' %}
                 <li class="nav-item">
-                    <form class="col-md-3" method="get" action="{% url 'strain_list_datatable' %}">
+                    <form class="col-md-8" method="get" action="{% url 'strain_list_datatable' %}">
                         <div class="input-group mt-3">
                             <input class="form-control" type="text" name="q" placeholder="Strain Search..." value="{{ request.GET.q }}"
                             title="Search within WJA, Phenotype, Genotype, and Description for strains"
@@ -54,30 +54,36 @@
                 </li>
             {% endif %}
                 <li class="nav-item {% block home_active %}{% endblock %}">
-                    <a class="nav-link" href="/">Home</a>
+                    <a class="nav-link" href="/">
+                        {% bs_icon 'house-door' %} Home
+                    </a>
                 </li>
                 <li class="nav-item {% block strains_active %}{% endblock %}">
-                    <a class="nav-link" href="/strain_list_datatable">Strains</a>
+                    <a class="nav-link" href="/strain_list_datatable">
+                        {% bs_icon 'list-ol' %}Strains</a>
                 </li>
 {#                <li class="nav-item {% block strain_search_active %}{% endblock %}">#}
 {#                    <a class="nav-link" href="/strain_search">Strain Search</a>#}
 {#                </li>#}
                 <li class="nav-item {% block strain_assignments_active %}{% endblock %}">
-                    <a class="nav-link" href="/strain_assignments">Strain Assignments</a>
+                    <a class="nav-link" href="/strain_assignments">
+                        {% bs_icon 'hash' %} Strain Assignments
+                    </a>
                 </li>
                 <li class="nav-item {% block about_active %}{% endblock %}">
-                    <a class="nav-link" href="/about">About</a>
+                    <a class="nav-link" href="/about">
+                        {% bs_icon 'info-circle' %} About
+                    </a>
                 </li>
-{#                <li class="nav-item {% block new_strain_active %}{% endblock %}">#}
-{#                    <a class="nav-link" href="/strain/new">New Strain</a>#}
-{#                </li>#}
+                <li class="nav-item {% block new_strain_active %}{% endblock %}">
+                    <a class="nav-link" href="/strain/new">
+                        {% bs_icon 'plus-circle' %} New Strain
+                    </a>
+                </li>
                 <li class="nav-item {% block outstanding_freeze_requests %}{% endblock %}">
                     <div class="d-flex">
                         <a class="nav-link" href="/outstanding_freeze_requests/">
-                            Pending Freezes 
-{#                            <span class="badge bg-danger">#}
-{#                                {{ outstanding_freeze_requests|length }}#}
-{#                            </span>#}
+                            {% bs_icon 'building-add' %} Pending Freezes 
                         </a>
                         {% if user.is_staff %}
                             <a class="nav-link" href="/ongoing_freezes/" style="margin-left: 15px;">
@@ -89,10 +95,7 @@
                 <li class="nav-item {% block outstanding_thaw_requests %}{% endblock %}">
                     <div class="d-flex">
                         <a class="nav-link" href="/outstanding_thaw_requests/">
-                            Pending Thaws 
-{#                            <span class="badge bg-danger">#}
-{#                                {{ outstanding_freeze_requests|length }}#}
-{#                            </span>#}
+                            {% bs_icon 'building-dash' %} Pending Thaws 
                         </a>
                         {% if user.is_staff %}
                             <a class="nav-link" href="/ongoing_thaws/" style="margin-left: 15px;">
@@ -101,29 +104,24 @@
                         {% endif %}
                     </div>
                 </li>
-{#                <li class="nav-item {% block outstanding_thaw_requests %}{% endblock %}">#}
-{#                    <a class="nav-link" href="/outstanding_thaw_requests/">#}
-{#                        Pending Thaws#}
-{#                        <span class="badge bg-danger">#}
-{#                            {{ outstanding_thaw_requests|length }}#}
-{#                        </span>#}
-{#                    </a>#}
-{#                </li>#}
-{#                {% if user.is_staff %}#}
-{#                    <li class="nav-item {% block ongoing_freezes %}{% endblock %}">#}
-{#                        <a class="nav-link" href="/ongoing_freezes/">Ongoing Freezes</a>#}
-{#                    </li>#}
-{#                    <li class="nav-item {% block ongoing_thaws %}{% endblock %}">#}
-{#                        <a class="nav-link" href="/ongoing_thaws/">Ongoing Thaws</a>#}
-{#                    </li>#}
-{#                {% endif %}#}
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/user_page">User Page</a>
+                        <a class="nav-link" href="/user_page">
+                            {% bs_icon 'person' %} User Page
+                        </a>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/login">Login Page</a>
+                        <a class="nav-link" href="/login">
+                            {% bs_icon 'person-exclamation' %} Login Page
+                        </a>
+                    </li>
+                {% endif %}
+                {% if user.is_staff %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin">
+                            {% bs_icon 'toggles' %} <i>Admin Site Link</i>
+                            </a>
                     </li>
                 {% endif %}
             </ul>

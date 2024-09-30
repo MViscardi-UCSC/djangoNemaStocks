@@ -40,12 +40,12 @@ class OpenStrainEditing(models.Model):
 
 class Strain(models.Model):
     wja = models.IntegerField(unique=True)
-    description = models.CharField(max_length=255, null=True, blank=True, editable=True)
-    date_created = models.DateField(default=timezone.now, editable=True)
-    phenotype = models.CharField(max_length=255, null=True, blank=True, editable=True)
     genotype = models.CharField(max_length=255, null=True, blank=True, editable=True)
+    date_created = models.DateField(default=timezone.now, editable=True)
+    phenotype = models.TextField(null=True, blank=True, editable=True)
+    description = models.TextField(null=True, blank=True, editable=True)
     formatted_wja = models.CharField(max_length=8, editable=False)
-    additional_comments = models.CharField(max_length=255, null=True, blank=True, editable=True)
+    additional_comments = models.TextField(null=True, blank=True, editable=True)
     history = HistoricalRecords()
     
     objects = StrainManager()

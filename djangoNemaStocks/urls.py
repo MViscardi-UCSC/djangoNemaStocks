@@ -47,7 +47,7 @@ urlpatterns = [
     path('strain_assignments/', nema_views.strain_assignments, name='strain_assignments'),
     # path('strain_list/', nema_views.strain_list, name='strain_list'),
     path('strain_list_datatable/', nema_views.strain_list_datatable, name='strain_list_datatable'),
-    # path('new_strain/', views.new_strain, name='new_strain'),
+    path('new_strain/', nema_views.new_strain, name='new_strain'),
     path('edit_strain/<int:wja>/', nema_views.edit_strain, name='edit_strain'),
     path('strain_details/<int:wja>/', nema_views.strain_details, name='strain_details'),
     # Freeze Groups:

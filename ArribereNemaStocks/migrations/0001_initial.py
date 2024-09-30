@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('wja', models.IntegerField(unique=True)),
-                ('description', models.CharField(blank=True, max_length=255, null=True)),
+                ('genotype', models.CharField(blank=True, max_length=255, null=True)),
                 ('date_created', models.DateField(auto_now_add=True)),
                 ('phenotype', models.CharField(blank=True, max_length=255, null=True)),
                 ('formatted_wja', models.CharField(editable=False, max_length=8)),
@@ -141,7 +141,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigIntegerField(auto_created=True, blank=True, db_index=True, verbose_name='ID')),
                 ('wja', models.IntegerField(db_index=True)),
-                ('description', models.CharField(blank=True, max_length=255, null=True)),
+                ('genotype', models.CharField(blank=True, max_length=255, null=True)),
                 ('date_created', models.DateField(blank=True, editable=False)),
                 ('phenotype', models.CharField(blank=True, max_length=255, null=True)),
                 ('formatted_wja', models.CharField(editable=False, max_length=8)),
