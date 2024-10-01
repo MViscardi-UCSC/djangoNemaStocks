@@ -149,10 +149,6 @@
         <p class="text-muted my-0">University of California, Santa Cruz</p>
         <p class="text-muted my-0">1156 High Street</p>
         <p class="text-muted my-0">Santa Cruz, CA 95064</p>
-    
-        {% if request.user.is_staff %}
-            <p class="text-muted my-1"><a href="/admin">Admin Site Link</a></p>
-        {% endif %}
         {% block footer %}
         {% endblock %}
     </div>

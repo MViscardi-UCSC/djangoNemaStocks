@@ -12,20 +12,31 @@
             I am using <s>Flask, Flask-SQLAlchemy, and Flask-Bootstrap</s> DJANGO. It has
             been a fun project so far, and I hope to continue to improve it
             over time.
-
             <br><br>
-            I feel a little guilty about jumping the gun on this while I have a
-            bunch of other crap that I should be doing... but I'm having fun and it is very insightful!
-            Hopefully this will make for a nice jumping off point for when Parissa,
-            Josh, Chloe, and I get around to rebuilding the site.
-
+            It is hosted by UCSC at http://arriberelab.pbsci.ucsc.edu/ but hopefully you know that since you're here...
             <br><br>
-            I've had a lot of success with bringing over most of the functionality of the old site.
-            My biggest current hangup is getting the deeper pages to work with handling the freezes
-            and thaws after they have been submitted and received but before they have been complete.
-            In the sort of <i>liminal space</i> between...
-            This is going to take a bit of refinement, but also working with Chloe (the actual strain czar)
-            will make this more useful!!
+            There are a few remaining major features that need to be implemented (listed below).
+            Currently, all(?) previous features of the original Nemastocks database have been implemented.
         </p>
+        <h2>Major Features Remaining</h2>
+        <ul>
+            <li>
+                Emails! Re-implement what we got working on the test version.<br>
+                >Email when second to last tube is thawed to request refreeze<br>
+                >Email when a requested thaw is completed<br>
+                >Email when a requested freeze completes or fails<br>
+                >Email when a thaw or freeze is requested
+            </li>
+            <li>
+                Bulk freeze/thaw requests (this should just be an implementation of what we have working for bulk new strains)
+            </li>
+            <li>
+                Better handling of the default freeze boxes to save time for the Czar when handling lots of freezes<br>
+                (Spent so long on this to no joy... idk how to do it! and neither does chatGPT!)
+            </li>
+            <li>
+                Better/More comments within the actual code to allow future maintainers to understand what is going on!
+            </li>
+        </ul>
     </div>
 {% endblock %}
