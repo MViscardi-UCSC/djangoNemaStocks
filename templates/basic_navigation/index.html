@@ -1,4 +1,6 @@
 {% extends "pieces/base.html" %}
+{% load django_bootstrap5 %}
+{% load bootstrap_icons %}
 
 {% block home_active %}class='active'{% endblock %}
 
@@ -9,28 +11,111 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="text-center">Welcome to NemaStocks</h1>
-                <p class="text-center">Follow the NavBar links above to relevant pages!</p>
+                <p class="text-center">Follow the NavBar links above (or below) to relevant pages!</p>
             </div>
         </div>
     </div>
+
+    <!-- Start of the row containing both sections -->
     <div class="container mt-4">
-        <h1>NemaStocks Strain Search</h1>
-        <p>
-            Use this to search within WJA, Phenotype, Genotype, and Description for strains.
-        </p>
-        <form class="d-flex" method="get" action="{% url 'strain_list_datatable' %}">
-            <div class="input-group mt-3">
-                <input class="form-control" type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}"
-                title="Search within WJA, Phenotype, Genotype, and Description for strains"
-                id="searchBoxInput">
-                <label class="form-check-label" for="searchBoxInput"></label>
-                <button class="btn btn-primary" type="submit"
-                        title="Search within WJA, Phenotype, Genotype, and Description for strains">Search</button>
-                <a href="{% url 'strain_list_datatable' %}" class="btn btn-secondary" title="View all strains">View All</a>
+        <div class="row">
+            <!-- Strain Search Section -->
+            <div class="col-sm-12 col-md-6 border-end">
+                <h1>Strain Search</h1>
+                <p>
+                    Use this to search within WJA, Phenotype, Genotype, and Description for strains.
+                </p>
+                <form class="d-flex" method="get" action="{% url 'strain_list_datatable' %}">
+                    <div class="input-group mt-3">
+                        <input class="form-control" type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}"
+                        title="Search within WJA, Phenotype, Genotype, and Description for strains"
+                        id="searchBoxInput">
+                        <label class="form-check-label" for="searchBoxInput"></label>
+                        <button class="btn btn-primary" type="submit"
+                                title="Search within WJA, Phenotype, Genotype, and Description for strains">Search</button>
+                        <a href="{% url 'strain_list_datatable' %}" class="btn btn-secondary" title="View all strains">View All</a>
+                    </div>
+                </form>
+                <small>
+                    In the future we can add functionality to search within specific fields if we'd like... Ask Marcus
+                </small>
             </div>
-        </form>
-        <small>
-            In the future we can add functionality to search within specific fields if we'd like... Ask Marcus
-        </small>
+
+            <!-- Navigation Section -->
+            <div class="col-sm-12 col-md-6 border-start">
+                <h1>Navigation</h1>
+                <ul class="list-unstyled">
+                    <li class="mt-1">
+                        <a class="nav-link" href="/strain_list_datatable">
+                            {% bs_icon 'list-ol' %} Strains
+                        </a>
+                    </li>
+                    <li class="mt-1">
+                        <a class="nav-link" href="/strain_assignments">
+                            {% bs_icon 'person-lines-fill' %} Strain Assignments
+                        </a>
+                    </li>
+                    <li class="mt-1">
+                        <a class="nav-link" href="/about">
+                            {% bs_icon 'info-circle' %} About
+                        </a>
+                    </li>
+                    <li class="mt-1">
+                        <a class="nav-link" href="/new_strain">
+                            {% bs_icon 'plus-circle' %} New Strain
+                        </a>
+                    </li>
+                    <li class="mt-1">
+                        <a class="nav-link" href="/bulk_upload_strains/">
+                            {% bs_icon 'table' %} New Strains (Bulk)
+                        </a>
+                    </li>
+                    <li class="mt-1">
+                        <div class="d-flex">
+                            <a class="nav-link" href="/outstanding_freeze_requests/">
+                                {% bs_icon 'building-add' %} Pending Freezes 
+                            </a>
+                            {% if user.is_staff %}
+                                <a class="nav-link" href="/ongoing_freezes/" style="margin-left: 15px;">
+                                    <i>Ongoing Freezes</i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </li>
+                    <li class="mt-1">
+                        <div class="d-flex">
+                            <a class="nav-link" href="/outstanding_thaw_requests/">
+                                {% bs_icon 'building-dash' %} Pending Thaws 
+                            </a>
+                            {% if user.is_staff %}
+                                <a class="nav-link" href="/ongoing_thaws/" style="margin-left: 15px;">
+                                    <i>Ongoing Thaws</i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="mt-1">
+                            <a class="nav-link" href="/user_page">
+                                {% bs_icon 'person' %} User Page
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="mt-1">
+                            <a class="nav-link" href="/login">
+                                {% bs_icon 'person-exclamation' %} Login Page
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% if user.is_staff %}
+                        <li class="mt-1">
+                            <a class="nav-link" href="/admin">
+                                {% bs_icon 'tools' %} <i>Admin Site Link</i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
     </div>
 {% endblock %}
