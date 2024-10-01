@@ -1222,6 +1222,7 @@ def create_freezes_and_tubes(_old_strain_entries, delete_old=True):
     create_tubes(super_tube_list, delete_old=delete_old)
 
 
+@transaction.atomic
 def create_users(user_initials_dict, delete_old=False, open_registration=True):
     if delete_old:
         try:
