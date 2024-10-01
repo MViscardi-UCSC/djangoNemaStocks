@@ -27,6 +27,49 @@ class StrainForm(forms.ModelForm):
             'additional_comments': 'Please enter any additional comments about the strain that don\'t fit '
                                    'in the "description" field, such as notebook pages.',
         }
+    
+    def clean_wja(self):
+        wja = self.cleaned_data['wja']
+        if not wja:
+            self.add_error('wja', 'Please enter a WJA number.')
+        if nema_models.Strain.objects.filter(wja=wja).exists():
+            self.add_error('wja', 'A strain with this WJA number already exists.')
+        return wja
+
+
+class MiniStrainForm(forms.ModelForm):
+    class Meta:
+        model = nema_models.Strain
+        fields = ['wja', 'genotype', 'phenotype', 'description', 'additional_comments']
+        help_texts = {
+            'wja': 'W/ or W/O WJA prefix',
+            'genotype': 'Use the following format: "gene1(allele1#)chr1"',
+            'phenotype': 'Enter known phenotype(s), e.g. "slow growth, pvl"',
+            'description': 'Please provide any additional information about the strain, '
+                           'such as how the strain was constructed.',
+            'additional_comments': 'Please enter any additional comments about the strain that don\'t fit '
+                                   'in the "description" field, such as notebook pages.',
+        }
+
+    def clean_wja(self):
+        wja = self.cleaned_data['wja']
+        if not wja:
+            self.add_error('wja', 'Please enter a WJA number.')
+        if nema_models.Strain.objects.filter(wja=wja).exists():
+            self.add_error('wja', 'A strain with this WJA number already exists.')
+        return wja
+
+
+class BulkStrainUploadForm(forms.Form):
+    data = forms.CharField(widget=forms.Textarea, help_text='Paste your strain data here. '
+                                                            'Each line should be a strain in the format:<br>'
+                                                            '<strong>WJA'
+                                                            '&nbsp; genotype'
+                                                            '&nbsp; phenotype'
+                                                            '&nbsp; description'
+                                                            '&nbsp; additional comments</strong>'
+                                                            '<br>If you provide more than 5 columns they\'ll '
+                                                            'get rolled into the last column.')
 
 
 class StrainEditForm(forms.ModelForm):

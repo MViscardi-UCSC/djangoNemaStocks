@@ -1,0 +1,49 @@
+{% extends 'pieces/base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Confirm Strains - NemaStocks{% endblock %}
+
+{% block content %}
+<h1>Confirm Strains</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <table class="table table-striped table-bordered table-sm">
+        <thead>
+            <tr>
+                <th>WJA</th>
+                <th>Genotype</th>
+                <th>Phenotype</th>
+                <th>Description</th>
+                <th>Additional Comments</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in formset %}
+                <tr>
+                    {% for field in form.visible_fields %}
+                        <td>
+                            {% bootstrap_field field layout='floating' show_help=False %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                {% with formset.0 as form %}
+                    {% for field in form.visible_fields %}
+                        <td class="text-muted">
+                            <small>
+                                {{ field.help_text }}
+                            </small>
+                        </td>
+                    {% endfor %}
+                {% endwith %}
+            </tr>
+        </tfoot>
+    </table>
+    <button type="submit" class="btn btn-primary">Confirm and Save</button>
+    <a href="{% url 'bulk_upload_strains' %}" class="btn btn-secondary">Back</a>
+</form>
+{% endblock %}

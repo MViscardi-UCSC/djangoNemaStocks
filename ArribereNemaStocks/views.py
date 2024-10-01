@@ -5,14 +5,15 @@ from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRe
 from django.contrib import messages
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
-from django.forms import formset_factory, modelformset_factory
+from django.forms import formset_factory, modelformset_factory, BaseModelFormSet
 
 from django_tables2 import RequestConfig
 
 from .models import FreezeRequest, ThawRequest, Strain, DefaultBox, Box, Tube, FreezeGroup, OpenStrainEditing
 from .forms import StrainEditForm, AdvancingFreezeRequestForm, StrainForm, InitialThawRequestForm, \
-    AdvancingThawRequestForm, FreezeRequestForm
+    AdvancingThawRequestForm, FreezeRequestForm, BulkStrainUploadForm, MiniStrainForm
 from .tables import StrainTable, MiniThawRequestTable, FreezeRequestTable, MiniFreezeGroupTable, ThawRequestTable
+from .utils import parse_strain_data
 
 from profiles.models import UserProfile
 
@@ -90,6 +91,67 @@ def new_strain(request, *args, **kwargs):
         messages.success(request, 'New strain created successfully!')
         return redirect('strain_details', wja=form.cleaned_data['wja'])
     return render(request, 'strains/new_strain.html', {'form': form})
+
+
+# Things for Bulk Upload of Strains
+class BaseStrainFormSet(BaseModelFormSet):
+    def clean(self):
+        if any(self.errors):
+            return
+        wja_numbers = []
+        for form in self.forms:
+            wja = form.cleaned_data.get('wja')
+            if wja in wja_numbers:
+                form.add_error('wja', 'Duplicate WJA in the upload data.')
+            else:
+                wja_numbers.append(wja)
+
+
+def bulk_upload_strains(request):
+    if request.method == 'POST':
+        form = BulkStrainUploadForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data['data']
+            parsed_strains = parse_strain_data(data)
+            if not parsed_strains:
+                form.add_error('data', 'No valid data found.')
+                return render(request, 'strains/bulk_upload_strains.html', {'form': form})
+            request.session['parsed_strains'] = parsed_strains
+            return redirect('bulk_confirm_strains')
+    else:
+        form = BulkStrainUploadForm()
+    return render(request, 'strains/bulk_upload_strains.html', {'form': form})
+
+
+def bulk_confirm_strains(request):
+    if request.method == 'POST':
+        # Reconstruct the formset without specifying 'extra'
+        StrainFormSet = modelformset_factory(
+            Strain, form=MiniStrainForm, formset=BaseModelFormSet
+        )
+        formset = StrainFormSet(request.POST, queryset=Strain.objects.none())
+        if formset.is_valid():
+            formset.save()
+            request.session.pop('parsed_strains', None)
+            return redirect('strain_list')
+    else:
+        parsed_strains = request.session.get('parsed_strains')
+        if not parsed_strains:
+            return redirect('bulk_upload_strains')
+        total_forms = len(parsed_strains)
+        # Set 'extra' to the number of parsed strains
+        StrainFormSet = modelformset_factory(
+            Strain,
+            form=MiniStrainForm,
+            formset=BaseModelFormSet,
+            extra=total_forms
+        )
+        formset = StrainFormSet(
+            queryset=Strain.objects.none(),
+            initial=parsed_strains
+        )
+    return render(request, 'strains/bulk_confirm_strains.html', {'formset': formset})
+# End Bulk Upload
 
 
 def edit_strain(request, wja, *args, **kwargs):

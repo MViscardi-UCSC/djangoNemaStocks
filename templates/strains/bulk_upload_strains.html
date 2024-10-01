@@ -1,0 +1,14 @@
+{% extends 'pieces/base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Bulk Upload Strains - NemaStocks{% endblock %}
+
+{% block content %}
+<h1>Bulk Upload Strains</h1>
+<form method="post">
+    {% csrf_token %}
+    {% bootstrap_form form layout='floating' %}
+    <button type="submit" class="btn btn-primary">Parse Data</button>
+    <a href="/" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

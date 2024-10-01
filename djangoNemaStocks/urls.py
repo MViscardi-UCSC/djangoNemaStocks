@@ -50,6 +50,9 @@ urlpatterns = [
     path('new_strain/', nema_views.new_strain, name='new_strain'),
     path('edit_strain/<int:wja>/', nema_views.edit_strain, name='edit_strain'),
     path('strain_details/<int:wja>/', nema_views.strain_details, name='strain_details'),
+    #BULK:
+    path('bulk_upload_strains/', nema_views.bulk_upload_strains, name='bulk_upload_strains'),
+    path('bulk_confirm_strains/', nema_views.bulk_confirm_strains, name='bulk_confirm_strains'),
     # Freeze Groups:
     # path('freeze_group_list/', nema_views.freeze_group_list, name='freeze_group_list'),
     # path('new_freeze_group/', nema_views.new_freeze_group, name='new_freeze_group'),
