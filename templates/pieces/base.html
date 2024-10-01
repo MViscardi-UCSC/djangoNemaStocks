@@ -27,7 +27,7 @@
             </button>
             {% if user.is_authenticated %}
                 <a class="navbar-brand" href="/user_page" style="margin-left: 15px">
-                    {% bs_icon 'person-circle' %} {{ request.user.userprofile.initials }}
+                    {% bs_icon 'person-circle' %} {{ request.user.userprofile }}
                 </a>
             {% else %}
                 <a class="navbar-brand" href="/login" style="margin-left: 15px">
