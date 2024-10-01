@@ -171,3 +171,5 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'arriberenemastocks@gmail.com'  # replace with your email
 EMAIL_HOST_PASSWORD = env('EMAIL_PASS')  # replace with your password
+DEFAULT_FROM_EMAIL = 'NemaStocks <arriberenemastocks@gmail.com>'
+

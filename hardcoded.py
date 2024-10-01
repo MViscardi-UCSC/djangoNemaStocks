@@ -6,6 +6,11 @@ This file contains most of the hardcoded variables that are used throughout the 
 
 Editing them here should be the only place you need to change them.
 """
+# Number of tubes remaining before sending refreeze email:
+TUBE_REMAINING_THRESHOLD = 2
+
+# Email all CZARs:
+EMAIL_ALL_CZARS = False
 
 # Cap colors as options for the FreezeRequestForm:
 CAP_COLOR_OPTIONS = (

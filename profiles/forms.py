@@ -27,7 +27,9 @@ class UserProfileForm(forms.ModelForm):
     
     class Meta:
         model = UserProfile
-        fields = ['role', 'initials', 'active_status', 'username', 'email', 'first_name', 'last_name']
+        fields = ['role', 'initials', 'active_status',
+                  'is_strain_czar', 'username', 'email',
+                  'first_name', 'last_name']
     
     def __init__(self, *args, **kwargs):
         super(UserProfileForm, self).__init__(*args, **kwargs)
@@ -38,6 +40,7 @@ class UserProfileForm(forms.ModelForm):
         self.fields['username'].help_text = ('This will be your login username. '
                                              'For ease of identification, please just use your first name (lower case).')
         self.fields['email'].initial = self.instance.user.email
+        self.fields['is_strain_czar'].help_text = 'No permissions gained with this, just extra emails! <3'
         
     def save(self, commit=True):
         user_profile = super(UserProfileForm, self).save(commit=False)
@@ -61,6 +64,7 @@ class RegistrationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
         self.fields['active_status'].help_text = 'This will control whether or not you receive emails.'
+        self.fields['is_strain_czar'].help_text = 'No permissions gained with this, just extra emails! <3'
 
     class Meta:
         model = User
@@ -70,7 +74,7 @@ class RegistrationForm(UserCreationForm):
     def clean_initials(self):
         initials = self.cleaned_data.get('initials')
         if UserProfile.objects.filter(initials=initials).exists():
-            raise ValidationError("A user with these initials already exists.")
+            self.add_error('initials', 'Initials already in use, please choose another')
         return initials
     
     def save(self, commit=True):
@@ -85,5 +89,6 @@ class RegistrationForm(UserCreationForm):
                     initials=self.cleaned_data['initials'],
                     active_status=self.cleaned_data['active_status']
                 )
+                profile.save()
             return user
 

@@ -28,6 +28,7 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=1, choices=ROLE_CHOICES, default='o')
     initials = models.CharField(max_length=4, null=False, blank=False, unique=True)  # These are the primary ones used!
     active_status = models.BooleanField(default=False)
+    is_strain_czar = models.BooleanField(default=False)
     
     history = HistoricalRecords()
     
