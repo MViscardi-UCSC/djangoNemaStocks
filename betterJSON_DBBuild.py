@@ -744,9 +744,6 @@ class OldStrainEntry:
     def perform_manual_fixes(self):
         # This is literally just a list of fixes that I found while parsing the data
         # They will be for individual strains, and will be applied here to avoid later issues:
-        if self.wja == 'WJA 6005':  #TODO: Figure out why we are losing some description data!!
-            self.pprint()
-            # self.pprint_lists(len_per_item=100)
         # All of these strains have the same issue with two tube freeze entries but only one date:
         early_strains_with_issues_list = [9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                                           25, 26, 28, 30, 35, 36, 41, 42, 44, 46, 47,
