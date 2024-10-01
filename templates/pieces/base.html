@@ -37,7 +37,7 @@
         </div>
         <a class="navbar-brand" href="/">Arribere Nemastocks</a>
         <div class="collapse navbar-collapse" id="myNavbar">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <ul class="navbar-nav me-auto mb-6 mb-lg-0">
             {% if request.path != '/strain_list_datatable' %}
                 <li class="nav-item">
                     <form class="col-md-8" method="get" action="{% url 'strain_list_datatable' %}">
@@ -60,14 +60,11 @@
                 </li>
                 <li class="nav-item {% block strains_active %}{% endblock %}">
                     <a class="nav-link" href="/strain_list_datatable">
-                        {% bs_icon 'list-ol' %}Strains</a>
+                        {% bs_icon 'list-ol' %} Strains</a>
                 </li>
-{#                <li class="nav-item {% block strain_search_active %}{% endblock %}">#}
-{#                    <a class="nav-link" href="/strain_search">Strain Search</a>#}
-{#                </li>#}
                 <li class="nav-item {% block strain_assignments_active %}{% endblock %}">
                     <a class="nav-link" href="/strain_assignments">
-                        {% bs_icon 'hash' %} Strain Assignments
+                        {% bs_icon 'person-lines-fill' %} Strain Assignments
                     </a>
                 </li>
                 <li class="nav-item {% block about_active %}{% endblock %}">
@@ -78,6 +75,11 @@
                 <li class="nav-item {% block new_strain_active %}{% endblock %}">
                     <a class="nav-link" href="/new_strain">
                         {% bs_icon 'plus-circle' %} New Strain
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/bulk_upload_strains/">
+                        {% bs_icon 'table' %} New Strains (Bulk)
                     </a>
                 </li>
                 <li class="nav-item {% block outstanding_freeze_requests %}{% endblock %}">
