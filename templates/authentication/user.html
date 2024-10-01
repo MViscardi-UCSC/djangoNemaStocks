@@ -31,6 +31,8 @@
         <p><b>Is Active Lab Member:</b> {{ user_profile.active_status }}</p>
         <p><b>Is Active User:</b> {{ request.user.is_active }}</p>
         <p><b>Is Superuser/Admin:</b> {{ request.user.is_superuser }}</p>
+        <p><b>Is Staff:</b> {{ request.user.is_staff }}</p>
+        <p><b>Is Strain Czar:</b> {{ user_profile.is_strain_czar }}</p>
         <p><b>User Groups:</b></p>
         <ul>
         {% if not user_groups %}
