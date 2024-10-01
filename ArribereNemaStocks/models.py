@@ -102,6 +102,17 @@ class Strain(models.Model):
     def __str__(self):
         return self.__repr__()
 
+    def get_owner_from_ranges(self):
+        """
+        This method returns the owner of the strain based on the ranges of strains that they own.
+        :return: The owner of the strain.
+        """
+        from profiles.models import StrainRange
+        for strain_range in StrainRange.objects.all():
+            if strain_range.check_if_strain_in_range(self):
+                return strain_range.user_profile
+        return None
+
 
 class Tube(models.Model):
     cap_color = models.CharField(max_length=50, choices=CAP_COLOR_OPTIONS, default='unknown')
