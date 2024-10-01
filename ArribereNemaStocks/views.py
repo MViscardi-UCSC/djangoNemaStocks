@@ -15,13 +15,24 @@ from .forms import StrainEditForm, AdvancingFreezeRequestForm, StrainForm, Initi
 from .tables import StrainTable, MiniThawRequestTable, FreezeRequestTable, MiniFreezeGroupTable, ThawRequestTable
 from .utils import parse_strain_data
 
-from profiles.models import UserProfile
+from profiles.models import UserProfile, OpenRegistration
 
 
 # General Navigation:
 def index(request, *args, **kwargs):
-    strains = Strain.objects.all()
-    return render(request, 'basic_navigation/index.html')
+    user_registration = OpenRegistration.objects.first().is_open
+    registration_string = 'open' if user_registration else 'closed'
+    edit_permissions = OpenStrainEditing.objects.first().edit_ability
+    edit_permissions_string = 'closed'
+    if edit_permissions == 'N':
+        edit_permissions_string = 'closed'
+    elif edit_permissions == 'O':
+        edit_permissions_string = 'open for owned strains'
+    elif edit_permissions == 'A':
+        edit_permissions_string = 'open for all strains'
+    return render(request, 'basic_navigation/index.html',
+                  {'registration': registration_string,
+                   'edit_permissions': edit_permissions_string})
 
 
 def about(request, *args, **kwargs):
