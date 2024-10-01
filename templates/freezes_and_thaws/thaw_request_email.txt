@@ -1,0 +1,6 @@
+Hello Strain Czar(s),
+
+A new thaw request has been submitted by {{ requester_name }} ({{ thaw_reqeust }}).
+
+Thank you,
+NemaStocks Automated Notification

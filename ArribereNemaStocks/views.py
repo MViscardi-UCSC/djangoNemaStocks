@@ -7,6 +7,10 @@ from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from django.forms import formset_factory, modelformset_factory, BaseModelFormSet
 
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.conf import settings
+
 from django_tables2 import RequestConfig
 
 from .models import FreezeRequest, ThawRequest, Strain, DefaultBox, Box, Tube, FreezeGroup, OpenStrainEditing
@@ -283,9 +287,36 @@ def thaw_request_confirmation(request, form=None, *args, **kwargs):
         }
     if request.method == 'POST' and 'confirm' in request.POST:
         thaw_request = ThawRequest.objects.create(**thaw_request_data)
-
+        
         messages.success(request,
-                         f'New thaw request created successfully! Target: {formatted_wja}; ID: {thaw_request.id:>05d}')
+                         f'New thaw request created successfully! '
+                         f'Target: {formatted_wja}; ID: {thaw_request.id:>05d}')
+        
+        # let's email czars when a request is made
+        def send_email_to_czars():
+            recipients_list = []
+            cc_list = []
+            strain_czars = UserProfile.objects.filter(is_strain_czar=True)
+            for czar in strain_czars:
+                if czar.user.email and czar.active_status:
+                    recipients_list.append(czar.user.email)
+            thaw_requester = thaw_request.requester
+            thaw_requester_name = thaw_requester.user.first_name.title()
+            if thaw_requester.user.email and thaw_requester.active_status:
+                cc_list.append(thaw_requester.user.email)
+            context = {
+                'thaw_request': thaw_request,
+                'strain': thaw_request.strain,
+                'requester': thaw_request.requester,
+                'requester_name': thaw_requester_name,
+            }
+            # TODO: The subject could be changed to not include any information,
+            #       this would make all requests into one email chain!
+            subject = f"New Thaw Request: {thaw_request.strain.formatted_wja} (ID#{thaw_request.id:0>6d})"
+            message = render_to_string('freezes_and_thaws/thaw_request_email.txt', context)
+            email = EmailMessage(subject, message, settings.EMAIL_HOST_USER, recipients_list, cc=cc_list)
+            email.send()
+        send_email_to_czars()
 
         return redirect('outstanding_thaw_requests')
 
