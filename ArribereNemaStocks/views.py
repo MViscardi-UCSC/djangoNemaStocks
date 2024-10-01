@@ -109,17 +109,6 @@ def new_strain(request, *args, **kwargs):
 
 
 # Things for Bulk Upload of Strains
-class BaseStrainFormSet(BaseModelFormSet):
-    def clean(self):
-        if any(self.errors):
-            return
-        wja_numbers = []
-        for form in self.forms:
-            wja = form.cleaned_data.get('wja')
-            if wja in wja_numbers:
-                form.add_error('wja', 'Duplicate WJA in the upload data.')
-            else:
-                wja_numbers.append(wja)
 
 
 def bulk_upload_strains(request):
