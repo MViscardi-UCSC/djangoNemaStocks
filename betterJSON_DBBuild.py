@@ -12,6 +12,7 @@ from typing import List, Tuple
 
 from dateutil import parser
 import re
+
 from icecream import ic
 from datetime import datetime as dt
 from datetime import date
@@ -36,7 +37,8 @@ import django
 
 django.setup()
 
-from django.contrib.auth.models import User, Group
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User, Group, Permission
 import ArribereNemaStocks.models as nema_models
 import profiles.models as profile_models
 from hardcoded import CAP_COLOR_OPTIONS, USER_INITIALS_DICT
@@ -1261,6 +1263,50 @@ def thaw_used_tubes(_old_strain_entries: List[OldStrainEntry], reset_all=False):
         old_strain.parse_thaws()
 
 
+@transaction.atomic
+def create_groups(delete_old=True):
+    if delete_old:
+        Group.objects.all().delete()
+        ic("Old groups deleted.")
+    requesters_group, _ = Group.objects.get_or_create(name='Requesters')
+    editors_group, _ = Group.objects.get_or_create(name='Editors')
+    viewers_group, _ = Group.objects.get_or_create(name='Viewers')
+    add_strains_group, _ = Group.objects.get_or_create(name='AddStrains')
+
+    groups_permissions = {
+        'Requesters': {
+            'models': [nema_models.ThawRequest, nema_models.FreezeRequest],
+            'permissions': ['add', 'view'],
+        },
+        'Editors': {
+            'models': [nema_models.Strain],
+            'permissions': ['change', 'view'],
+        },
+        'AddStrains': {
+            'models': [nema_models.Strain],
+            'permissions': ['add', 'view'],
+        },
+        'Viewers': {
+            'models': [nema_models.Strain, nema_models.ThawRequest, nema_models.FreezeRequest,
+                       nema_models.Tube, nema_models.FreezeGroup, nema_models.Box],
+            'permissions': ['view'],
+        },
+    }
+
+    for group_name, perms in groups_permissions.items():
+        group = Group.objects.get(name=group_name)
+        for model in perms['models']:
+            content_type = ContentType.objects.get_for_model(model)
+            for action in perms['permissions']:
+                codename = f"{action}_{model._meta.model_name}"
+                try:
+                    permission = Permission.objects.get(content_type=content_type, codename=codename)
+                    group.permissions.add(permission)
+                except Permission.DoesNotExist:
+                    ic(f"Permission {codename} not found for model {model._meta.model_name}")
+    ic('Successfully created groups and assigned permissions.')
+
+
 if __name__ == '__main__':
     # Ideally we should be able to run this from a brand-new database and have it build everything!!
 
@@ -1275,6 +1321,8 @@ if __name__ == '__main__':
 
     # Each of the following steps should be skip-able for databases that are already built:
 
+    create_groups()
+    
     create_users(USER_INITIALS_DICT,
                  delete_old=True)
 
