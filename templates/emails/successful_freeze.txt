@@ -1,4 +1,4 @@
-Dear {{freezer_user_name}},
+Dear {{ freezer_user_name }},
 
 Your requested freeze of {{ strain.formatted_wja }} has been completed after being tested by {{ testing_user_name }}.
 

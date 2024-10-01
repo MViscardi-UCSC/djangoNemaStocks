@@ -19,31 +19,32 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-6">
-                        {% bootstrap_field form.role %}
+                        {% bootstrap_field form.role layout='floating' %}
                     </div>
                     <div class="col-md-6">
                         <div class="row">
                             <div class="col-md-12">
-                                {% bootstrap_field form.username %}
+                                {% bootstrap_field form.username layout='floating' %}
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
-                                {% bootstrap_field form.first_name %}
+                                {% bootstrap_field form.first_name layout='floating' %}
                             </div>
                             <div class="col-md-6">
-                                {% bootstrap_field form.last_name %}
+                                {% bootstrap_field form.last_name layout='floating' %}
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-8">
-                                {% bootstrap_field form.email %}
+                                {% bootstrap_field form.email layout='floating' %}
                             </div>
                             <div class="col-md-4">
-                                {% bootstrap_field form.initials%}
+                                {% bootstrap_field form.initials layout='floating' %}
                             </div>
                         </div>
-                        {% bootstrap_field form.active_status %}
+                        {% bootstrap_field form.active_status layout='floating' %}
+                        {% bootstrap_field form.is_strain_czar layout='floating' %}
                     </div>
                 </div>
                 <div class="row">

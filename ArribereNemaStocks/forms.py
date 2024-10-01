@@ -521,7 +521,9 @@ class AdvancingFreezeRequestForm(forms.ModelForm):
                                     )
                                 # Update the default box for the dewar if we are freezing into non-default boxes!
                                 if not nema_models.DefaultBox.objects.filter(box=box).exists():
-                                    nema_models.DefaultBox.get_default_box_for_dewar(box.dewar).delete()
+                                    current_default = nema_models.DefaultBox.get_default_box_for_dewar(box.dewar)
+                                    if current_default:
+                                        current_default.delete()
                                     nema_models.DefaultBox.objects.create(box=box)
                     instance.freeze_group = freeze_group
                     instance.date_advanced = timezone.now().date()
@@ -573,7 +575,7 @@ class AdvancingFreezeRequestForm(forms.ModelForm):
 
         # The email:
         context = {'strain': strain,
-                   'freezing_user_name': freezing_user_name,
+                   'freezer_user_name': freezing_user_name,
                    'testing_user_name': testing_user_name,
                    'recipient_list': recipient_list,
                    'tester_comments': self.cleaned_data.get('tester_comments'),

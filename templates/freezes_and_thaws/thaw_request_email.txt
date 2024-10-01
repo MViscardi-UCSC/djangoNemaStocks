@@ -1,6 +1,10 @@
 Hello Strain Czar(s),
 
-A new thaw request has been submitted by {{ requester_name }} ({{ thaw_reqeust }}).
+A new thaw request has been submitted by {{ requester_name }}:
+    {{ thaw_request }}
+
+If they provided any comments, they will be below:
+    {{ request_comments }}
 
 Thank you,
 NemaStocks Automated Notification
