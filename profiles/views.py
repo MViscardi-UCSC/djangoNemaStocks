@@ -3,31 +3,31 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
-from . import models
-from . import forms
+from . import models as profile_models
+from . import forms as profile_forms
 # Create your views here.
 
 
 def register(request):
-    status = models.OpenRegistration.objects.first()
+    status = profile_models.OpenRegistration.objects.first()
     if not status or not status.is_open:
         return render(request, 'authentication/registration_closed.html')
     
     if request.method == 'POST':
-        form = forms.RegistrationForm(request.POST)
+        form = profile_forms.RegistrationForm(request.POST)
         if form.is_valid():
             form.save()
             return redirect('login_page')  # replace with your login url
     else:
-        form = forms.RegistrationForm()
+        form = profile_forms.RegistrationForm()
     return render(request, 'authentication/register.html',
                   {'form': form})
 
 
 def login_page(request):
-    form = forms.LoginForm()
+    form = profile_forms.LoginForm()
     if request.method == 'POST':
-        form = forms.LoginForm(request.POST)
+        form = profile_forms.LoginForm(request.POST)
         if form.is_valid():
             user = authenticate(
                 username=form.cleaned_data['username'],
@@ -70,7 +70,7 @@ def edit_user_profile(request):
     user_profile = request.user.userprofile
 
     if request.method == 'POST':
-        form = forms.UserProfileForm(request.POST, instance=user_profile)
+        form = profile_forms.UserProfileForm(request.POST, instance=user_profile)
         
         if form.is_valid():
             form.save()
@@ -80,8 +80,8 @@ def edit_user_profile(request):
         else:
             messages.warning(request, f'User profile update failed!: {form.errors}')
     else:
-        form = forms.UserProfileForm(instance=user_profile,
-                                     initial={'email': user_profile.user.email})
+        form = profile_forms.UserProfileForm(instance=user_profile,
+                                             initial={'email': user_profile.user.email})
 
     return render(request, 'authentication/edit_user_profile.html',
                   context={'form': form,

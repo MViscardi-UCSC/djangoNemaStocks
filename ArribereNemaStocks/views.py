@@ -14,20 +14,19 @@ from django.conf import settings
 
 from django_tables2 import RequestConfig
 
-from .models import FreezeRequest, ThawRequest, Strain, DefaultBox, Box, Tube, FreezeGroup, OpenStrainEditing
-from .forms import StrainEditForm, AdvancingFreezeRequestForm, StrainForm, InitialThawRequestForm, \
-    AdvancingThawRequestForm, FreezeRequestForm, BulkStrainUploadForm, MiniStrainForm
-from .tables import StrainTable, MiniThawRequestTable, FreezeRequestTable, MiniFreezeGroupTable, ThawRequestTable
+from . import models as nema_models
+from . import forms as nema_forms
+from . import tables as nema_tables
 from .utils import parse_strain_data
 
-from profiles.models import UserProfile, OpenRegistration
+import profiles.models as profile_models
 
 
 # General Navigation:
 def index(request, *args, **kwargs):
-    user_registration = OpenRegistration.objects.first().is_open
+    user_registration = profile_models.OpenRegistration.objects.first().is_open
     registration_string = 'open' if user_registration else 'closed'
-    edit_permissions = OpenStrainEditing.objects.first().edit_ability
+    edit_permissions = nema_models.OpenStrainEditing.objects.first().edit_ability
     edit_permissions_string = 'closed'
     if edit_permissions == 'N':
         edit_permissions_string = 'closed'
@@ -51,7 +50,7 @@ def send_test_mail(request, *args, **kwargs):
 
 # Strain Navigation:
 def strain_assignments(request, *args, **kwargs):
-    user_profiles = UserProfile.objects.all()
+    user_profiles = profile_models.UserProfile.objects.all()
     active_user_profiles = [user_profile for user_profile in user_profiles if user_profile.active_status]
     inactive_user_profiles = [user_profile for user_profile in user_profiles if not user_profile.active_status]
     return render(request, 'strains/strain_assignments.html',
@@ -69,22 +68,22 @@ def strain_list_datatable(request, *args, **kwargs):
     user_profile_initials = request.GET.get('user_profile_initials')
     
     if user_profile_initials:
-        user_profile = UserProfile.objects.get(initials=user_profile_initials)
+        user_profile = profile_models.UserProfile.objects.get(initials=user_profile_initials)
         strains = user_profile.get_all_strains()
     elif user_id:
-        user_profile = UserProfile.objects.get(user__id=user_id)
+        user_profile = profile_models.UserProfile.objects.get(user__id=user_id)
         strains = user_profile.get_all_strains()
     elif search_term:
-        strains = Strain.objects.search(search_term)
+        strains = nema_models.Strain.objects.search(search_term)
     else:
-        strains = Strain.objects.all()
+        strains = nema_models.Strain.objects.all()
     
     # If there is only one result we can redirect to the details page! But we'll add a message first.
     if strains.count() == 1:
         messages.info(request, f'Only one result found for "{search_term}"! Redirected to its details page.')
         return redirect('strain_details', wja=strains.first().wja)
     
-    table = StrainTable(strains)
+    table = nema_tables.StrainTable(strains)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
 
     return render(request, 'strains/strain_list_datatable.html', {'table': table, 'results_count': strains.count()})
@@ -93,10 +92,10 @@ def strain_list_datatable(request, *args, **kwargs):
 def new_strain(request, *args, **kwargs):
     # TODO: Get NEW STRAIN page working, with permission checks
     #       Additional checks for the new strain being unique and in the user's range
-    form = StrainForm(request.POST or None)
+    form = nema_forms.StrainForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         # Let's add some quick checks to make sure the new strain is unique and in the user's range
-        if Strain.objects.filter(wja=form.cleaned_data['wja']).exists():
+        if nema_models.Strain.objects.filter(wja=form.cleaned_data['wja']).exists():
             messages.warning(request, 'This strain already exists! Please check the WJA and try again.')
             return redirect('new_strain')
         if not request.user.userprofile.check_if_wja_int_in_any_ranges(form.cleaned_data['wja']):
@@ -109,12 +108,10 @@ def new_strain(request, *args, **kwargs):
     return render(request, 'strains/new_strain.html', {'form': form})
 
 
-# Things for Bulk Upload of Strains
-
-
+# Things for Bulk Upload
 def bulk_upload_strains(request):
     if request.method == 'POST':
-        form = BulkStrainUploadForm(request.POST)
+        form = nema_forms.BulkStrainUploadForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data['data']
             parsed_strains = parse_strain_data(data)
@@ -124,7 +121,7 @@ def bulk_upload_strains(request):
             request.session['parsed_strains'] = parsed_strains
             return redirect('bulk_confirm_strains')
     else:
-        form = BulkStrainUploadForm()
+        form = nema_forms.BulkStrainUploadForm()
     return render(request, 'strains/bulk_upload_strains.html', {'form': form})
 
 
@@ -133,9 +130,9 @@ def bulk_confirm_strains(request):
     if request.method == 'POST':
         # Reconstruct the formset without specifying 'extra'
         StrainFormSet = modelformset_factory(
-            Strain, form=MiniStrainForm, formset=BaseModelFormSet
+            nema_models.Strain, form=nema_forms.MiniStrainForm, formset=BaseModelFormSet
         )
-        formset = StrainFormSet(request.POST, queryset=Strain.objects.none())
+        formset = StrainFormSet(request.POST, queryset=nema_models.Strain.objects.none())
         if formset.is_valid():
             formset.save()
             request.session.pop('parsed_strains', None)
@@ -147,13 +144,13 @@ def bulk_confirm_strains(request):
         total_forms = len(parsed_strains)
         # Set 'extra' to the number of parsed strains
         StrainFormSet = modelformset_factory(
-            Strain,
-            form=MiniStrainForm,
+            nema_models.Strain,
+            form=nema_forms.MiniStrainForm,
             formset=BaseModelFormSet,
             extra=total_forms
         )
         formset = StrainFormSet(
-            queryset=Strain.objects.none(),
+            queryset=nema_models.Strain.objects.none(),
             initial=parsed_strains
         )
     return render(request, 'strains/bulk_confirm_strains.html', {'formset': formset})
@@ -161,10 +158,10 @@ def bulk_confirm_strains(request):
 
 
 def edit_strain(request, wja, *args, **kwargs):
-    strain = get_object_or_404(Strain, wja=wja)
+    strain = get_object_or_404(nema_models.Strain, wja=wja)
     user = request.user
     
-    open_editing_status = OpenStrainEditing.objects.first().edit_ability
+    open_editing_status = nema_models.OpenStrainEditing.objects.first().edit_ability
     
     # Check if user has permission to edit strains (All users should be given this permission)
     if not user.has_perm('ArribereNemaStocks.change_strain'):
@@ -196,7 +193,7 @@ def edit_strain(request, wja, *args, **kwargs):
         else:
             print("User strain_range check passed.")
     
-    form = StrainEditForm(request.POST or None, instance=strain)
+    form = nema_forms.StrainEditForm(request.POST or None, instance=strain)
     
     if request.method == 'POST':
         if form.is_valid():
@@ -208,15 +205,15 @@ def edit_strain(request, wja, *args, **kwargs):
 
 
 def strain_details(request, wja, *args, **kwargs):
-    strain = get_object_or_404(Strain, wja=wja)
+    strain = get_object_or_404(nema_models.Strain, wja=wja)
 
     active_freeze_groups = [freeze_group for freeze_group in strain.freezegroup_set.all()
                             if freeze_group.active_tubes_count() > 0]
-    tubes_table = MiniFreezeGroupTable(active_freeze_groups)
+    tubes_table = nema_tables.MiniFreezeGroupTable(active_freeze_groups)
     RequestConfig(request, paginate={"per_page": 10}).configure(tubes_table)
 
     recent_thaw_requests = strain.thaw_requests.all().order_by('-date_created')[:3]
-    thaws_table = MiniThawRequestTable(ThawRequest.objects.filter(pk__in=recent_thaw_requests))
+    thaws_table = nema_tables.MiniThawRequestTable(nema_models.ThawRequest.objects.filter(pk__in=recent_thaw_requests))
     RequestConfig(request, paginate={"per_page": 10}).configure(thaws_table)
 
     return render(request, 'strains/strain_details.html', {'strain': strain,
@@ -239,14 +236,14 @@ def thaw_request_form(request, *args, **kwargs):
     formatted_wja = request.GET.get('formatted_wja', None)
     strain_locked = bool(formatted_wja)
     
-    form = InitialThawRequestForm(request.POST or None,
-                                  initial={'strain': formatted_wja,
+    form = nema_forms.InitialThawRequestForm(request.POST or None,
+                                             initial={'strain': formatted_wja,
                                                       'requester': request.user.userprofile},
-                                  strain_locked=strain_locked)
+                                             strain_locked=strain_locked)
 
     if form.is_valid():
         strain_from_form = form.cleaned_data['strain']
-        strain = get_object_or_404(Strain, formatted_wja=strain_from_form.formatted_wja)
+        strain = get_object_or_404(nema_models.Strain, formatted_wja=strain_from_form.formatted_wja)
         if strain.tube_set.filter(thawed=False).count() == 0:
             messages.warning(request, 'This strain has no tubes available to be thawed!')
             return redirect('strain_details', wja=strain_from_form.wja)
@@ -268,16 +265,16 @@ def thaw_request_confirmation(request, form=None, *args, **kwargs):
     else:
         formatted_wja = request.POST.get('strain__formatted_wja', None)
         thaw_request_data = {
-            'strain': get_object_or_404(Strain,
+            'strain': get_object_or_404(nema_models.Strain,
                                         formatted_wja=formatted_wja),
-            'requester': get_object_or_404(UserProfile,
+            'requester': get_object_or_404(profile_models.UserProfile,
                                            initials=request.POST.get('requester',
                                                                      None)),
             'is_urgent': request.POST.get('is_urgent', None),
             'request_comments': request.POST.get('request_comments', None),
         }
     if request.method == 'POST' and 'confirm' in request.POST:
-        thaw_request = ThawRequest.objects.create(**thaw_request_data)
+        thaw_request = nema_models.ThawRequest.objects.create(**thaw_request_data)
         
         messages.success(request,
                          f'New thaw request created successfully! '
@@ -287,7 +284,7 @@ def thaw_request_confirmation(request, form=None, *args, **kwargs):
         def send_email_to_czars():
             recipients_list = []
             cc_list = []
-            strain_czars = UserProfile.objects.filter(is_strain_czar=True)
+            strain_czars = profile_models.UserProfile.objects.filter(is_strain_czar=True)
             for czar in strain_czars:
                 if czar.user.email and czar.active_status:
                     recipients_list.append(czar.user.email)
@@ -321,12 +318,12 @@ def thaw_request_confirmation(request, form=None, *args, **kwargs):
 
 
 def outstanding_thaw_requests(request):
-    thaw_requests = ThawRequest.objects.filter(status__in=['R', 'O'])
-    requesting_users = UserProfile.objects.filter(thaw_requests__in=thaw_requests).distinct()
+    thaw_requests = nema_models.ThawRequest.objects.filter(status__in=['R', 'O'])
+    requesting_users = profile_models.UserProfile.objects.filter(thaw_requests__in=thaw_requests).distinct()
     requesting_users_initials = [user_profile.initials for user_profile in requesting_users]
 
     # Table using django-tables2
-    table = ThawRequestTable(thaw_requests)
+    table = nema_tables.ThawRequestTable(thaw_requests)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
 
     if request.method == 'POST':
@@ -338,9 +335,9 @@ def outstanding_thaw_requests(request):
         if act_targets == "all":
             selected_requests = thaw_requests
         elif act_targets == "selected":
-            selected_requests = ThawRequest.objects.filter(pk__in=selected_requests_pks)
+            selected_requests = nema_models.ThawRequest.objects.filter(pk__in=selected_requests_pks)
         elif act_targets in requesting_users_initials:
-            selected_requests = ThawRequest.objects.filter(requester__initials=act_targets)
+            selected_requests = nema_models.ThawRequest.objects.filter(requester__initials=act_targets)
         else:
             messages.warning(request, f'Invalid action target! You provided {act_targets}.')
             return redirect('outstanding_thaw_requests')
@@ -374,7 +371,7 @@ def thaw_request_change_confirmation(request, thaw_request_ids, action='NoAction
         messages.warning(request, f'Invalid action! You provided {action}.')
         return redirect('outstanding_thaw_requests')
 
-    thaw_requests = ThawRequest.objects.filter(pk__in=thaw_request_ids.split('&'))
+    thaw_requests = nema_models.ThawRequest.objects.filter(pk__in=thaw_request_ids.split('&'))
 
     if request.method == 'POST':
         if action == 'cancel':
@@ -403,10 +400,10 @@ def thaw_request_change_confirmation(request, thaw_request_ids, action='NoAction
 
 
 def ongoing_thaws(request):
-    ongoing_thaws = ThawRequest.objects.filter(status__in=['O'])
+    ongoing_thaws = nema_models.ThawRequest.objects.filter(status__in=['O'])
 
-    AdvThawFormSet = modelformset_factory(ThawRequest,
-                                          form=AdvancingThawRequestForm,
+    AdvThawFormSet = modelformset_factory(nema_models.ThawRequest,
+                                          form=nema_forms.AdvancingThawRequestForm,
                                           extra=0)
     
     if request.method == 'POST':
@@ -441,11 +438,11 @@ def freeze_request_form(request, *args, **kwargs):
     formatted_wja = request.GET.get('formatted_wja', None)
     number_of_tubes = request.GET.get('number_of_tubes', 1)
     strain_locked = bool(formatted_wja)
-    form = FreezeRequestForm(request.POST or None,
-                             initial={'strain': formatted_wja,
+    form = nema_forms.FreezeRequestForm(request.POST or None,
+                                        initial={'strain': formatted_wja,
                                                  'number_of_tubes': number_of_tubes,
                                                  'requester': request.user.userprofile},
-                             strain_locked=strain_locked)
+                                        strain_locked=strain_locked)
     if form.is_valid():
         # Redirect to the confirmation step
         messages.info(request, 'Please confirm the below information is correct.')
@@ -467,9 +464,9 @@ def freeze_request_confirmation(request, form=None, *args, **kwargs):
     else:
         formatted_wja = request.POST.get('strain__formatted_wja', None)
         freeze_request_data = {
-            'strain': get_object_or_404(Strain,
+            'strain': get_object_or_404(nema_models.Strain,
                                         formatted_wja=formatted_wja),
-            'requester': get_object_or_404(UserProfile,
+            'requester': get_object_or_404(profile_models.UserProfile,
                                            initials=request.POST.get('requester',
                                                                      None)),
             'request_comments': request.POST.get('request_comments', None),
@@ -477,7 +474,7 @@ def freeze_request_confirmation(request, form=None, *args, **kwargs):
             'cap_color': request.POST.get('cap_color', None),
         }
     if request.method == 'POST' and 'confirm' in request.POST:
-        freeze_request = FreezeRequest.objects.create(**freeze_request_data)
+        freeze_request = nema_models.FreezeRequest.objects.create(**freeze_request_data)
 
         messages.success(request, f'New freeze request created successfully! '
                                   f'Target: {formatted_wja}; ID: {freeze_request.id:>05d}')
@@ -489,12 +486,12 @@ def freeze_request_confirmation(request, form=None, *args, **kwargs):
 
 
 def outstanding_freeze_requests(request):
-    freeze_requests = FreezeRequest.objects.filter(status__in=['R', 'A'])
-    requesting_users = UserProfile.objects.filter(freeze_requests__in=freeze_requests).distinct()
+    freeze_requests = nema_models.FreezeRequest.objects.filter(status__in=['R', 'A'])
+    requesting_users = profile_models.UserProfile.objects.filter(freeze_requests__in=freeze_requests).distinct()
     requesting_users_initials = [user_profile.initials for user_profile in requesting_users]
 
     # Table using django-tables2
-    table = FreezeRequestTable(freeze_requests)
+    table = nema_tables.FreezeRequestTable(freeze_requests)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
 
     # All the options include:
@@ -510,9 +507,9 @@ def outstanding_freeze_requests(request):
         if act_targets == "all":
             selected_requests = freeze_requests
         elif act_targets == "selected":
-            selected_requests = FreezeRequest.objects.filter(pk__in=selected_requests_pks)
+            selected_requests = nema_models.FreezeRequest.objects.filter(pk__in=selected_requests_pks)
         elif act_targets in requesting_users_initials:
-            selected_requests = FreezeRequest.objects.filter(requester__initials=act_targets)
+            selected_requests = nema_models.FreezeRequest.objects.filter(requester__initials=act_targets)
         else:
             messages.warning(request, f'Invalid action target! You provided {act_targets}.')
             return redirect('outstanding_freeze_requests')
@@ -552,7 +549,7 @@ def freeze_request_change_confirmation(request, freeze_request_ids, action='NoAc
         messages.warning(request, f'Invalid action! You provided {action}.')
         return redirect('outstanding_freeze_requests')
 
-    freeze_requests = FreezeRequest.objects.filter(pk__in=freeze_request_ids.split('&'))
+    freeze_requests = nema_models.FreezeRequest.objects.filter(pk__in=freeze_request_ids.split('&'))
 
     if request.method == 'POST':
         if action == 'cancel':
@@ -580,11 +577,11 @@ def freeze_request_change_confirmation(request, freeze_request_ids, action='NoAc
 
 
 def ongoing_freezes(request):
-    ongoing_freeze_set = FreezeRequest.objects.filter(status='A')
+    ongoing_freeze_set = nema_models.FreezeRequest.objects.filter(status='A')
 
     AdvFreezeFormSet = modelformset_factory(
-        FreezeRequest,
-        form=AdvancingFreezeRequestForm,
+        nema_models.FreezeRequest,
+        form=nema_forms.AdvancingFreezeRequestForm,
         extra=0
     )
 
