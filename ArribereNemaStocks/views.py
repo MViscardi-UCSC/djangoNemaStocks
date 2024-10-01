@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.contrib.auth.decorators import login_required, permission_required
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect, reverse
 from django.contrib import messages
 from django.http import HttpResponse
@@ -127,6 +128,7 @@ def bulk_upload_strains(request):
     return render(request, 'strains/bulk_upload_strains.html', {'form': form})
 
 
+@transaction.atomic
 def bulk_confirm_strains(request):
     if request.method == 'POST':
         # Reconstruct the formset without specifying 'extra'
