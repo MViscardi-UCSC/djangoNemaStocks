@@ -3,7 +3,7 @@ from .models import Strain, Tube, Box, FreezeGroup, ThawRequest, FreezeRequest
 from django.utils.html import format_html
 
 class StrainTable(tables.Table):
-    selected = tables.CheckBoxColumn(accessor='pk', orderable=False)
+    # selected = tables.CheckBoxColumn(accessor='pk', orderable=False)
     formatted_wja = tables.Column(linkify=True, verbose_name='WJA')
     description = tables.Column()
     date_created = tables.Column()
@@ -12,7 +12,13 @@ class StrainTable(tables.Table):
     class Meta:
         model = Strain
         # template_name = 'django_tables2/bootstrap4.html'
-        fields = ('selected', 'formatted_wja', 'genotype', 'date_created', 'phenotype')
+        fields = (
+            # 'selected',
+            'formatted_wja',
+            'genotype',
+            'date_created',
+            'phenotype',
+        )
 
 
 class TubeTable(tables.Table):  # CURRENTLY UNUSED
