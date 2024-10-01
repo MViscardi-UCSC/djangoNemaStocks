@@ -137,7 +137,7 @@ def bulk_confirm_strains(request):
         if formset.is_valid():
             formset.save()
             request.session.pop('parsed_strains', None)
-            return redirect('strain_list')
+            return redirect('strain_list_datatable')
     else:
         parsed_strains = request.session.get('parsed_strains')
         if not parsed_strains:
