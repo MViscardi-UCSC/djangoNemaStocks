@@ -38,7 +38,7 @@
         <a class="navbar-brand" href="/">Arribere Nemastocks</a>
         <div class="collapse navbar-collapse" id="myNavbar">
             <ul class="navbar-nav me-auto mb-6 mb-lg-0">
-            {% if request.path != '/strain_list_datatable' %}
+            {% if request.path != '/strain_list_datatable/' and request.path != '/' %}
                 <li class="nav-item">
                     <form class="col-md-8" method="get" action="{% url 'strain_list_datatable' %}">
                         <div class="input-group mt-3">
