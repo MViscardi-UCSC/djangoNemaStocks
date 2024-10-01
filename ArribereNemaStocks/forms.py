@@ -9,7 +9,11 @@ from django.contrib import messages
 
 import ArribereNemaStocks.models as nema_models
 import profiles.models as profile_models
-from hardcoded import CAP_COLOR_OPTIONS
+from hardcoded import CAP_COLOR_OPTIONS, TUBE_REMAINING_THRESHOLD, EMAIL_ALL_CZARS
+
+from django.core.mail import send_mail, EmailMessage
+from django.template.loader import render_to_string
+from django.conf import settings
 
 
 class StrainForm(forms.ModelForm):
@@ -153,13 +157,108 @@ class AdvancingThawRequestForm(forms.ModelForm):
                 f"({tube.date_created}): {tube.freeze_group.tester_comments}")
     
     def save(self, commit=True):
-        if self.cleaned_data['status'] == 'C':
-            self.instance.tube.thawed = True
-            self.instance.tube.date_thawed = self.cleaned_data['date_completed']
-            self.instance.tube.thawed_by = self.cleaned_data['thawed_by']
-            self.instance.tube.thaw_requester = self.instance.requester
-            self.instance.tube.save()
-        return super().save(commit=commit)
+        with transaction.atomic():
+            instance = super().save(commit=False)
+            # Check if the status is set to 'Completed'
+            if self.cleaned_data['status'] == 'C':
+                # Thaw the tube
+                instance.tube.thawed = True
+                instance.tube.date_thawed = self.cleaned_data['date_completed']
+                instance.tube.thawed_by = self.cleaned_data['thawed_by']
+                instance.tube.thaw_requester = instance.requester
+                instance.tube.save()
+                # Check if only one active tube remains
+                remaining_tubes = instance.tube.strain.active_tubes_count()
+                print(self.cleaned_data,
+                      instance,
+                      self.instance)
+                if remaining_tubes <= TUBE_REMAINING_THRESHOLD:
+                    # Send refreeze email
+                    self.send_refreeze_email(instance)
+                else:
+                    # Send successful thaw email
+                    self.send_successful_thaw_email(instance)
+            if commit:
+                instance.save()
+            return instance
+
+    def prep_thaw_email(self, instance):
+        strain = instance.tube.strain
+        recipient_list = []
+        cc_list = [settings.DEFAULT_FROM_EMAIL]
+
+        # Requester:
+        requesting_user = instance.requester
+        if requesting_user:
+            requesting_user_name = requesting_user.user.first_name.title()
+            requesting_user_email = requesting_user.user.email
+            if requesting_user.active_status and requesting_user_email:
+                recipient_list.append(requesting_user_email)
+        else:
+            requesting_user_name = 'NOT PROVIDED'
+
+        # Thawer:
+        thawing_user = self.cleaned_data['thawed_by']
+        if thawing_user:
+            thawing_user_name = thawing_user.user.first_name.title()
+            thawing_user_email = thawing_user.user.email
+            if thawing_user.active_status and thawing_user_email:
+                cc_list.append(thawing_user_email)
+        else:
+            thawing_user_name = 'NOT PROVIDED'
+
+        # Other recipients:
+        if EMAIL_ALL_CZARS:
+            strain_czars = profile_models.UserProfile.objects.filter(is_strain_czar=True)
+            for czar in strain_czars:
+                if czar.active_status and czar.user.email:
+                    cc_list.append(czar.user.email)
+        print(f"Sending thaw email for {strain.formatted_wja} to {requesting_user_email}")
+
+        # The email:
+        context = {'strain': strain,
+                   'requesting_user_name': requesting_user_name,
+                   'thawing_user_name': thawing_user_name,
+                   'recipient_list': recipient_list,
+                   'cc_list': cc_list}
+        return context
+
+    def send_refreeze_email(self, instance):
+        context = self.prep_thaw_email(instance)
+        strain = context['strain']
+        recipient_list = context['recipient_list']
+        cc_list = context['cc_list']
+        
+        # The email:
+        subject = f"Refreeze Needed for {strain.formatted_wja}"
+        message = render_to_string('emails/refreeze_request.txt', context)
+        email = EmailMessage(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list,
+                             cc=cc_list)
+        email_result = email.send()
+        if email_result == 0:
+            print(f"Email failed to send to {recipient_list} (cc: {cc_list}) "
+                  f"for refreeze of {strain.formatted_wja}.")
+        else:
+            print(f"Email sent to {recipient_list} (cc: {cc_list}) "
+                  f"for refreeze of {strain.formatted_wja}.")
+
+    def send_successful_thaw_email(self, instance):
+        context = self.prep_thaw_email(instance)
+        strain = context['strain']
+        recipient_list = context['recipient_list']
+        cc_list = context['cc_list']
+        
+        subject = f"Thaw Completed for {strain.formatted_wja}"
+        message = render_to_string('emails/successful_thaw.txt', context)
+        email = EmailMessage(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list,
+                             cc=cc_list)
+        email_result = email.send()
+        if email_result == 0:
+            print(f"Email failed to send to {recipient_list} (cc: {cc_list}) "
+                  f"for thaw success of {strain.formatted_wja}.")
+        else:
+            print(f"Email sent to {recipient_list} (cc: {cc_list}) "
+                  f"for thaw success of {strain.formatted_wja}.")
 
 
 class FreezeRequestForm(forms.ModelForm):
@@ -429,7 +528,99 @@ class AdvancingFreezeRequestForm(forms.ModelForm):
 
             # Update any additional fields on the instance that are not handled by the form
             # For example, if you have fields that are not in the form but need to be updated
-
+            
+            # EMAILS!
+            if status == 'C':
+                self.send_successful_freeze_email(instance)
+            elif status in ['F', 'X']:
+                self.send_failed_or_canceled_freeze_email(instance)
+                
             if commit:
                 instance.save()
             return instance
+        
+    def prep_freeze_email(self, instance):
+        strain = instance.strain
+        recipient_list = []
+        cc_list = [settings.DEFAULT_FROM_EMAIL]
+
+        # Freezer:
+        freezing_user = self.cleaned_data.get('freezer')
+        if freezing_user:
+            freezing_user_name = freezing_user.user.first_name.title()
+            freezing_user_email = freezing_user.user.email
+            if freezing_user_email and freezing_user.active_status:
+                recipient_list.append(freezing_user_email)
+        else:
+            freezing_user_name = 'NOT PROVIDED'
+
+        # Tester:
+        testing_user = self.cleaned_data.get('tester')
+        if testing_user:
+            testing_user_name = testing_user.user.first_name.title()
+            testing_user_email = testing_user.user.email
+            if testing_user_email and testing_user.active_status:
+                cc_list.append(testing_user_email)
+        else:
+            testing_user_name = 'NOT PROVIDED'
+
+        # Other recipients:
+        if EMAIL_ALL_CZARS:
+            strain_czars = profile_models.UserProfile.objects.filter(is_strain_czar=True)
+            for czar in strain_czars:
+                if czar.active_status and czar.user.email:
+                    cc_list.append(czar.user.email)
+
+        # The email:
+        context = {'strain': strain,
+                   'freezing_user_name': freezing_user_name,
+                   'testing_user_name': testing_user_name,
+                   'recipient_list': recipient_list,
+                   'tester_comments': self.cleaned_data.get('tester_comments'),
+                   'cc_list': cc_list}
+        return context
+    
+    def send_successful_freeze_email(self, instance):
+        context = self.prep_freeze_email(instance)
+        strain = context['strain']
+        recipient_list = context['recipient_list']
+        cc_list = context['cc_list']
+        
+        subject = f"Freeze Completed for {strain.formatted_wja}"
+        message = render_to_string('emails/successful_freeze.txt', context)
+        email = EmailMessage(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list,
+                             cc=cc_list)
+        email_result = email.send()
+        if email_result == 0:
+            print(f"Email failed to send to {recipient_list} (cc: {cc_list}) "
+                  f"for freeze success of {strain.formatted_wja}.")
+        else:
+            print(f"Email sent to {recipient_list} (cc: {cc_list}) "
+                  f"for freeze success of {strain.formatted_wja}.")
+    
+    def send_failed_or_canceled_freeze_email(self, instance):
+        context = self.prep_freeze_email(instance)
+        strain = context['strain']
+        recipient_list = context['recipient_list']
+        cc_list = context['cc_list']
+
+        if instance.status == 'F':
+            context['failed_or_cancelled'] = 'Failed'
+            message = render_to_string('emails/failed_freeze.txt', context)
+        elif instance.status == 'X':
+            context['failed_or_cancelled'] = 'Cancelled'
+            message = render_to_string('emails/canceled_freeze.txt', context)
+        else:
+            raise ValueError(f"Invalid status for failed/canceled freeze email: {instance.status}")
+        
+        subject = f"Freeze {context['failed_or_cancelled']} for {strain.formatted_wja}"
+        email = EmailMessage(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list,
+                             cc=cc_list)
+        email_result = email.send()
+        if email_result == 0:
+            print(f"Email failed to send to {recipient_list} (cc: {cc_list}) "
+                  f"for failed/canceled freeze of {strain.formatted_wja}.")
+        else:
+            print(f"Email sent to {recipient_list} (cc: {cc_list}) "
+                  f"for failed/canceled freeze of {strain.formatted_wja}.")
+        

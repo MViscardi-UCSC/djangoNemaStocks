@@ -1,0 +1,9 @@
+Dear {{requesting_user_name}},
+
+Your requested thaw of {{ strain.formatted_wja }} has been completed by {{ thawing_user_name }}.
+
+Please note, the strain will require a refreeze as it's down to {{ strain.active_tubes_count }} tubes.
+Please refreeze this strain to maintain stock levels.
+
+Thank you,
+NemaStocks Automated Notification

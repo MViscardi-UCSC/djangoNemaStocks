@@ -1,0 +1,9 @@
+Dear {{freezer_user_name}},
+
+Your requested freeze of {{ strain.formatted_wja }} has been canceled.
+
+There may or may not have been comments relevant to this cancellation, if there are, they will be below:
+    {{ tester_comments }} - {{ testing_user_name }}
+
+Thank you,
+NemaStocks Automated Notification

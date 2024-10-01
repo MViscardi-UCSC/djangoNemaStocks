@@ -1,0 +1,9 @@
+Dear {{freezer_user_name}},
+
+Your requested freeze of {{ strain.formatted_wja }} has failed after being tested by {{ testing_user_name }}.
+
+Please review the tester's comments below and reattempt the freeze:
+    {{ tester_comments }}
+
+Thank you,
+NemaStocks Automated Notification
