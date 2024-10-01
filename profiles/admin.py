@@ -114,42 +114,42 @@ class UserAdmin(SimpleHistoryAdmin, DefaultUserAdmin):
     
     @admin.action(description="Give selected users request permissions")
     def give_request_permissions(self, request, queryset):
-        group = Group.objects.get(name='requesters')
+        group = Group.objects.get(name='Requesters')
         for user in queryset:
             user.groups.add(group)
         messages.success(request, f"Gave selected users request permissions {request.user}")
     
     @admin.action(description="Remove selected users request permissions")
     def remove_request_permissions(self, request, queryset):
-        group = Group.objects.get(name='requesters')
+        group = Group.objects.get(name='Requesters')
         for user in queryset:
             user.groups.remove(group)
         messages.success(request, f"Removed selected users request permissions {request.user}")
     
     @admin.action(description="Give selected users editing permissions")
     def give_editing_permissions(self, request, queryset):
-        group = Group.objects.get(name='editors')
+        group = Group.objects.get(name='Editors')
         for user in queryset:
             user.groups.add(group)
         messages.success(request, f"Gave selected users editing permissions {request.user}")
     
     @admin.action(description="Remove selected users editing permissions")
     def remove_editing_permissions(self, request, queryset):
-        group = Group.objects.get(name='editors')
+        group = Group.objects.get(name='Editors')
         for user in queryset:
             user.groups.remove(group)
         messages.success(request, f"Removed selected users editing permissions {request.user}")
     
     @admin.action(description="Give selected users viewing permissions")
     def give_viewing_permissions(self, request, queryset):
-        group = Group.objects.get(name='viewers')
+        group = Group.objects.get(name='Viewers')
         for user in queryset:
             user.groups.add(group)
         messages.success(request, f"Gave selected users viewing permissions {request.user}")
     
     @admin.action(description="Remove selected users viewing permissions")
     def remove_viewing_permissions(self, request, queryset):
-        group = Group.objects.get(name='viewers')
+        group = Group.objects.get(name='Viewers')
         for user in queryset:
             user.groups.remove(group)
         messages.success(request, f"Removed selected users viewing permissions {request.user}")
