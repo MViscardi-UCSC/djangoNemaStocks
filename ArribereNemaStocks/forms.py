@@ -11,7 +11,7 @@ import ArribereNemaStocks.models as nema_models
 import profiles.models as profile_models
 from hardcoded import CAP_COLOR_OPTIONS, TUBE_REMAINING_THRESHOLD, EMAIL_ALL_CZARS
 
-from django.core.mail import send_mail, EmailMessage
+from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 
