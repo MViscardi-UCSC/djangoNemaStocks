@@ -312,8 +312,6 @@ def thaw_request_confirmation(request, form=None, *args, **kwargs):
                 'is_urgent': thaw_request.is_urgent,
                 'request_comments': thaw_request.request_comments,
             }
-            # TODO: The subject could be changed to not include any information,
-            #       this would make all requests into one email chain!
             if thaw_request.is_urgent == "True":
                 subject = (f"New URGENT Thaw Request by {thaw_requester.initials}: "
                            f"{thaw_request.strain.formatted_wja} (ID#{thaw_request.id:0>6d})")
