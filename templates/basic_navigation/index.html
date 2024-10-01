@@ -84,19 +84,6 @@
                             {% endif %}
                         </div>
                     </li>
-                    {% if user.is_authenticated %}
-                        <li class="mt-1">
-                            <a class="nav-link" href="/user_page">
-                                {% bs_icon 'person' %} User Page
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="mt-1">
-                            <a class="nav-link" href="/login">
-                                {% bs_icon 'person-exclamation' %} Login Page
-                            </a>
-                        </li>
-                    {% endif %}
                     {% if user.is_staff %}
                         <li class="mt-1">
                             <a class="nav-link" href="/admin">
