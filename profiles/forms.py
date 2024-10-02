@@ -60,6 +60,7 @@ class RegistrationForm(UserCreationForm):
     role = forms.ChoiceField(choices=UserProfileForm.ROLE_CHOICES, widget=forms.RadioSelect)
     initials = forms.CharField(max_length=3)
     active_status = forms.BooleanField(required=False)
+    is_strain_czar = forms.BooleanField(required=False)
     
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
@@ -69,7 +70,7 @@ class RegistrationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('username', 'email', 'password1', 'password2', 'first_name', 'last_name',
-                  'role', 'initials', 'active_status')
+                  'role', 'initials', 'active_status', 'is_strain_czar')
         
     def clean_initials(self):
         initials = self.cleaned_data.get('initials')
@@ -87,7 +88,8 @@ class RegistrationForm(UserCreationForm):
                     user=user,
                     role=self.cleaned_data['role'],
                     initials=self.cleaned_data['initials'],
-                    active_status=self.cleaned_data['active_status']
+                    active_status=self.cleaned_data['active_status'],
+                    is_strain_czar=self.cleaned_data['is_strain_czar'],
                 )
                 profile.save()
             return user
