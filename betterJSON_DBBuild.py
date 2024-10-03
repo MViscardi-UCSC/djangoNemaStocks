@@ -159,11 +159,13 @@ def assert_no_duplicates(lst):
 
 
 class SimpleStrain:
-    def __init__(self, wja: int, genotype: str, phenotype: str, date_created: date, additional_comments: str,
+    def __init__(self, wja: int, genotype: str, phenotype: str, source: str, date_created: date,
+                 additional_comments: str,
                  build_dict=None):
         self.wja = wja
         self.genotype = genotype
         self.phenotype = phenotype
+        self.source = source
         self.date_created = date_created
         self.additional_comments = additional_comments
         self.build_dict = build_dict
@@ -172,6 +174,7 @@ class SimpleStrain:
         return {'wja': self.wja,
                 'genotype': self.genotype,
                 'phenotype': self.phenotype,
+                'source': self.source,
                 'date_created': self.date_created,
                 'formatted_wja': f"WJA{self.wja:04d}",
                 'additional_comments': self.additional_comments,
@@ -181,6 +184,7 @@ class SimpleStrain:
         return nema_models.Strain(wja=self.wja,
                                   genotype=self.genotype,
                                   phenotype=self.phenotype,
+                                  source=self.source,
                                   date_created=self.date_created,
                                   additional_comments=self.additional_comments,
                                   )
@@ -436,6 +440,7 @@ class OldStrainEntry:
                             genotype=self.description,
                             phenotype=self.phenotype,
                             date_created=self.creation_date,
+                            source=self.received_from_date,
                             additional_comments=self.get_non_freeze_comments(),
                             build_dict=build_dict,
                             )
@@ -521,7 +526,7 @@ class OldStrainEntry:
                 parse_date(date_thaw, return_datetime_object=True)
             except ValueError:
                 non_freeze_comments.append(comment)
-        non_freeze_comments.append(self.received_from_date)
+        # non_freeze_comments.append(self.received_from_date)
         non_freeze_comments = ' | '.join(non_freeze_comments)
         return non_freeze_comments
 

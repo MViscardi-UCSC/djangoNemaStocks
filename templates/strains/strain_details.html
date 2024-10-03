@@ -19,7 +19,8 @@
         <div>
             <p><strong>Genotype: </strong>{{ strain.genotype }}</p>
             <p><strong>Phenotype: </strong>{{ strain.phenotype }}</p>
-            <p><strong>Creator</strong> (based on strain ranges): {{ strain.get_owner_from_ranges }}</p>
+            <p><strong>Source: </strong>{{ strain.source }}</p>
+            <p><strong>Owner</strong> (based on strain ranges): {{ strain.get_owner_from_ranges }}</p>
             <p><strong>Date Created: </strong>{{ strain.date_created }}</p>
             <p><strong>Description: </strong>{{ strain.description }}</p>
             <p><strong>Additional Comments: </strong>{{ strain.additional_comments }}</p>

@@ -41,13 +41,15 @@ ROLE_CHOICES = [
     ('u', 'Undergraduate'),
 ]
 
+# This is really only used for the intial building of the database,
+# if you need to add to a user's strains you can do that via the admin interface of the site!
 USER_INITIALS_DICT = {
     'AC': ("Annie", "Courney", ((4012, 4100),)),
     'AP': ("Audrey", "Piatt", ((7000, 7030),)),
     'BH': ("Benjamin", "Haag", ((-1, -1),)),
     'CD': ("Christian", "Dunn", ((6101, 6200),)),
     'CN': ("Celine", "N", ((-1, -1),)),
-    'CW': ("Chloe", "Wohlenberg", ((3101, 3200),)),
+    'CW': ("Chloe", "Wohlenberg", ((3101, 3300),)),
     'DD': ("Dori", "D", ((5101, 5104),)),
     'ES': ("Enisha", "Sehgal", ((7101, 7200),)),
     'EV': ("Evan", "Soukup", ((7031, 7100), )),
@@ -80,7 +82,7 @@ USER_INITIALS_DICT = {
     'NB': ("Needhi", "Bhalla (Lab)", ((-1, -1),)),
     'JW': ("Jordan", "Ward (Lab)", ((-1, -1),)),
     'AZ': ("Al", "Zahler (Lab)", ((-1, -1),)),
-    
+    'LT': ("Liam", "Tran", ((-1, -1),)),
     'RT': ("Roton", "Arribere Lab", ((-1, -1),)),
     
     'XXX': ("unknown_XXX", "unknown_XXX", ((-1, -1),)),

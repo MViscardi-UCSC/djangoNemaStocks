@@ -19,13 +19,14 @@ from django.conf import settings
 class StrainForm(forms.ModelForm):
     class Meta:
         model = nema_models.Strain
-        fields = ['wja', 'genotype', 'phenotype', 'description', 'additional_comments']
+        fields = ['wja', 'genotype', 'phenotype', 'source', 'description', 'additional_comments']
         help_texts = {
             'wja': 'Please enter the strain in this format: WJA0002 or just the number. '
                    'Aim to only add strains in your strain ranges! '
                    '(We can add a check for this like we do for editing strains if wanted - Marcus)',
             'genotype': 'Please enter a genotype in the following format: "gene1(allele1#)chr1"',
             'phenotype': 'Please enter the phenotype of the strain, for example: "slow growth, pvl"',
+            'source': 'Please enter the source of the strain, for example: "Fire Lab" or "CGC (strain VC4385)"',
             'description': 'Please provide any additional information about the strain, '
                            'such as how the strain was constructed.',
             'additional_comments': 'Please enter any additional comments about the strain that don\'t fit '
@@ -44,11 +45,12 @@ class StrainForm(forms.ModelForm):
 class MiniStrainForm(forms.ModelForm):
     class Meta:
         model = nema_models.Strain
-        fields = ['wja', 'genotype', 'phenotype', 'description', 'additional_comments']
+        fields = ['wja', 'genotype', 'phenotype', 'source', 'description', 'additional_comments']
         help_texts = {
             'wja': 'W/ or W/O WJA prefix',
             'genotype': 'Use the following format: "gene1(allele1#)chr1"',
             'phenotype': 'Enter known phenotype(s), e.g. "slow growth, pvl"',
+            'source': 'For example: "Fire Lab" or "CGC (strain VC4385)"',
             'description': 'Please provide any additional information about the strain, '
                            'such as how the strain was constructed.',
             'additional_comments': 'Please enter any additional comments about the strain that don\'t fit '
@@ -70,6 +72,7 @@ class BulkStrainUploadForm(forms.Form):
                                                             '<strong>WJA'
                                                             '&nbsp; genotype'
                                                             '&nbsp; phenotype'
+                                                            '&nbsp; source'
                                                             '&nbsp; description'
                                                             '&nbsp; additional comments</strong>'
                                                             '<br>If you provide more than 5 columns they\'ll '
@@ -79,7 +82,7 @@ class BulkStrainUploadForm(forms.Form):
 class StrainEditForm(forms.ModelForm):
     class Meta:
         model = nema_models.Strain
-        fields = ['genotype', 'phenotype', 'description',  'additional_comments']
+        fields = ['genotype', 'phenotype', 'source', 'description',  'additional_comments']
         labels = {
             'wja': 'This is not working',
         }
@@ -88,6 +91,7 @@ class StrainEditForm(forms.ModelForm):
                    'Aim to only add strains in your strain ranges! '
                    '(We can add a check for this, like we do for editing strains if wanted - Marcus)',
             'genotype': 'Please enter a genotype in the following format: "gene1(allele1#)chr1"',
+            'source': 'Please enter the source of the strain, for example: "Fire Lab" or "CGC (strain VC4385)"',
             'description': 'Please provide any additional information about the strain, '
                            'such as how the strain was constructed.',
             'phenotype': 'Please enter the phenotype of the strain, for example: "slow growth, pvl"',

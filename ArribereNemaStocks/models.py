@@ -45,6 +45,7 @@ class Strain(models.Model):
     phenotype = models.TextField(null=True, blank=True, editable=True)
     description = models.TextField(null=True, blank=True, editable=True)
     formatted_wja = models.CharField(max_length=8, editable=False)
+    source = models.CharField(max_length=255, null=True, blank=True, editable=True)
     additional_comments = models.TextField(null=True, blank=True, editable=True)
     history = HistoricalRecords()
     
