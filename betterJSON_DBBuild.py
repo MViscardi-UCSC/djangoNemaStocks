@@ -1265,7 +1265,6 @@ def thaw_used_tubes(_old_strain_entries: List[OldStrainEntry], reset_all=False):
         old_strain.parse_thaws()
 
 
-@transaction.atomic
 def create_groups(delete_old=True):
     if delete_old:
         Group.objects.all().delete()
@@ -1306,6 +1305,14 @@ def create_groups(delete_old=True):
                     group.permissions.add(permission)
                 except Permission.DoesNotExist:
                     ic(f"Permission {codename} not found for model {model._meta.model_name}")
+    
+    # Let's just add all users to these groups:
+    all_users = profile_models.UserProfile.objects.all()
+    for user in all_users:
+        user.user.groups.add(requesters_group)
+        user.user.groups.add(editors_group)
+        user.user.groups.add(viewers_group)
+        user.user.groups.add(add_strains_group)
     ic('Successfully created groups and assigned permissions.')
 
 
