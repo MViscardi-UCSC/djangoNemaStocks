@@ -1330,10 +1330,10 @@ if __name__ == '__main__':
 
     # Each of the following steps should be skip-able for databases that are already built:
 
-    create_groups()
-    
     create_users(USER_INITIALS_DICT,
                  delete_old=True)
+
+    create_groups()
 
     create_boxes(delete_old=True)
 
