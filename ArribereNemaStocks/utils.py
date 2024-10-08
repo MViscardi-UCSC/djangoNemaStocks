@@ -15,7 +15,7 @@ def parse_strain_data(data, separator='\t'):
         # Handle missing fields
         fields += [''] * (6 - len(fields))
         # Wrap extra fields into the last field
-        fields[-1] = separator.join(fields[5:])
+        fields[-1] = separator.join(fields[6:])
         # print(f"Fields:\n\n{fields}")
         wja_str, genotype, phenotype, source, description, additional_comments = fields
         # Convert wja to integer, removing 'WJA' prefix and leading zeros
