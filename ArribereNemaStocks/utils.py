@@ -11,9 +11,11 @@ def parse_strain_data(data, separator='\t'):
     lines = data.strip().split('\n')
     for line in lines:
         # print(f"Line:\n\n{line}")
-        fields = line.strip().split(separator, 4)  # 5 splits makes 6 fields?
+        fields = line.strip().split(separator, 5)  # 5 splits makes 6 fields?
         # Handle missing fields
         fields += [''] * (6 - len(fields))
+        # Wrap extra fields into the last field
+        fields[-1] = separator.join(fields[5:])
         # print(f"Fields:\n\n{fields}")
         wja_str, genotype, phenotype, source, description, additional_comments = fields
         # Convert wja to integer, removing 'WJA' prefix and leading zeros
