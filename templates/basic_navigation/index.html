@@ -86,6 +86,11 @@
                     </li>
                     {% if user.is_staff %}
                         <li class="mt-1">
+                            <a class="nav-link" href="/scary_stuff/">
+                                {% bs_icon 'explicit-fill' %} Scary Stuff (this is a slow page) 
+                            </a>
+                        </li>
+                        <li class="mt-1">
                             <a class="nav-link" href="/admin">
                                 {% bs_icon 'tools' %} <i>Admin Site Link</i>
                             </a>

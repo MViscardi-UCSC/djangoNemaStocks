@@ -1,0 +1,27 @@
+{% extends 'pieces/base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Scary Stuff - NemaStocks{% endblock %}
+
+{% block content %}
+    <h1>Scary Stuff</h1>
+    <h2>Strains without ANY frozen tubes</h2>
+    <div class="row">
+        {% for strain in strains_without_freezes %}
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <a href="{% url 'strain_details' wja=strain.wja %}">{{ strain.formatted_wja }}</a>
+                has no frozen tubes!
+            </div>
+        {% endfor %}
+    </div>
+    <br><br>
+    <h2>Strains with a refreeze request but no newer freezes</h2>
+    <div class="row">
+        {% for strain in strains_with_fails %}
+            <div class="col-lg-3 col-md-6 col-sm-12">
+                <a href="{% url 'strain_details' wja=strain.wja %}">{{ strain.formatted_wja }}</a>
+                has a refreeze request but no newer freezes!
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

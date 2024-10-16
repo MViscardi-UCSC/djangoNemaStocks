@@ -114,6 +114,9 @@ class Strain(models.Model):
                 return strain_range.user_profile
         return None
 
+    def latest_freeze_group(self):
+        return self.freeze_groups.latest('date_created')
+
 
 class Tube(models.Model):
     cap_color = models.CharField(max_length=50, choices=CAP_COLOR_OPTIONS, default='unknown')
@@ -249,7 +252,8 @@ class DefaultBox(models.Model):
 class FreezeGroup(models.Model):
     date_created = models.DateField(default=timezone.now, editable=True)
     date_stored = models.DateField(null=True)
-    strain = models.ForeignKey('Strain', on_delete=models.CASCADE)
+    strain = models.ForeignKey('Strain', on_delete=models.CASCADE,
+                               related_name='freeze_groups')
     freezer = models.ForeignKey('profiles.UserProfile', on_delete=models.CASCADE,
                                 related_name='freeze_groups',
                                 null=True, blank=True)
@@ -264,7 +268,7 @@ class FreezeGroup(models.Model):
     test_check_date = models.DateField(null=True)
     stored = models.BooleanField(default=False)
     
-    freeze_request = models.OneToOneField('FreezeRequest', on_delete=models.CASCADE, null=True)
+    freeze_request = models.OneToOneField('FreezeRequest', on_delete=models.CASCADE, null=True, blank=True)
     
     history = HistoricalRecords()
 
@@ -431,3 +435,44 @@ class FreezeRequest(models.Model):
 
     def __str__(self):
         return self.__repr__()
+    
+    def strain_recently_failed_freeze(self, days=365):
+        failed_freezes = FreezeGroup.objects.filter(
+            strain=self.strain,
+            passed_test=False,
+            date_created__gte=timezone.now() - timezone.timedelta(days=days),
+        )
+        successful_freezes = FreezeGroup.objects.filter(
+            strain=self.strain,
+            passed_test=True,
+            date_created__gte=timezone.now() - timezone.timedelta(days=days),
+        )
+        # Now we need to return True if:
+        #  1. There was >=1 fail and no successes
+        #  2. The most recent fail was more recent than the most recent success
+        if failed_freezes.count() > 0 and successful_freezes.count() == 0:
+            print(f'The strain targeted by FreezeRequest({self.id}) [{self.strain.formatted_wja}] '
+                  f'has recently failed a freeze request.')
+            return True
+        elif failed_freezes.count() > 0 and successful_freezes.count() > 0:
+            latest_fail = failed_freezes.latest('date_created')
+            latest_success = successful_freezes.latest('date_created')
+            if latest_fail.date_created > latest_success.date_created:
+                print(f'The strain targeted by FreezeRequest({self.id}) [{self.strain.formatted_wja}] '
+                      f'was recently attempted to be frozen but it failed. '
+                      f'There is a successful freeze request but that was '
+                      f'before the failed attempt.')
+                return True
+            else:
+                print(f'The strain targeted by FreezeRequest({self.id}) [{self.strain.formatted_wja}] '
+                      f'was recently attempted to be frozen but it failed. '
+                      f'There is a successful freeze request and that was '
+                      f'more recent than the failed attempt.')
+                return False
+        else:
+            print(f"The strain targeted by FreezeRequest({self.id}) [{self.strain.formatted_wja}] "
+                  f"has not been the target of any recent freeze requests that have failed.")
+            return False
+    
+    def is_a_refreeze(self):
+        return self.strain_recently_failed_freeze()

@@ -207,7 +207,7 @@ def edit_strain(request, wja, *args, **kwargs):
 def strain_details(request, wja, *args, **kwargs):
     strain = get_object_or_404(nema_models.Strain, wja=wja)
 
-    active_freeze_groups = [freeze_group for freeze_group in strain.freezegroup_set.all()
+    active_freeze_groups = [freeze_group for freeze_group in strain.freeze_groups.all()
                             if freeze_group.active_tubes_count() > 0]
     tubes_table = nema_tables.MiniFreezeGroupTable(active_freeze_groups)
     RequestConfig(request, paginate={"per_page": 10}).configure(tubes_table)
@@ -630,4 +630,60 @@ def ongoing_freezes(request):
         'formset': formset,
         'ongoing_freezes': ongoing_freeze_set,
     })
+
+
+# Test things:
+# I want to collect all the strains that have their most recent freezeRequests as failures:
+def failed_freeze_strains_page(request):
+    failed_freeze_strains = nema_models.Strain.objects.filter(freeze_groups__passed_test=False).distinct()
+    strains_with_most_recent_failures = []
+    for strain in failed_freeze_strains:
+        most_recent_freeze = strain.freeze_groups.order_by('-date_created').first()
+        if most_recent_freeze.passed_test:
+            continue
+        strains_with_most_recent_failures.append(most_recent_freeze.strain)
+    return render(request, 'strains/failed_freeze_strains.html',
+                  {'strains_with_fails': strains_with_most_recent_failures})
+
+
+@transaction.atomic
+def func_tester_page(request):
+    context = {}
+    strains_with_refreeze_in_their_freeze_groups = []
+    all_freeze_groups = nema_models.FreezeGroup.objects.all()
+    for freeze_group in all_freeze_groups:
+        if not bool(freeze_group.tester_comments):
+            continue  # No comment, continuing avoids the NoneType error below
+        refreeze_checks = ['refreeze' in freeze_group.tester_comments.lower(),
+                           're-freeze' in freeze_group.tester_comments.lower(),
+                           're freeze' in freeze_group.tester_comments.lower()]
+        if any(refreeze_checks):
+            strains_with_refreeze_in_their_freeze_groups.append(f"<br>{freeze_group.strain.formatted_wja} "
+                                                                f"{freeze_group.tester_comments} - "
+                                                                f"{freeze_group.tester}")
+            print(f"Strain {freeze_group.strain} comments: {freeze_group.tester_comments}.")
+            freeze_group.passed_test = False
+            freeze_group.save()
+    context['strains_with_refreeze_in_their_freeze_groups'] = strains_with_refreeze_in_their_freeze_groups
+    return render(request, 'pieces/func_tester_page.html',
+                  {'context': context})
+
+
+def scary_stuff(request):
+    failed_freeze_strains = nema_models.Strain.objects.filter(freeze_groups__passed_test=False).distinct()
+    strains_with_most_recent_failures = []
+    for strain in failed_freeze_strains:
+        most_recent_freeze = strain.freeze_groups.order_by('-date_created').first()
+        if most_recent_freeze.passed_test:
+            continue
+        strains_with_most_recent_failures.append(most_recent_freeze.strain)
+    print(f"Finished collecting strains with failed freeze groups, there are {len(strains_with_most_recent_failures)}.")
+    
+    strains_without_freezes = nema_models.Strain.objects.exclude(freeze_groups__isnull=False)
+    print(f"Finished collecting strains without freeze groups, there are {len(strains_without_freezes)}.")
+    return render(request, 'basic_navigation/scary_stuff.html',
+                    {'strains_with_fails': strains_with_most_recent_failures,
+                     'strains_without_freezes': strains_without_freezes})
+    
+    
 

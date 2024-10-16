@@ -1,0 +1,18 @@
+{% extends 'pieces/base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+    {% if strains_with_fails %}
+        {% for strain in strains_with_fails %}
+            <p>
+                <a href="{% url 'strain_details' wja=strain.wja %}">{{ strain.formatted_wja }}</a>
+                has failed its most recent freeze! It has {{ strain.active_tubes_count }} active tubes.
+                The latest freeze was on {{ strain.latest_freeze_group.date_stored }} 
+                ({{ strain.latest_freeze_group.date_stored|timesince }} ago).
+            </p>
+        {% endfor %}
+    {% else %}
+        <p>No Strains have failed their most recent freeze!</p>
+    {% endif %}
+{% endblock %}
+

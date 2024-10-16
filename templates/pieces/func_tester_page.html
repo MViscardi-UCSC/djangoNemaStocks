@@ -1,0 +1,12 @@
+{% extends 'pieces/base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+    {% if context %}
+        {% for key, value in context.items %}
+            <p>{{ key|safe }}: {{ value|safe }}</p>
+        {% endfor %}
+    {% else %}
+        <p>No context passed!</p>
+    {% endif %}
+{% endblock %}

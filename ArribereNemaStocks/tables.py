@@ -73,12 +73,13 @@ class FreezeRequestTable(tables.Table):
     number_of_tubes = tables.Column()
     cap_color = tables.Column()
     status = tables.Column()
+    is_a_refreeze = tables.Column(accessor='is_a_refreeze', verbose_name='Is Refreeze?')
     
     class Meta:
         model = FreezeRequest
         # template_name = 'django_tables2/bootstrap4.html'
         fields = ('selected', 'date_created', 'requester', 'strain',
-                  'number_of_tubes', 'cap_color', 'status')
+                  'number_of_tubes', 'cap_color', 'status', 'is_a_refreeze')
 
 class ThawRequestTable(tables.Table):
     selected = tables.CheckBoxColumn(accessor='pk', orderable=False)

@@ -343,7 +343,7 @@ class FreezeGroupForm(forms.ModelForm):
 
 class AdvancingFreezeRequestForm(forms.ModelForm):
     # Constants and field definitions
-    FULL_BOX_WIGGLE_ROOM = 11  # 81 spaces per box, but we won't show boxes that are within this many tubes of full
+    FULL_BOX_WIGGLE_ROOM = 4  # 81 spaces per box, but we won't show boxes that are within this many tubes of full
 
     box1 = forms.ModelChoiceField(
         queryset=nema_models.Box.objects.annotate(
@@ -531,9 +531,8 @@ class AdvancingFreezeRequestForm(forms.ModelForm):
                                     nema_models.DefaultBox.objects.create(box=box)
                     instance.freeze_group = freeze_group
                     instance.date_advanced = timezone.now().date()
-
-            # Update any additional fields on the instance that are not handled by the form
-            # For example, if you have fields that are not in the form but need to be updated
+                else:
+                    raise ValueError("FreezeRequest already has an associated FreezeGroup! This shouldn't happen... ?")
             
             # EMAILS!
             if status == 'C':
