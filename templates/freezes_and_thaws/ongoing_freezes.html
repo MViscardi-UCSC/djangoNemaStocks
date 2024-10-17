@@ -38,6 +38,7 @@
                         <td rowspan="2">
                             {{ freeze_request.id }}
                             {{ form.id }}
+                            {{ freeze_request.strain.formatted_wja }}
                         </td>
                         <td>
                             {% bootstrap_field form.box1 layout='floating' show_help=False %}
