@@ -37,7 +37,9 @@
                     <tr class="{% if forloop.counter|divisibleby:2 %}table-secondary table-bordered{% else %}{% endif %}">
                         <td rowspan="2">
                             {{ freeze_request.id }}
+                            <br>
                             {{ form.id }}
+                            <br>
                             {{ freeze_request.strain.formatted_wja }}
                         </td>
                         <td>
