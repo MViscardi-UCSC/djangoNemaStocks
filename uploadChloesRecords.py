@@ -117,12 +117,12 @@ def make_freezes(freeze_df: pd.DataFrame, force_run: bool = False):
                 ic("STRAIN NOT FOUND, SKIPPING", wja_num)
                 continue
             else:
-                raise ValueError(f"Strain not found for WJA: {row['WJA']}")
+                raise ValueError(f"Strain not found for WJA: {wja_num}")
         # ic(strain)
 
         assert user_froze, f"User not found for initials: {row['Who froze']}"
         assert tester, f"User not found for initials: CW"
-        assert strain, f"Strain not found for WJA: {row['WJA']}"
+        assert strain, f"Strain not found for WJA: {wja_num}"
 
         freeze_group = nema_models.FreezeGroup(
             date_created=parser.parse(row['Date frozen']),
@@ -182,7 +182,7 @@ def make_thaws(thaw_df: pd.DataFrame, force_run: bool = False):
                 ic("STRAIN NOT FOUND, SKIPPING", wja_num)
                 continue
             else:
-                raise ValueError(f"Strain not found for WJA: {row['WJA']}")
+                raise ValueError(f"Strain not found for WJA: {wja_num}")
         # ic(strain)
         assert user_requested, f"User not found for initials: {row['Who requested']}"
         tank = row['Tank'][-1]
