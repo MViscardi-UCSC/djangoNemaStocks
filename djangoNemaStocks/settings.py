@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     'django_bootstrap5',
     'django_bootstrap_icons',
     'simple_history',
+    'auditlog',
 ]
 
 MIDDLEWARE = [
@@ -86,6 +87,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
+    'auditlog.middleware.AuditlogMiddleware',
 ]
 
 ROOT_URLCONF = 'djangoNemaStocks.urls'
@@ -164,6 +166,9 @@ DJANGO_TABLES2_TABLE_ATTRS = {
         'class': 'table-light',
     },
 }
+
+# Added my Marcus on 10/18/2024 to get better transaction tracking!
+AUDITLOG_INCLUDE_ALL_MODELS = True
 
 
 # Added by Marcus based on: https://docs.djangoproject.com/en/3.1/topics/auth/default/#the-login-required-decorator

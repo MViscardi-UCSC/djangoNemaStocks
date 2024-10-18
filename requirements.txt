@@ -6,6 +6,7 @@ django-bootstrap5
 django-bootstrap-icons
 django-tables2
 django-simple-history~=3.4.0
+django-auditlog
 tqdm~=4.66.1
 django-environ
 pytest~=8.0.0
