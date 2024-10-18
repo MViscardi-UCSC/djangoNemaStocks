@@ -30,7 +30,7 @@ class UserProfile(models.Model):
     active_status = models.BooleanField(default=False)
     is_strain_czar = models.BooleanField(default=False)
     
-    history = HistoricalRecords()
+    simp_history = HistoricalRecords()
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)  # Call the "real" save() method.

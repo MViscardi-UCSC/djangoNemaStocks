@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+
 from simple_history.models import HistoricalRecords
 
 from hardcoded import CAP_COLOR_OPTIONS
@@ -47,7 +48,8 @@ class Strain(models.Model):
     formatted_wja = models.CharField(max_length=8, editable=False)
     source = models.CharField(max_length=255, null=True, blank=True, editable=True)
     additional_comments = models.TextField(null=True, blank=True, editable=True)
-    history = HistoricalRecords()
+    
+    simp_history = HistoricalRecords()
     
     objects = StrainManager()
 
@@ -135,7 +137,7 @@ class Tube(models.Model):
     thaw_requester = models.ForeignKey('profiles.UserProfile', on_delete=models.CASCADE,
                                         related_name='thawed_tubes',
                                         null=True, blank=True)
-    history = HistoricalRecords()
+    simp_history = HistoricalRecords()
     
     class Meta:
         unique_together = ('strain', 'freeze_group', 'box', 'set_number')
@@ -186,7 +188,7 @@ class Box(models.Model):
     dewar = models.IntegerField()
     rack = models.IntegerField()
     box = models.IntegerField()
-    history = HistoricalRecords()
+    simp_history = HistoricalRecords()
 
     class Meta:
         unique_together = ('dewar', 'rack', 'box')
@@ -223,7 +225,7 @@ class DefaultBox(models.Model):
     This model is used to store the box for each dewar that tubes are placed in by default.
     """
     box = models.ForeignKey('Box', on_delete=models.CASCADE)
-    history = HistoricalRecords()
+    simp_history = HistoricalRecords()
 
     class Meta:
         verbose_name_plural = 'DefaultBoxes'
@@ -249,6 +251,7 @@ class DefaultBox(models.Model):
     def __str__(self):
         return self.__repr__()
 
+
 class FreezeGroup(models.Model):
     date_created = models.DateField(default=timezone.now, editable=True)
     date_stored = models.DateField(null=True)
@@ -270,7 +273,7 @@ class FreezeGroup(models.Model):
     
     freeze_request = models.OneToOneField('FreezeRequest', on_delete=models.CASCADE, null=True, blank=True)
     
-    history = HistoricalRecords()
+    simp_history = HistoricalRecords()
 
     # class Meta:
     #     unique_together = ('strain', 'date_stored')
@@ -348,7 +351,7 @@ class ThawRequest(models.Model):
     thawed_by = models.ForeignKey('profiles.UserProfile', on_delete=models.CASCADE,
                                   related_name='czar_thawed_tubes',
                                   null=True, blank=True)
-    history = HistoricalRecords()
+    simp_history = HistoricalRecords()
     
     objects = ThawRequestManager()
 
@@ -415,7 +418,7 @@ class FreezeRequest(models.Model):
                                null=True, blank=True)
     tester_comments = models.CharField(max_length=255, null=True, blank=True)
     
-    history = HistoricalRecords()
+    simp_history = HistoricalRecords()
     
     objects = FreezeRequestManager()
 
