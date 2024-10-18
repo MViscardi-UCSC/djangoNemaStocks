@@ -4,7 +4,6 @@
 {% block content %}
     {% if context %}
         <h1>Context Passed</h1>
-        <p>Marked strains as not passing their test:</p>
         {% for key, value in context.items %}
             <p>{{ key|safe }}: {{ value|safe }}</p>
         {% endfor %}

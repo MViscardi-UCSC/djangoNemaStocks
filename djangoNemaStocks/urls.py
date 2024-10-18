@@ -75,7 +75,6 @@ urlpatterns = [
          nema_views.thaw_request_change_confirmation, name='thaw_request_change_confirmation'),
     path('outstanding_thaw_requests/', nema_views.outstanding_thaw_requests, name='outstanding_thaw_requests'),
     # Testing Functionality pages:
-    path('failed_freeze_strains_page/', nema_views.failed_freeze_strains_page, name='failed_freeze_strains_page'),
     path('func_tester_page/', nema_views.func_tester_page, name='func_tester_page'),
     path('scary_stuff/', nema_views.scary_stuff, name='scary_stuff'),
 ]

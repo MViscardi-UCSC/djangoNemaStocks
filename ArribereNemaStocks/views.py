@@ -633,38 +633,12 @@ def ongoing_freezes(request):
 
 
 # Test things:
-# I want to collect all the strains that have their most recent freezeRequests as failures:
-def failed_freeze_strains_page(request):
-    failed_freeze_strains = nema_models.Strain.objects.filter(freeze_groups__passed_test=False).distinct()
-    strains_with_most_recent_failures = []
-    for strain in failed_freeze_strains:
-        most_recent_freeze = strain.freeze_groups.order_by('-date_created').first()
-        if most_recent_freeze.passed_test:
-            continue
-        strains_with_most_recent_failures.append(most_recent_freeze.strain)
-    return render(request, 'strains/failed_freeze_strains.html',
-                  {'strains_with_fails': strains_with_most_recent_failures})
-
-
 @transaction.atomic
 def func_tester_page(request):
     context = {}
-    strains_with_refreeze_in_their_freeze_groups = []
-    all_freeze_groups = nema_models.FreezeGroup.objects.all()
-    for freeze_group in all_freeze_groups:
-        if not bool(freeze_group.tester_comments):
-            continue  # No comment, continuing avoids the NoneType error below
-        refreeze_checks = ['refreeze' in freeze_group.tester_comments.lower(),
-                           're-freeze' in freeze_group.tester_comments.lower(),
-                           're freeze' in freeze_group.tester_comments.lower()]
-        if any(refreeze_checks):
-            strains_with_refreeze_in_their_freeze_groups.append(f"<br>{freeze_group.strain.formatted_wja} "
-                                                                f"{freeze_group.tester_comments} - "
-                                                                f"{freeze_group.tester}")
-            print(f"Strain {freeze_group.strain} comments: {freeze_group.tester_comments}.")
-            freeze_group.passed_test = False
-            freeze_group.save()
-    context['strains_with_refreeze_in_their_freeze_groups'] = strains_with_refreeze_in_their_freeze_groups
+    # Let's see if we can look at the histories of all strains
+    # for history_step in nema_models.Strain.history.all():
+    #     print(history_step)
     return render(request, 'pieces/func_tester_page.html',
                   {'context': context})
 
