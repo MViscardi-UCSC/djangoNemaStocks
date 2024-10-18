@@ -4,6 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth.models import User, Group, AbstractUser
 
 from simple_history.models import HistoricalRecords
+from auditlog.models import AuditlogHistoryField
 
 from hardcoded import ROLE_CHOICES
 import ArribereNemaStocks.models as nema_models
@@ -13,6 +14,8 @@ from typing import List, Tuple, Union
 # Create your models here.
 class OpenRegistration(models.Model):
     is_open = models.BooleanField(default=False)
+    
+    audit_history = AuditlogHistoryField()
     
     def __repr__(self):
         return f'Open Registration: {self.is_open}'
@@ -31,6 +34,7 @@ class UserProfile(models.Model):
     is_strain_czar = models.BooleanField(default=False)
     
     simp_history = HistoricalRecords()
+    audit_history = AuditlogHistoryField()
     
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)  # Call the "real" save() method.

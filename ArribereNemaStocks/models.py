@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from simple_history.models import HistoricalRecords
+from auditlog.models import AuditlogHistoryField
 
 from hardcoded import CAP_COLOR_OPTIONS
 
@@ -28,6 +29,8 @@ class OpenStrainEditing(models.Model):
         ('N', 'No Editing Permissions'),
     )
     edit_ability = models.CharField(max_length=1, choices=editing_levels, default='N')
+    
+    audit_history = AuditlogHistoryField()
 
     def get_edit_ability_display(self):
         return dict(self.editing_levels).get(self.edit_ability, 'Unknown')
@@ -50,6 +53,7 @@ class Strain(models.Model):
     additional_comments = models.TextField(null=True, blank=True, editable=True)
     
     simp_history = HistoricalRecords()
+    audit_history = AuditlogHistoryField()
     
     objects = StrainManager()
 
@@ -138,6 +142,7 @@ class Tube(models.Model):
                                         related_name='thawed_tubes',
                                         null=True, blank=True)
     simp_history = HistoricalRecords()
+    audit_history = AuditlogHistoryField()
     
     class Meta:
         unique_together = ('strain', 'freeze_group', 'box', 'set_number')
@@ -189,6 +194,7 @@ class Box(models.Model):
     rack = models.IntegerField()
     box = models.IntegerField()
     simp_history = HistoricalRecords()
+    audit_history = AuditlogHistoryField()
 
     class Meta:
         unique_together = ('dewar', 'rack', 'box')
@@ -226,6 +232,7 @@ class DefaultBox(models.Model):
     """
     box = models.ForeignKey('Box', on_delete=models.CASCADE)
     simp_history = HistoricalRecords()
+    audit_history = AuditlogHistoryField()
 
     class Meta:
         verbose_name_plural = 'DefaultBoxes'
@@ -274,6 +281,7 @@ class FreezeGroup(models.Model):
     freeze_request = models.OneToOneField('FreezeRequest', on_delete=models.CASCADE, null=True, blank=True)
     
     simp_history = HistoricalRecords()
+    audit_history = AuditlogHistoryField()
 
     # class Meta:
     #     unique_together = ('strain', 'date_stored')
@@ -352,6 +360,7 @@ class ThawRequest(models.Model):
                                   related_name='czar_thawed_tubes',
                                   null=True, blank=True)
     simp_history = HistoricalRecords()
+    audit_history = AuditlogHistoryField()
     
     objects = ThawRequestManager()
 
@@ -419,6 +428,7 @@ class FreezeRequest(models.Model):
     tester_comments = models.CharField(max_length=255, null=True, blank=True)
     
     simp_history = HistoricalRecords()
+    audit_history = AuditlogHistoryField()
     
     objects = FreezeRequestManager()
 
