@@ -9,3 +9,4 @@ django-simple-history~=3.4.0
 tqdm~=4.66.1
 django-environ
 pytest~=8.0.0
+pandas
