@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.contrib import messages
+from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.translation import ngettext
 from django.db.models import F, Value, CharField
 from django.db.models.functions import Concat
@@ -48,12 +50,34 @@ class TubeAdmin(SimpleHistoryAdmin):
             % updated,
             messages.SUCCESS,
         )
-
-    list_display = ('id', 'strain', 'cap_color', 'date_created', 'date_thawed',
-                    'box', 'freeze_group', 'thawed', 'thaw_requester')
+        
+    @admin.display(ordering='strain__wja', description='Strain')
+    def strain_link(self, obj):
+        url = reverse("admin:ArribereNemaStocks_strain_change", args=[obj.strain.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.strain.formatted_wja)
+    
+    @admin.display(ordering='box__dewar', description='Box')
+    def box_link(self, obj):
+        url = reverse("admin:ArribereNemaStocks_box_change", args=[obj.box.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.box)
+    
+    @admin.display(ordering='freeze_group', description='Freeze Group')
+    def freeze_group_link(self, obj):
+        url = reverse("admin:ArribereNemaStocks_freezegroup_change", args=[obj.freeze_group.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.freeze_group)
+    
+    list_display = ('id', 'strain_link', 'cap_color', 'date_created', 'date_thawed',
+                    'box_link', 'freeze_group_link', 'thawed', 'thaw_requester')
     list_filter = ('date_created', 'date_thawed', 'thawed', 'thaw_requester', 'cap_color')
     search_fields = ('date_created', 'date_thawed', 'strain__wja',
-                     'thawed', 'thaw_requester')
+                     'thawed', 'thaw_requester__initials', 'cap_color',
+                     'box__dewar', 'box__rack', 'box__box',
+                     'freeze_group__id', 'id',
+                     'thaw_requester__user__username',
+                     'thaw_requester__user__first_name',
+                     'thaw_requester__user__last_name',
+                     )
+    # list_display_links = ('id', 'strain', 'box', 'freeze_group')
     actions = [thaw_tubes, unthaw_tubes]
 
     autocomplete_fields = ['strain', 'box', 'freeze_group']
@@ -118,8 +142,13 @@ class FreezeGroupAdmin(SimpleHistoryAdmin):
     @admin.action(description="Unmark selected freezes with 'Stored'")
     def unmark_stored(self, request, queryset):
         queryset.update(stored=False)
-
-    list_display = ('id', 'strain', 'freezer',
+    
+    @admin.display(ordering='strain__wja', description='Strain')
+    def strain_link(self, obj):
+        url = reverse("admin:ArribereNemaStocks_strain_change", args=[obj.strain.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.strain.formatted_wja)
+    
+    list_display = ('id', 'strain_link', 'freezer',
                     'started_test', 'completed_test', 'passed_test', 'stored',
                     'tester', 'tester_comments')
     list_filter = ('freezer',
@@ -139,6 +168,24 @@ class FreezeGroupInline(admin.TabularInline):
     model = models.FreezeGroup
     extra = 0
     autocomplete_fields = ['strain']
+    fields = ('strain', 'active_tube_count', 'thawed_tube_count', 'edit_link')
+
+    readonly_fields = ('active_tube_count', 'thawed_tube_count', 'edit_link')
+
+    def active_tube_count(self, obj):
+        return obj.active_tubes_count()
+
+    active_tube_count.short_description = 'Active Tubes'
+
+    def thawed_tube_count(self, obj):
+        return obj.inactive_tubes_count()
+
+    thawed_tube_count.short_description = 'Thawed Tubes'
+    
+    def edit_link(self, obj):
+        url = reverse("admin:ArribereNemaStocks_freezegroup_change", args=[obj.pk])
+        return format_html('<a href="{}">Edit</a>', url)
+    edit_link.short_description = 'Edit Link'
 
 
 class FreezeGroupInlineS(admin.StackedInline):
