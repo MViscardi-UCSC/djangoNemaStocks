@@ -14,6 +14,9 @@
                 <a href="{% url 'freeze_request_form' %}?formatted_wja={{ strain.formatted_wja }}&number_of_tubes=5" class="btn btn-primary">Request Freeze</a>
                 <a href="{% url 'thaw_request_form' %}?formatted_wja={{ strain.formatted_wja }}" class="btn btn-primary">Request Thaw</a>
                 <a href="{% url 'edit_strain' wja=strain.wja %}" class="btn btn-secondary">Edit {{ strain.formatted_WJA }}</a>
+                {% if user.is_staff %}
+                    <a href="{% url 'admin:ArribereNemaStocks_strain_change' strain.id %}" class="btn btn-warning">Strain's Admin Page</a>
+                {% endif %}
             </div>
         </div>
         <div>
@@ -42,9 +45,28 @@
                 {% render_table thaws_table %}
             </div>
         {% endif %}
+        <div>
+            <h2>Recent Thawed Tube:</h2>
+            <small><i>
+                This is mostly redundant information with the <strong>Recent Thaws</strong> section.
+                Note that the <strong>Recent Thaws</strong> section only tracks requests for thaws 
+                rather than the tubes themselves. This means thaws from before modern Nemastocks 
+                will only appear here!<br>
+            </i></small>
+            {% if recent_thawed_tube %}
+                <dl class="mt-2">
+                    <dt>Thawed Tube ID:</dt>
+                    <dd>#{{ recent_thawed_tube.id }}</dd>
+                    <dt>Thawed Tube Date:</dt>
+                    <dd>{{ recent_thawed_tube.date_thawed }} ({{ recent_thawed_tube.date_thawed|timesince }} ago)</dd>
+                    <dt>Thawed For:</dt>
+                    <dd>{{ recent_thawed_tube.thaw_requester }}</dd>
+                    <dt>Tubes Remaining From This Freeze:</dt>
+                    <dd>{{ recent_thawed_tube.freeze_group.active_tubes_count }}</dd>
+                </dl>
+            {% else %}
+                <p class="mt-2">No tubes have been thawed from this strain.</p>
+            {% endif %}
+        </div>
     </div>
-{% endblock %}
-
-{% block footer %}
-    <a href="{% url 'edit_strain' wja=strain.wja %}">edit strain {{ strain.formatted_WJA }}</a>
 {% endblock %}

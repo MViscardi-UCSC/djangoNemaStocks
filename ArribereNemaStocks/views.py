@@ -215,12 +215,15 @@ def strain_details(request, wja, *args, **kwargs):
     recent_thaw_requests = strain.thaw_requests.all().order_by('-date_created')[:3]
     thaws_table = nema_tables.MiniThawRequestTable(nema_models.ThawRequest.objects.filter(pk__in=recent_thaw_requests))
     RequestConfig(request, paginate={"per_page": 10}).configure(thaws_table)
+    
+    recent_thawed_tube = strain.tube_set.filter(thawed=True).order_by('-date_thawed').first()
 
     return render(request, 'strains/strain_details.html', {'strain': strain,
                                                            'tubes_table': tubes_table,
                                                            'tubes_table_count': len(active_freeze_groups),
                                                            'thaws_table': thaws_table,
-                                                           'thaws_table_count': len(recent_thaw_requests)})
+                                                           'thaws_table_count': len(recent_thaw_requests),
+                                                           'recent_thawed_tube': recent_thawed_tube})
 
 
 # Thaw Functionality:
