@@ -40,17 +40,20 @@
             <ul class="navbar-nav me-auto mb-6 mb-lg-0">
             {% if request.path != '/strain_list_datatable/' and request.path != '/' %}
                 <li class="nav-item">
-                    <form class="col-md-8" method="get" action="{% url 'strain_list_datatable' %}">
-                        <div class="input-group mt-3">
-                            <input class="form-control" type="text" name="q" placeholder="Strain Search..." value="{{ request.GET.q }}"
-                            title="Search within WJA, Phenotype, Genotype, and Description for strains"
-                            id="searchBoxInput">
-                            <label class="form-check-label" for="searchBoxInput"></label>
-                            <button class="btn btn-primary" type="submit"
-                                    title="Search within WJA, Phenotype, Genotype, and Description for strains">Search</button>
-                            <a href="{% url 'strain_list_datatable' %}" class="btn btn-secondary" title="View all strains">View All</a>
-                        </div>
-                    </form>
+{#                    <form class="col-md-8" method="get" action="{% url 'strain_list_datatable' %}">#}
+{#                        <div class="input-group mt-3">#}
+{#                            <input class="form-control" type="text" name="q" placeholder="Strain Search..." value="{{ request.GET.q }}"#}
+{#                            title="Search within WJA, Phenotype, Genotype, and Description for strains"#}
+{#                            id="searchBoxInput">#}
+{#                            <label class="form-check-label" for="searchBoxInput"></label>#}
+{#                            <button class="btn btn-primary" type="submit" name="search_type" value="search"#}
+{#                                    title="Search within WJA, Phenotype, and Genotype for strains">Search</button>#}
+{#                            <button class="btn btn-secondary" type="submit" name="search_type" value="deep_search"#}
+{#                                    title="Perform a deep search of all strain fields">Deep Search</button>#}
+{#                            <a href="{% url 'strain_list_datatable' %}" class="btn btn-secondary" title="View all strains">View All</a>#}
+{#                        </div>#}
+{#                    </form>#}
+                    {% include 'pieces/search_box_md-8.html' %}
                 </li>
             {% endif %}
                 <li class="nav-item {% block home_active %}{% endblock %}">

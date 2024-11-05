@@ -23,16 +23,18 @@
             <div class="col-sm-12 col-md-6 border-end border-bottom">
                 <h2>Strain Search</h2>
                 <p>
-                    Use this to search within WJA, Phenotype, Genotype, and Description for strains.
+                    Use this to search for strains.
                 </p>
                 <form class="d-flex" method="get" action="{% url 'strain_list_datatable' %}">
                     <div class="input-group mt-3">
                         <input class="form-control" type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}"
-                        title="Search within WJA, Phenotype, Genotype, and Description for strains"
+                        title="Search for strains"
                         id="searchBoxInput">
                         <label class="form-check-label" for="searchBoxInput"></label>
-                        <button class="btn btn-primary" type="submit"
-                                title="Search within WJA, Phenotype, Genotype, and Description for strains">Search</button>
+                        <button class="btn btn-primary" type="submit" name="search_type" value="search"
+                                title="Search within WJA, Phenotype, and Genotype for strains">Search</button>
+                        <button class="btn btn-secondary" type="submit" name="search_type" value="deep_search"
+                                title="Perform a deep search of all strain fields (slower)">Deep Search</button>
                         <a href="{% url 'strain_list_datatable' %}" class="btn btn-secondary" title="View all strains">View All</a>
                     </div>
                 </form>

@@ -16,8 +16,19 @@ class StrainManager(models.Manager):
     def search(self, query):
         return self.filter(
             Q(formatted_wja__icontains=query) |
+            Q(phenotype__icontains=query) |
+            Q(genotype__icontains=query)
+            # Add other fields as needed
+        )
+    
+    def deep_search(self, query):
+        return self.filter(
+            Q(formatted_wja__icontains=query) |
             Q(description__icontains=query) |
-            Q(phenotype__icontains=query)
+            Q(phenotype__icontains=query) |
+            Q(genotype__icontains=query) |
+            Q(source__icontains=query) |
+            Q(additional_comments__icontains=query)
             # Add other fields as needed
         )
 

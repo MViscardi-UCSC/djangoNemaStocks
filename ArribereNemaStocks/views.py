@@ -63,6 +63,7 @@ def strain_search(request, *args, **kwargs):
 
 
 def strain_list_datatable(request, *args, **kwargs):
+    search_type = request.GET.get('search_type', 'search')
     search_term = request.GET.get('q')
     user_id = request.GET.get('user_id')
     user_profile_initials = request.GET.get('user_profile_initials')
@@ -74,7 +75,10 @@ def strain_list_datatable(request, *args, **kwargs):
         user_profile = profile_models.UserProfile.objects.get(user__id=user_id)
         strains = user_profile.get_all_strains()
     elif search_term:
-        strains = nema_models.Strain.objects.search(search_term)
+        if search_type and search_type == 'deep_search':
+            strains = nema_models.Strain.objects.deep_search(search_term)
+        else:
+            strains = nema_models.Strain.objects.search(search_term)
     else:
         strains = nema_models.Strain.objects.all()
     
@@ -86,7 +90,8 @@ def strain_list_datatable(request, *args, **kwargs):
     table = nema_tables.StrainTable(strains)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
 
-    return render(request, 'strains/strain_list_datatable.html', {'table': table, 'results_count': strains.count()})
+    return render(request, 'strains/strain_list_datatable.html',
+                  {'table': table, 'results_count': strains.count()})
 
 
 def new_strain(request, *args, **kwargs):

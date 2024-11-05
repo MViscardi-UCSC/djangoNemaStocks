@@ -14,8 +14,10 @@
             <div class="input-group mt-3">
                 <input class="form-control" type="text" name="q" placeholder="Search..." value="{{ request.GET.q }}"
                 title="Search within WJA, Phenotype, Genotype, and Description for strains">
-                <button class="btn btn-primary" type="submit"
-                        title="Search within WJA, Phenotype, Genotype, and Description for strains">Search</button>
+                <button class="btn btn-primary" type="submit" name="search_type" value="search"
+                        title="Search within WJA, Phenotype, and Genotype for strains">Search</button>
+                <button class="btn btn-secondary" type="submit" name="search_type" value="deep_search"
+                        title="Perform a deep search of all strain fields">Deep Search</button>
             {% if request.GET.q %}
                 <a href="{% url 'strain_list_datatable' %}" class="btn btn-secondary" title="View all strains">
                     View All
