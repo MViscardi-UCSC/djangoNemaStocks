@@ -160,7 +160,7 @@ class AdvancingThawRequestForm(forms.ModelForm):
         try:
             tester = tube.freeze_group.tester.initials
         except AttributeError:
-            tester = "NoTester?"
+            tester = "N/A?"
         return (f"{tube.box.short_pos_repr()} - {tester} "
                 f"({tube.date_created}): {tube.freeze_group.tester_comments}")
     
