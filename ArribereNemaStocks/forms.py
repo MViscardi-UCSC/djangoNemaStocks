@@ -157,7 +157,11 @@ class AdvancingThawRequestForm(forms.ModelForm):
             
     @staticmethod
     def tube_label_from_instance_with_comments(tube):
-        return (f"{tube.box.short_pos_repr()} - {tube.freeze_group.tester.initials} "
+        if tube.freeze_group.tester:
+            tester = tube.freeze_group.tester.initials
+        else:
+            tester = "NoTester?"
+        return (f"{tube.box.short_pos_repr()} - {tester} "
                 f"({tube.date_created}): {tube.freeze_group.tester_comments}")
     
     def save(self, commit=True):
