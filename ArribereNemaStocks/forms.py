@@ -157,9 +157,9 @@ class AdvancingThawRequestForm(forms.ModelForm):
             
     @staticmethod
     def tube_label_from_instance_with_comments(tube):
-        if tube.freeze_group.tester:
+        try:
             tester = tube.freeze_group.tester.initials
-        else:
+        except AttributeError:
             tester = "NoTester?"
         return (f"{tube.box.short_pos_repr()} - {tester} "
                 f"({tube.date_created}): {tube.freeze_group.tester_comments}")
