@@ -161,7 +161,7 @@ class AdvancingThawRequestForm(forms.ModelForm):
             tester = tube.freeze_group.tester.initials
         except AttributeError:
             tester = "N/A?"
-        return (f"{tube.box.short_pos_repr()}[{tube.cap_color}] - {tester} "
+        return (f"{tube.box.short_pos_repr()} [{tube.cap_color}] - {tester} "
                 f"({tube.date_created}): {tube.freeze_group.tester_comments}")
     
     def save(self, commit=True):
