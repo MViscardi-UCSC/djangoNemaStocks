@@ -21,6 +21,10 @@ from .utils import parse_strain_data
 
 import profiles.models as profile_models
 
+# TODO: Implement a way to "bulk change" the fields in the ongoing freeze and thaw requests tables
+# TODO: Add a review slide for the ongoing freeze and thaw request tables, when submitting
+# TODO: Remove canceled thaw requests from the strain details pages
+
 
 # General Navigation:
 def index(request, *args, **kwargs):
@@ -41,11 +45,6 @@ def index(request, *args, **kwargs):
 
 def about(request, *args, **kwargs):
     return render(request, 'basic_navigation/about.html')
-
-
-def send_test_mail(request, *args, **kwargs):
-    # TODO: Implement a email sending function
-    pass
 
 
 # Strain Navigation:
@@ -95,8 +94,6 @@ def strain_list_datatable(request, *args, **kwargs):
 
 
 def new_strain(request, *args, **kwargs):
-    # TODO: Get NEW STRAIN page working, with permission checks
-    #       Additional checks for the new strain being unique and in the user's range
     form = nema_forms.StrainForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         # Let's add some quick checks to make sure the new strain is unique and in the user's range
