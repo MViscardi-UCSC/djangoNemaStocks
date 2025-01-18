@@ -28,7 +28,7 @@ register_converter(WJAConverter, 'wja')
 
 urlpatterns = [
     # Testing:
-    path('send_test_mail/', nema_views.send_test_mail, name='send_test_mail'),
+    # path('send_test_mail/', nema_views.send_test_mail, name='send_test_mail'),
     # Admin:
     path('admin/', admin.site.urls),
     # User Authentication:
