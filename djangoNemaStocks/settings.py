@@ -128,7 +128,7 @@ WSGI_APPLICATION = 'djangoNemaStocks.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(BASE_DIR / 'db.sqlite3'),
+        'NAME': f'{env["DATABASE_DIR_ROOT"]}/db.sqlite3',
     }
 }
 
