@@ -68,8 +68,13 @@ ALLOWED_HOSTS = ['arriberelab.pbsci.ucsc.edu',
                  '128.114.144.55', '0.0.0.0', '128.114.0.0/16', '169.233.0.0/16',
                  "djangonemastocks.applikuapp.com",]  # Modified by Eric Shell, 2/5/2024
 
-# Application definition
+CSRF_TRUSTED_ORIGINS = [
+    "https://djangonemastocks.applikuapp.com",
+]
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
