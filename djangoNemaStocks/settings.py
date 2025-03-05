@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'django_bootstrap_icons',
     'simple_history',
     'auditlog',
+    'whitenoise',
 ]
 
 MIDDLEWARE = [
