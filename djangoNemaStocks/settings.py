@@ -21,8 +21,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Adding a static root for deployment based on:
 # https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/#static-root-and-static-url
-STATIC_ROOT = str(BASE_DIR / 'static')
+STATIC_ROOT = str(BASE_DIR / 'staticfiles')
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [str(BASE_DIR / 'static')]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 LOGGING = {
@@ -80,6 +83,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
