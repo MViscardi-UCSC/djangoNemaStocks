@@ -132,6 +132,14 @@ DATABASES = {
     }
 }
 
+MIGRATION_MODULES = {
+    'admin': 'collected_migrations.admin.migrations',
+    'auditlog': 'collected_migrations.auditlog.migrations',
+    'auth': 'collected_migrations.auth.migrations',
+    'contenttypes': 'collected_migrations.contenttypes.migrations',
+    'sessions': 'collected_migrations.sessions.migrations',
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
